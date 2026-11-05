@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using System.Diagnostics;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Seed.Steps;
@@ -32,41 +30,25 @@ public sealed class PublishStep(string project, string destination) : IStep
 
     private async Task<Error?> PublishAsync(string output, CancellationToken cancellationToken)
     {
-        var info = new ProcessStartInfo("dotnet")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
+        var published = await Command.CaptureAsync(
+            "dotnet",
+            [
+                "publish", project,
+                "-c", "Release",
+                "--use-current-runtime",
+                "--self-contained", "false",
+                "-p:PublishSingleFile=true",
+                "-o", output,
+            ],
+            cancellationToken);
 
-        foreach (var argument in (string[])[
-            "publish", project,
-            "-c", "Release",
-            "--use-current-runtime",
-            "--self-contained", "false",
-            "-p:PublishSingleFile=true",
-            "-o", output])
+        if (!published.IsSuccess)
         {
-            info.ArgumentList.Add(argument);
+            return published.Error;
         }
 
-        using var process = new Process { StartInfo = info };
-
-        try
-        {
-            process.Start();
-        }
-        catch (Win32Exception)
-        {
-            return new Error("seed.dotnet_missing", "Could not run dotnet; is the .NET SDK installed?");
-        }
-
-        var log = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var errors = process.StandardError.ReadToEndAsync(cancellationToken);
-
-        await process.WaitForExitAsync(cancellationToken);
-
-        return process.ExitCode == 0
+        return published.Value.ExitCode == 0
             ? null
-            : new Error("seed.publish_failed", $"dotnet publish {project} failed:{Environment.NewLine}{await log}{await errors}");
+            : new Error("seed.publish_failed", $"dotnet publish {project} failed:{Environment.NewLine}{published.Value.Output}");
     }
 }
