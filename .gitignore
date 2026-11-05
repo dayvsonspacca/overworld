@@ -2,7 +2,5 @@ bin/
 obj/
 dist/
 
-apps/*/icon.png
-
 # Settings for this machine only, such as monitors.
 config/hypr/hyprland.local.lua
