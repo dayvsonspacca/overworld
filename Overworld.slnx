@@ -10,6 +10,7 @@
     <Project Path="src/Overworld.Bedrock.Cli/Overworld.Bedrock.Cli.csproj" />
     <Project Path="src/Overworld.Bedrock.Mcp/Overworld.Bedrock.Mcp.csproj" />
     <Project Path="src/Overworld.Bedrock.Desktop/Overworld.Bedrock.Desktop.csproj" />
+    <Project Path="src/Overworld.Bedrock.Hosting/Overworld.Bedrock.Hosting.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
