@@ -41,4 +41,5 @@ The shell comes in one feature per commit, in the order the taskbar needs them: 
 
 - `just build`
 - `just test`
+- `just install-overworld`: publishes the daemon and CLI into `$OVERWORLD_BIN` (default `~/.local/share/overworld/bin`) and links `overworld` into `~/.local/bin`, where Hyprland's autostart finds it.
 - `just install-dye`: publishes Dye into `$OVERWORLD_APPS` (default `~/.local/share/overworld/apps`), adds it to the launcher and links `overworld:dye` into `~/.local/bin`. The launcher icon is the untracked `apps/Dye/icon.png` when present, `dye.svg` otherwise.

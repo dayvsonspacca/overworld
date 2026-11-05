@@ -1,5 +1,7 @@
 # Where apps are installed; set OVERWORLD_APPS to keep them somewhere else on your machine.
 apps := env("OVERWORLD_APPS", env("HOME") / ".local/share/overworld/apps")
+# Where the overworld daemon is installed; set OVERWORLD_BIN to keep it somewhere else.
+bin := env("OVERWORLD_BIN", env("HOME") / ".local/share/overworld/bin")
 
 build:
     dotnet build
@@ -22,3 +24,16 @@ install-dye:
     mkdir -p ~/.local/share/applications ~/.local/bin
     mv "{{apps}}/dye/dye.desktop" ~/.local/share/applications/dye.desktop
     ln -sf "{{apps}}/dye/dye" ~/.local/bin/overworld:dye
+
+# Publishes the overworld daemon and CLI into the bin folder and links overworld into ~/.local/bin.
+# A running daemon keeps its old build until the session restarts it.
+install-overworld:
+    rm -rf dist/overworld
+    dotnet publish src/Overworld -c Release -r linux-x64 --self-contained false -p:PublishSingleFile=true -o dist/overworld
+    mkdir -p "$(dirname "{{bin}}")"
+    rm -rf "{{bin}}.new"
+    cp -r dist/overworld "{{bin}}.new"
+    rm -rf "{{bin}}"
+    mv "{{bin}}.new" "{{bin}}"
+    mkdir -p ~/.local/bin
+    ln -sf "{{bin}}/overworld" ~/.local/bin/overworld
