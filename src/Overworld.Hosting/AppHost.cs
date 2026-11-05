@@ -10,14 +10,14 @@ public static class AppHost
         string command,
         IReadOnlyList<Operation> operations,
         string[] args,
-        Func<Task<int>> withoutArgs)
+        Func<Task<int>>? withoutArgs = null)
     {
         if (operations.Any(operation => operation.Name == "mcp"))
         {
             throw new ArgumentException("No operation may be named 'mcp'; that name starts the MCP server.", nameof(operations));
         }
 
-        if (args is [])
+        if (args is [] && withoutArgs is not null)
         {
             return await withoutArgs();
         }
