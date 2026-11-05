@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Overworld.Bedrock.Mcp/Overworld.Bedrock.Mcp.csproj" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageVersion Include="ModelContextProtocol.Core" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>
 </Project>
