@@ -5,7 +5,7 @@
 set -euo pipefail
 
 main() {
-    local repo="${OVERWORLD_REPO:-$HOME/Projetos/me/overworld}"
+    local repo="${OVERWORLD_REPO:-$HOME/overworld}"
 
     if ! command -v pacman >/dev/null; then
         echo "Overworld installs on Arch Linux only." >&2
