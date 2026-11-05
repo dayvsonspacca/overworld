@@ -5,4 +5,10 @@
     <File Path="global.json" />
     <File Path="Justfile" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
+  </Folder>
 </Solution>

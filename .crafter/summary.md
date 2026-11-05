@@ -11,13 +11,14 @@ Overworld is being built by merging two older repositories, one commit at a time
 - **Amethyst** (`~/Projetos/me/amethyst`): the environment. The daemon in `src/Amethyst` (supervision, processes, IPC, CLI, pins, XDG paths, logging), the QML shell in `shell/`, the Hyprland Lua config in `hypr/`. Amethyst's daemon becomes Overworld's.
 - **Bedrock** (`~/Projetos/me/desktop/bedrock`): the foundation for apps (`Bedrock.Core`, `.Cli`, `.Mcp`, `.Desktop`, with the Avalonia theme) and the first app, Dye, a color palette app.
 
-So far only the root build setup has arrived. Bedrock's code has never been built with Amethyst's analyzers; expect fixes when it comes in.
+So far the root build setup and Bedrock's results (`Error`, `Result<T>`) have arrived. Bedrock's code has never been built with Amethyst's analyzers; expect fixes as it comes in (`Result<T>` already lost its static factories to a `Result` class for CA1000).
 
 ## Layout
 
 - `config/`: dotfiles, mirroring `~/.config` so each folder installs as one symlink (`hypr/`, `zsh/` via `ZDOTDIR`, ...). Machine-only settings live in untracked files.
 - `shell/`: the Quickshell QML.
-- `src/`: C# for the foundation and the environment (`Bedrock*`, `Overworld`); `tests/` mirrors it.
+- `src/`: C# for the foundation and the environment (`Overworld.Bedrock*`, `Overworld`); `tests/` mirrors it.
+- Every project and namespace starts with `Overworld.`, apps with `Overworld.Apps.` (`Overworld.Bedrock.Results`, `Overworld.Apps.Dye`). Bedrock's old `Bedrock.Core` is now `Overworld.Bedrock`.
 - `apps/`: one folder per app, holding its own projects and tests.
 - Root: `Overworld.slnx`, `Directory.Build.props` (warnings as errors, latest-recommended analyzers, test conventions), `Directory.Packages.props` (central versions), `global.json`, `Directory.Build.rsp`, `Justfile`.
 

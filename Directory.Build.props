@@ -7,6 +7,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Overworld is C# only, so names that are keywords in other languages, like Error, are fine. -->
+    <NoWarn>$(NoWarn);CA1716</NoWarn>
     <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <IsTestProject>$(MSBuildProjectName.EndsWith('.Tests'))</IsTestProject>
   </PropertyGroup>
