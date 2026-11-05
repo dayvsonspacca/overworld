@@ -1,4 +1,5 @@
 import Quickshell
+import qs.capture
 import qs.lock
 import qs.wallpaper
 
@@ -10,4 +11,6 @@ ShellRoot {
     }
 
     LockScreen {}
+
+    CaptureLayer {}
 }

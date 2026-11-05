@@ -6,6 +6,7 @@ require("modules.animations")
 require("modules.binds")
 require("modules.switcher")
 require("modules.rules")
+require("modules.permissions")
 require("modules.autostart")
 
 local config = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")

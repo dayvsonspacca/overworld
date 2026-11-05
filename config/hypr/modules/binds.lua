@@ -7,6 +7,10 @@ local ipc = "qs -p " .. shell .. " ipc call "
 
 hl.bind(mod .. " + L",       hl.dsp.exec_cmd(ipc .. "lock lock"))
 
+hl.bind("Print",                   hl.dsp.exec_cmd(ipc .. "capture open"))
+hl.bind("SHIFT + Print",           hl.dsp.exec_cmd(ipc .. "capture screen"))
+hl.bind(mod .. " + SHIFT + S",     hl.dsp.exec_cmd(ipc .. "capture open"))
+
 hl.bind(mod .. " + T", hl.dsp.exec_cmd(programs.terminal))
 hl.bind(mod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
 
