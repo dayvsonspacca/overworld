@@ -20,6 +20,8 @@
     "Group code into namespaces by responsibility, with folders matching the namespaces.",
     "Prefer short names when the context makes them clear (locator, not shellLocator).",
     "Show each new C# file, except tests, in full and one at a time, explaining only why it exists and its role, and wait for the user's review before writing the next.",
-    "Bring code from Amethyst and Bedrock one logical piece per commit, never as a bulk copy."
+    "Bring code from Amethyst and Bedrock one logical piece per commit, never as a bulk copy.",
+    "Prefix every project and namespace with Overworld., and every app's with Overworld.Apps. (like Overworld.Bedrock.Results, Overworld.Apps.Dye).",
+    "Treat code brought from Bedrock as already reviewed: write it without showing it, and show only what differs from the original beyond the Overworld. namespace rename."
   ]
 }
