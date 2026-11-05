@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:desktop="using:Overworld.Bedrock.Desktop"
+             xmlns:palettes="using:Overworld.Apps.Dye.Palettes"
+             xmlns:presentation="using:Overworld.Apps.Dye.Presentation"
+             x:Class="Overworld.Apps.Dye.Desktop.PalettesView"
+             x:DataType="presentation:PalettesViewModel">
+  <Grid ColumnDefinitions="220,*">
+    <Border Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,0,1,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="group" Text="Palettes" Margin="16,16,16,8" />
+        <ListBox ItemsSource="{Binding Palettes}"
+                 SelectedItem="{Binding Selected}"
+                 Background="Transparent"
+                 Margin="8,0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="palettes:Palette">
+              <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <Panel Grid.Column="1">
+      <ItemsControl ItemsSource="{Binding Swatches}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Rows="1" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="presentation:Swatch">
+            <Border Background="{Binding Fill, Converter={x:Static desktop:HexBrushConverter.Instance}}">
+              <Viewbox StretchDirection="DownOnly"
+                       VerticalAlignment="Bottom"
+                       Margin="8,0,8,96">
+                <TextBlock Text="{Binding Label}"
+                           Foreground="{Binding Ink, Converter={x:Static desktop:HexBrushConverter.Instance}}"
+                           FontSize="{StaticResource FontSizeLargeTitle}"
+                           FontWeight="SemiBold" />
+              </Viewbox>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel IsVisible="{Binding !Palettes.Count}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="8">
+        <TextBlock Text="No palettes yet" FontSize="{StaticResource FontSizeTitle3}" HorizontalAlignment="Center" />
+        <TextBlock Classes="mono" Text="overworld:dye save --name Sea --colors &quot;#003F5C,#58508D&quot;" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center" />
+    </Panel>
+  </Grid>
+</UserControl>

@@ -22,6 +22,8 @@
   <Folder Name="/apps/Dye/">
     <Project Path="apps/Dye/Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Desktop/Overworld.Apps.Dye.Desktop.csproj" />
+    <Project Path="apps/Dye/Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
+    <Project Path="apps/Dye/Overworld.Apps.Dye.Presentation.Tests/Overworld.Apps.Dye.Presentation.Tests.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Tests/Overworld.Apps.Dye.Tests.csproj" />
   </Folder>
 </Solution>
