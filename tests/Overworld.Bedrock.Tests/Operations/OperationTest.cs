@@ -31,33 +31,13 @@ public sealed class OperationTest
             throw new NotImplementedException();
     }
 
-    [Operation("count", "Counts how many run at once.")]
+    [Operation("count", "Counts how many times it ran.")]
     private sealed class CountOp : IOperation<Greet, int>
     {
-        private int _running;
+        public int Runs { get; private set; }
 
-        public int MostAtOnce { get; private set; }
-
-        public async Task<Result<int>> ExecuteAsync(Greet input, CancellationToken cancellationToken)
-        {
-            MostAtOnce = Math.Max(MostAtOnce, Interlocked.Increment(ref _running));
-            await Task.Delay(20, cancellationToken);
-            Interlocked.Decrement(ref _running);
-
-            return 0;
-        }
-    }
-
-    [Fact]
-    public async Task RunsOneOperationAtATime()
-    {
-        var count = new CountOp();
-        var operation = Operation.From(count);
-
-        await Task.WhenAll(Enumerable.Range(0, 5).Select(_ =>
-            Task.Run(() => operation.ExecuteAsync(new Greet("Steve"), TestContext.Current.CancellationToken))));
-
-        Assert.Equal(1, count.MostAtOnce);
+        public Task<Result<int>> ExecuteAsync(Greet input, CancellationToken cancellationToken) =>
+            Task.FromResult<Result<int>>(++Runs);
     }
 
     [Fact]
@@ -101,20 +81,6 @@ public sealed class OperationTest
     }
 
     [Fact]
-    public async Task RunsOneOperationAtATimeWhicheverShapeCallsIt()
-    {
-        var count = new CountOp();
-        var typed = Operation.From(count);
-        Operation untyped = typed;
-
-        await Task.WhenAll(Enumerable.Range(0, 6).Select(i => Task.Run(() => i % 2 == 0
-            ? (Task)typed.ExecuteAsync(new Greet("Steve"), TestContext.Current.CancellationToken)
-            : untyped.ExecuteAsync(new Greet("Steve"), TestContext.Current.CancellationToken))));
-
-        Assert.Equal(1, count.MostAtOnce);
-    }
-
-    [Fact]
     public async Task RunsFromJsonAndAnswersInJson()
     {
         var result = await Operation.From(new GreetOp())
@@ -132,7 +98,7 @@ public sealed class OperationTest
             .RunAsync(new JsonObject { ["name"] = 42 }, TestContext.Current.CancellationToken);
 
         Assert.Equal(BedrockJson.InvalidInput, result.Error.Code);
-        Assert.Equal(0, count.MostAtOnce);
+        Assert.Equal(0, count.Runs);
     }
 
     [Fact]

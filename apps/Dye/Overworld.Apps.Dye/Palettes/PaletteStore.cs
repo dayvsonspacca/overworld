@@ -1,5 +1,5 @@
-using Overworld.Bedrock.Chest;
 using Overworld.Bedrock.Results;
+using Overworld.Chest;
 
 namespace Overworld.Apps.Dye.Palettes;
 
@@ -12,15 +12,12 @@ public sealed class PaletteStore(string directory)
 
     public async Task<Result<Palette>> AddAsync(Palette palette, CancellationToken cancellationToken)
     {
-        var palettes = await ListAsync(cancellationToken);
+        var palettes = await _file.UpdateAsync(
+            palettes => palettes.Any(saved => saved.Name == palette.Name)
+                ? new Error("palette.exists", $"A palette named '{palette.Name}' already exists.")
+                : Result.Success<IReadOnlyList<Palette>>([.. palettes, palette]),
+            cancellationToken);
 
-        if (!palettes.IsSuccess)
-        {
-            return palettes.Error;
-        }
-
-        await _file.WriteAsync([.. palettes.Value, palette], cancellationToken);
-
-        return palette;
+        return palettes.IsSuccess ? palette : palettes.Error;
     }
 }

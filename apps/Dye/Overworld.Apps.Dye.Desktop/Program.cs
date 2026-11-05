@@ -4,9 +4,10 @@ using Overworld.Apps.Dye.Presentation;
 using Overworld.Bedrock.Apps;
 using Overworld.Bedrock.Hosting;
 using Overworld.Bedrock.Operations;
+using Overworld.Chest;
 
 var app = new AppIdentity("dye");
-var store = new PaletteStore(app.DataDirectory);
+var store = new PaletteStore(DataDirectory.For(app.Name));
 
 var save = Operation.From(new SavePaletteOp(store));
 var list = Operation.From(new ListPalettesOp(store));

@@ -35,18 +35,6 @@ public sealed class SavePaletteOp(PaletteStore store) : IOperation<SavePalette, 
             colors.Add(color.Value);
         }
 
-        var palettes = await store.ListAsync(cancellationToken);
-
-        if (!palettes.IsSuccess)
-        {
-            return palettes.Error;
-        }
-
-        if (palettes.Value.Any(palette => palette.Name == name))
-        {
-            return new Error("palette.exists", $"A palette named '{name}' already exists.");
-        }
-
         return await store.AddAsync(new Palette(name, colors), cancellationToken);
     }
 }

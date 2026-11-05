@@ -13,19 +13,8 @@ public sealed class Operation<TInput, TOutput> : Operation
         _operation = operation;
     }
 
-    public async Task<Result<TOutput>> ExecuteAsync(TInput input, CancellationToken cancellationToken)
-    {
-        await Gate.WaitAsync(cancellationToken);
-
-        try
-        {
-            return await _operation.ExecuteAsync(input, cancellationToken);
-        }
-        finally
-        {
-            Gate.Release();
-        }
-    }
+    public Task<Result<TOutput>> ExecuteAsync(TInput input, CancellationToken cancellationToken) =>
+        _operation.ExecuteAsync(input, cancellationToken);
 
     public override async Task<Result<object?>> ExecuteAsync(object input, CancellationToken cancellationToken)
     {

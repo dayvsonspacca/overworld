@@ -1,6 +1,7 @@
-using Overworld.Bedrock.Chest;
+using Overworld.Bedrock.Results;
+using Overworld.Chest;
 
-namespace Overworld.Bedrock.Tests.Chest;
+namespace Overworld.Chest.Tests;
 
 public sealed class JsonFileTest : IDisposable
 {
@@ -63,6 +64,54 @@ public sealed class JsonFileTest : IDisposable
         await Pins(path).WriteAsync([], TestContext.Current.CancellationToken);
 
         Assert.Equal(["pins.json"], Directory.GetFiles(PathTo("deep", "down")).Select(Path.GetFileName));
+    }
+
+    [Fact]
+    public async Task UpdatesFromWhatTheFileHolds()
+    {
+        var file = Pins(PathTo("pins.json"));
+        await file.WriteAsync([new Pin("firefox")], TestContext.Current.CancellationToken);
+
+        var updated = await file.UpdateAsync(pins => pins.Append(new Pin("kitty")).ToList(), TestContext.Current.CancellationToken);
+
+        Assert.Equal([new Pin("firefox"), new Pin("kitty")], updated.Value);
+        Assert.Equal([new Pin("firefox"), new Pin("kitty")], (await file.ReadAsync(TestContext.Current.CancellationToken)).Value);
+    }
+
+    [Fact]
+    public async Task WritesNothingWhenTheUpdateFails()
+    {
+        var file = Pins(PathTo("pins.json"));
+        await file.WriteAsync([new Pin("firefox")], TestContext.Current.CancellationToken);
+
+        var updated = await file.UpdateAsync(
+            _ => new Error("pins.full", "No room."),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("pins.full", updated.Error.Code);
+        Assert.Equal([new Pin("firefox")], (await file.ReadAsync(TestContext.Current.CancellationToken)).Value);
+    }
+
+    [Fact]
+    public async Task WritesNothingWhenTheUpdateHandsBackWhatItGot()
+    {
+        var path = PathTo("pins.json");
+
+        var updated = await Pins(path).UpdateAsync(pins => pins, TestContext.Current.CancellationToken);
+
+        Assert.Empty(updated.Value);
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task LosesNoUpdateWhenManyRunAtOnce()
+    {
+        var file = Pins(PathTo("pins.json"));
+
+        await Task.WhenAll(Enumerable.Range(0, 20).Select(i => Task.Run(() =>
+            file.UpdateAsync(pins => pins.Append(new Pin($"app{i}")).ToList(), TestContext.Current.CancellationToken))));
+
+        Assert.Equal(20, (await file.ReadAsync(TestContext.Current.CancellationToken)).Value.Count);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Overworld.Bedrock.Cli;
 using Overworld.Bedrock.Mcp;
 using Overworld.Bedrock.Operations;
+using Overworld.Chest;
 using Overworld.Daemon;
 using Overworld.Desktop;
 using Overworld.Lifetime;
@@ -22,7 +23,7 @@ internal static class Program
 
     private static Operation[] Operations()
     {
-        var pins = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "overworld", "pins");
+        var pins = DataDirectory.For("pins");
         var places = new PinPlaces(new Dictionary<string, PinStore>
         {
             ["menu"] = new(Path.Combine(pins, "menu.json")),

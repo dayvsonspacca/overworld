@@ -7,7 +7,7 @@ The user's own Linux desktop environment, its dotfiles and the C# behind it, in 
 Structural parts are named after Minecraft blocks and mechanics, apps after items that are ordinary words.
 
 - **Bedrock** (`src/Overworld.Bedrock*`): the foundation every app is built on, depending on nothing else in Overworld. It gives apps their operations, results and errors, one JSON shape, and the ways they are reached: a window in the shared theme, a CLI and MCP.
-- **Chest** (`Overworld.Bedrock.Chest`): Bedrock's storage, the JSON files where Overworld keeps its data.
+- **Chest** (`src/Overworld.Chest`): storage, the JSON files where Overworld keeps its data and the folder they live in.
 - **Dye** (`apps/Dye`): an app for saving color palettes and seeing them as swatches.
 - **The daemon** (`src/Overworld`, binary `overworld`): the environment's own process. Hyprland starts it; it keeps the shell running and answers the environment's operations, which people and agents reach as `overworld <operation>` and `overworld mcp`.
 - **Spawner** (`Overworld.Spawner`): starts and supervises processes, Quickshell first.

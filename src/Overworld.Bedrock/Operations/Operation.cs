@@ -9,8 +9,6 @@ namespace Overworld.Bedrock.Operations;
 
 public abstract partial class Operation
 {
-    private protected static readonly SemaphoreSlim Gate = new(1, 1);
-
     protected Operation(string name, string description, Type inputType)
     {
         Name = name;
