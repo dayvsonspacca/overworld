@@ -7,8 +7,10 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
+    <Project Path="src/Overworld.Bedrock.Cli/Overworld.Bedrock.Cli.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
+    <Project Path="tests/Overworld.Bedrock.Cli.Tests/Overworld.Bedrock.Cli.Tests.csproj" />
   </Folder>
 </Solution>
