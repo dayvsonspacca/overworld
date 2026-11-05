@@ -2,7 +2,6 @@ bin/
 obj/
 dist/
 
-# A local icon for this machine only, such as a game texture that must not be published.
 apps/*/icon.png
 
 # Settings for this machine only, such as monitors.
