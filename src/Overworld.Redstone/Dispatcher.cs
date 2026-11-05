@@ -5,7 +5,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Redstone;
 
-internal sealed partial class Dispatcher(IEnumerable<Operation> operations, ILogger<Dispatcher> logger)
+public sealed partial class Dispatcher(IEnumerable<Operation> operations, ILogger<Dispatcher> logger)
 {
     private readonly Catalog _catalog = new(operations);
 

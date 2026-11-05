@@ -1,6 +1,6 @@
 namespace Overworld.Redstone;
 
-internal static class SocketPath
+public static class SocketPath
 {
     private const string FileName = "overworld.sock";
 

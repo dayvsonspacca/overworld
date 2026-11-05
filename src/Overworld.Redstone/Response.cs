@@ -3,7 +3,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Redstone;
 
-internal sealed record Response(JsonNode? Result = null, Error? Error = null)
+public sealed record Response(JsonNode? Result = null, Error? Error = null)
 {
     public static Response Success(JsonNode? result) => new(Result: result);
 

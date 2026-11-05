@@ -1,3 +1,3 @@
 namespace Overworld.Redstone;
 
-internal sealed record Ping;
+public sealed record Ping;

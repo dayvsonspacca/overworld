@@ -4,7 +4,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Redstone;
 
-internal sealed class RedstoneClient(string path) : IRedstoneClient
+public sealed class RedstoneClient(string path) : IRedstoneClient
 {
     public async Task<Response> SendAsync(Request request, CancellationToken token)
     {

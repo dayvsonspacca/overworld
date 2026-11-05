@@ -5,7 +5,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Redstone;
 
-internal sealed class RemoteOperation(Operation operation, IRedstoneClient client)
+public sealed class RemoteOperation(Operation operation, IRedstoneClient client)
     : Operation(operation.Name, operation.Description, operation.InputType)
 {
     public override async Task<Result<object?>> ExecuteAsync(object input, CancellationToken cancellationToken)

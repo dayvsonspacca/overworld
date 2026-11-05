@@ -5,7 +5,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Redstone;
 
-internal sealed partial class RedstoneServer(
+public sealed partial class RedstoneServer(
     string path,
     Dispatcher dispatcher,
     ILogger<RedstoneServer> logger) : IDisposable

@@ -12,6 +12,8 @@ internal sealed partial class OverworldDaemon(
     QuickshellSupervisor supervisor,
     ILogger<OverworldDaemon> logger)
 {
+    private const int AlreadyRunning = 3;
+
     public async Task<int> RunAsync(CancellationToken token)
     {
         try
@@ -23,6 +25,11 @@ internal sealed partial class OverworldDaemon(
         {
             LogFatal(exception.Message);
             return exception.ExitCode;
+        }
+        catch (AlreadyRunningException exception)
+        {
+            LogFatal(exception.Message);
+            return AlreadyRunning;
         }
     }
 

@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <ProjectReference Include="../Overworld.Chest/Overworld.Chest.csproj" />
+    <ProjectReference Include="../Overworld.Redstone/Overworld.Redstone.csproj" />
     <ProjectReference Include="../Overworld.Bedrock.Hosting/Overworld.Bedrock.Hosting.csproj" />
   </ItemGroup>
 </Project>
