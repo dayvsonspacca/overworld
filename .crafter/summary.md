@@ -6,10 +6,10 @@ Every app serves two kinds of users: the person, by hand, and agents and program
 
 ## Where it came from
 
-Overworld merged two older repositories, one commit at a time, never as a bulk copy; their history was not carried over. The merge is complete and the user's session runs on Overworld.
+Overworld merged two older repositories, one commit at a time, never as a bulk copy; their history was not carried over. The merge is complete, the user's session runs on Overworld, and both old repositories are gone, locally and from GitHub, so this repository is the only record.
 
-- **Amethyst** (`~/Projetos/me/amethyst`): the environment. The daemon in `src/Amethyst` (supervision, processes, IPC, CLI, pins, XDG paths, logging), the QML shell in `shell/`, the Hyprland Lua config in `hypr/`. Amethyst's daemon becomes Overworld's.
-- **Bedrock** (`~/Projetos/me/desktop/bedrock`): the foundation for apps (`Bedrock.Core`, `.Cli`, `.Mcp`, `.Desktop`, with the Avalonia theme) and the first app, Dye, a color palette app.
+- **Amethyst**: the environment. The daemon in `src/Amethyst` (supervision, processes, IPC, CLI, pins, XDG paths, logging), the QML shell in `shell/`, the Hyprland Lua config in `hypr/`. Amethyst's daemon becomes Overworld's.
+- **Bedrock**: the foundation for apps (`Bedrock.Core`, `.Cli`, `.Mcp`, `.Desktop`, with the Avalonia theme) and the first app, Dye, a color palette app.
 
 Bedrock has arrived whole: `Overworld.Bedrock` (results, operations, JSON, app identity), `.Cli`, `.Mcp`, `.Desktop` (window, theme, `TextField`, buttons, `Sidebar`, `HexBrushConverter`) and `.Hosting`, whose `AppHost` (Bedrock's `OverworldApp`) opens the window, the CLI or MCP depending on the arguments. So has Dye: `Overworld.Apps.Dye` (colors and palettes with the save, list and show operations), `.Presentation` (view models) and `.Desktop` (the `dye` executable: `overworld:dye`, `overworld:dye mcp`, and bare, a window of swatches with a form that saves palettes). Bringing Bedrock's code under Amethyst's analyzers took a few fixes: `Result<T>`'s factories moved to a `Result` class (CA1000), CA1716 is off since `Error` is the clearest name, and the CLI compares `--` ordinally (CA1310).
 
