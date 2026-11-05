@@ -18,4 +18,9 @@
     <Project Path="tests/Overworld.Bedrock.Mcp.Tests/Overworld.Bedrock.Mcp.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Desktop.Tests/Overworld.Bedrock.Desktop.Tests.csproj" />
   </Folder>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/Dye/">
+    <Project Path="apps/Dye/Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
+    <Project Path="apps/Dye/Overworld.Apps.Dye.Tests/Overworld.Apps.Dye.Tests.csproj" />
+  </Folder>
 </Solution>
