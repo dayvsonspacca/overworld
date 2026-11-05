@@ -1,6 +1,8 @@
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import qs.menu
 import qs.session
 import qs.theme
 
@@ -10,6 +12,7 @@ PanelWindow {
     required property ShellScreen modelData
 
     function dismiss(): void {
+        menu.active = false;
         preview.hide();
         tasks.close();
     }
@@ -23,6 +26,24 @@ PanelWindow {
         left: true
         right: true
         bottom: true
+    }
+
+    LazyLoader {
+        id: menu
+
+        StartMenu {
+            bar: root
+            onDismissed: menu.active = false
+        }
+    }
+
+    IpcHandler {
+        target: "menu"
+
+        function toggle(): void {
+            tasks.close();
+            menu.active = !menu.active;
+        }
     }
 
     Connections {
@@ -60,6 +81,22 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.tileSpacing
 
+        StartButton {
+            active: menu.active
+            onClicked: {
+                preview.hide();
+                tasks.close();
+                menu.active = !menu.active;
+            }
+        }
+
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1
+            height: 24
+            color: Theme.edge
+        }
+
         Repeater {
             model: Tasks.groups
 
@@ -75,7 +112,7 @@ PanelWindow {
                     tasks.open(button);
                 }
                 onHoveredChanged: {
-                    if (hovered && !tasks.visible)
+                    if (hovered && !menu.active && !tasks.visible)
                         preview.show(button);
                     else
                         preview.leave();
