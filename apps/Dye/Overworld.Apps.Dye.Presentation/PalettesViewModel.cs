@@ -5,9 +5,22 @@ using Overworld.Bedrock.Operations;
 
 namespace Overworld.Apps.Dye.Presentation;
 
-public sealed partial class PalettesViewModel(Operation<ListPalettes, IReadOnlyList<Palette>> list) : ObservableObject
+public sealed partial class PalettesViewModel : ObservableObject
 {
+    private readonly Operation<ListPalettes, IReadOnlyList<Palette>> _list;
+
+    public PalettesViewModel(
+        Operation<ListPalettes, IReadOnlyList<Palette>> list,
+        Operation<SavePalette, Palette> save)
+    {
+        _list = list;
+        New = new NewPaletteViewModel(save);
+        New.Saved += async (_, saved) => await LoadAsync(saved.Name, CancellationToken.None);
+    }
+
     public ObservableCollection<Palette> Palettes { get; } = [];
+
+    public NewPaletteViewModel New { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Swatches))]
@@ -18,9 +31,11 @@ public sealed partial class PalettesViewModel(Operation<ListPalettes, IReadOnlyL
     [ObservableProperty]
     public partial string? Problem { get; set; }
 
-    public async Task LoadAsync(CancellationToken cancellationToken)
+    public Task LoadAsync(CancellationToken cancellationToken) => LoadAsync(select: null, cancellationToken);
+
+    private async Task LoadAsync(string? select, CancellationToken cancellationToken)
     {
-        var listed = await list.ExecuteAsync(new ListPalettes(), cancellationToken);
+        var listed = await _list.ExecuteAsync(new ListPalettes(), cancellationToken);
 
         if (!listed.IsSuccess)
         {
@@ -37,6 +52,6 @@ public sealed partial class PalettesViewModel(Operation<ListPalettes, IReadOnlyL
             Palettes.Add(palette);
         }
 
-        Selected = Palettes.FirstOrDefault();
+        Selected = Palettes.FirstOrDefault(palette => palette.Name == select) ?? Palettes.FirstOrDefault();
     }
 }

@@ -15,7 +15,7 @@ public sealed class PalettesViewModelTest : IDisposable
     public PalettesViewModelTest()
     {
         _store = new PaletteStore(_folder);
-        _palettes = new PalettesViewModel(Operation.From(new ListPalettesOp(_store)));
+        _palettes = new PalettesViewModel(Operation.From(new ListPalettesOp(_store)), Operation.From(new SavePaletteOp(_store)));
     }
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
@@ -92,9 +92,32 @@ public sealed class PalettesViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task ListsAndSelectsAPaletteSavedFromTheForm()
+    {
+        await Save("Sea", "#003F5C");
+        await _palettes.LoadAsync(TestContext.Current.CancellationToken);
+        var listed = new TaskCompletionSource();
+        _palettes.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(PalettesViewModel.Selected) && _palettes.Selected?.Name == "Fire")
+            {
+                listed.TrySetResult();
+            }
+        };
+
+        _palettes.New.Name = "Fire";
+        _palettes.New.Colors = "#FF6347";
+        await _palettes.New.SaveCommand.ExecuteAsync(null);
+        await listed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        Assert.Equal(["Sea", "Fire"], _palettes.Palettes.Select(palette => palette.Name));
+        Assert.Equal("Fire", _palettes.Selected?.Name);
+    }
+
+    [Fact]
     public async Task ShowsTheProblemWhenThePalettesCannotBeListed()
     {
-        var palettes = new PalettesViewModel(Operation.From(new FailingListOp()));
+        var palettes = new PalettesViewModel(Operation.From(new FailingListOp()), Operation.From(new SavePaletteOp(_store)));
 
         await palettes.LoadAsync(TestContext.Current.CancellationToken);
 

@@ -8,19 +8,20 @@ using Overworld.Bedrock.Operations;
 var app = new AppIdentity("dye");
 var store = new PaletteStore(app.DataDirectory);
 
+var save = Operation.From(new SavePaletteOp(store));
 var list = Operation.From(new ListPalettesOp(store));
 
 return await AppHost.RunAsync(
     app,
     [
-        Operation.From(new SavePaletteOp(store)),
+        save,
         list,
         Operation.From(new ShowPaletteOp(store)),
     ],
     args,
     window: () =>
     {
-        var palettes = new PalettesViewModel(list);
+        var palettes = new PalettesViewModel(list, save);
         _ = palettes.LoadAsync(CancellationToken.None);
 
         return new PalettesView { DataContext = palettes };
