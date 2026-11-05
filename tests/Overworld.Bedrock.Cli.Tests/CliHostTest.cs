@@ -128,4 +128,21 @@ public sealed class CliHostTest : IDisposable
 
         Assert.Contains("'greet'", thrown.Message);
     }
+
+    private sealed class RelayedOperation() : Operation("relay", "Answers from somewhere else.", typeof(Greet))
+    {
+        public override Task<Result<object?>> ExecuteAsync(object input, CancellationToken cancellationToken) =>
+            Task.FromResult(Result.Success<object?>($"Relayed {((Greet)input).Name}"));
+    }
+
+    [Fact]
+    public async Task RunsAnOperationThatExecutesElsewhere()
+    {
+        var cli = new CliHost("overworld:test", [new RelayedOperation()]);
+
+        var code = await cli.RunAsync(["relay", "--name", "Steve"], _output, _errors, TestContext.Current.CancellationToken);
+
+        Assert.Equal(0, code);
+        Assert.Equal("\"Relayed Steve\"", _output.ToString().Trim());
+    }
 }
