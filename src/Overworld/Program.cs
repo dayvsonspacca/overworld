@@ -1,38 +1,42 @@
 using Microsoft.Extensions.Logging;
+using Overworld.Bedrock.Operations;
+using Overworld.Daemon;
 using Overworld.Lifetime;
 using Overworld.Logging;
+using Overworld.Redstone;
 using Overworld.Shell;
 using Overworld.Spawner;
 
 namespace Overworld;
 
-internal static partial class Program
+internal static class Program
 {
     private static async Task<int> Main()
     {
         using var logging = LoggerFactory.Create(builder => builder.AddOverworldConsole());
-        var logger = logging.CreateLogger("Overworld");
-
         using var shutdown = new ShutdownSignal();
 
+        Operation[] operations =
+        [
+            Operation.From(new PingOp()),
+        ];
+
+        using var server = new RedstoneServer(
+            SocketPath.Resolve(),
+            new Dispatcher(operations, logging.CreateLogger<Dispatcher>()),
+            logging.CreateLogger<RedstoneServer>());
+
         var supervisor = new QuickshellSupervisor(
-            new ShellLocator(),
             new SystemProcessLauncher(),
             new RestartPolicy(),
             logging.CreateLogger<QuickshellSupervisor>());
 
-        try
-        {
-            await supervisor.RunAsync(shutdown.Token);
-            return 0;
-        }
-        catch (OverworldException exception)
-        {
-            LogFatal(logger, exception.Message);
-            return exception.ExitCode;
-        }
-    }
+        var daemon = new OverworldDaemon(
+            new ShellLocator(),
+            server,
+            supervisor,
+            logging.CreateLogger<OverworldDaemon>());
 
-    [LoggerMessage(Level = LogLevel.Critical, Message = "{Reason}")]
-    private static partial void LogFatal(ILogger logger, string reason);
+        return await daemon.RunAsync(shutdown.Token);
+    }
 }

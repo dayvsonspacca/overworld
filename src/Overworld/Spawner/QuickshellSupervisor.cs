@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Logging;
-using Overworld.Shell;
 
 namespace Overworld.Spawner;
 
 internal sealed partial class QuickshellSupervisor(
-    IShellLocator locator,
     IProcessLauncher launcher,
     RestartPolicy policy,
     ILogger<QuickshellSupervisor> logger)
@@ -12,10 +10,8 @@ internal sealed partial class QuickshellSupervisor(
     private const string Executable = "qs";
     private static readonly TimeSpan Grace = TimeSpan.FromSeconds(2);
 
-    public async Task RunAsync(CancellationToken token)
+    public async Task RunAsync(string shell, CancellationToken token)
     {
-        var shell = locator.Find();
-
         while (true)
         {
             int code;
