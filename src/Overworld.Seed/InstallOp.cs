@@ -4,14 +4,14 @@ using Overworld.Seed.Steps;
 
 namespace Overworld.Seed;
 
-[Operation("install", "Installs Overworld on this machine: links its config, publishes the daemon and the apps, and puts them on the PATH.")]
-public sealed class InstallOp(IReadOnlyList<IStep> steps) : IOperation<Install, IReadOnlyList<string>>
+[Operation("install", "Installs Overworld on this machine: links its config and theme, publishes the daemon and the apps, and puts them on the PATH.")]
+public sealed class InstallOp(Func<Install, IReadOnlyList<IStep>> plan) : IOperation<Install, IReadOnlyList<string>>
 {
     public async Task<Result<IReadOnlyList<string>>> ExecuteAsync(Install input, CancellationToken cancellationToken)
     {
         List<string> done = [];
 
-        foreach (var step in steps)
+        foreach (var step in plan(input))
         {
             var result = await step.RunAsync(cancellationToken);
 

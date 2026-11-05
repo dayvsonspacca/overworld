@@ -18,7 +18,7 @@ public sealed class InstallOpTest
     }
 
     private static Task<Result<IReadOnlyList<string>>> Install(params IStep[] steps) =>
-        new InstallOp(steps).ExecuteAsync(new Install(), TestContext.Current.CancellationToken);
+        new InstallOp(_ => steps).ExecuteAsync(new Install(), TestContext.Current.CancellationToken);
 
     [Fact]
     public async Task RunsEveryStepInOrderAndTellsWhatEachDid()

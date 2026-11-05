@@ -21,10 +21,11 @@ var bin = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserP
 var daemon = Environment.GetEnvironmentVariable("OVERWORLD_BIN") ?? Path.Combine(share, "overworld", "bin");
 var apps = Environment.GetEnvironmentVariable("OVERWORLD_APPS") ?? Path.Combine(share, "overworld", "apps");
 
-IStep[] steps =
+IReadOnlyList<IStep> Plan(Install install) =>
 [
     new LinkStep(root.PathTo("config", "hypr"), Path.Combine(config, "hypr")),
     new LinkStep(root.PathTo("config", "quickshell", "overworld"), Path.Combine(config, "quickshell", "overworld")),
+    new ThemeStep(root.PathTo("config", "overworld", "themes"), install.Theme, Path.Combine(config, "overworld", "theme.json")),
     new PublishStep(root.PathTo("src", "Overworld.Daemon"), daemon),
     new LinkStep(Path.Combine(daemon, "overworld"), Path.Combine(bin, "overworld")),
     new PublishStep(root.PathTo("apps", "Dye", "Overworld.Apps.Dye.Desktop"), Path.Combine(apps, "dye")),
@@ -32,4 +33,4 @@ IStep[] steps =
     new LinkStep(Path.Combine(apps, "dye", "dye"), Path.Combine(bin, "overworld:dye")),
 ];
 
-return await AppHost.RunAsync(app.Command, [Operation.From(new InstallOp(steps))], args);
+return await AppHost.RunAsync(app.Command, [Operation.From(new InstallOp(Plan))], args);
