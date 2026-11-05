@@ -5,6 +5,7 @@ using Overworld.Bedrock.Operations;
 using Overworld.Daemon;
 using Overworld.Lifetime;
 using Overworld.Logging;
+using Overworld.Pins;
 using Overworld.Redstone;
 using Overworld.Shell;
 using Overworld.Spawner;
@@ -18,10 +19,23 @@ internal static class Program
     private static Task<int> Main(string[] args) =>
         args.Length == 0 ? RunDaemonAsync() : RunClientAsync(args);
 
-    private static Operation[] Operations() =>
-    [
-        Operation.From(new PingOp()),
-    ];
+    private static Operation[] Operations()
+    {
+        var pins = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "overworld", "pins");
+        var places = new PinPlaces(new Dictionary<string, PinStore>
+        {
+            ["menu"] = new(Path.Combine(pins, "menu.json")),
+            ["taskbar"] = new(Path.Combine(pins, "taskbar.json")),
+        });
+
+        return
+        [
+            Operation.From(new PingOp()),
+            Operation.From(new ListPinsOp(places)),
+            Operation.From(new AddPinOp(places)),
+            Operation.From(new RemovePinOp(places)),
+        ];
+    }
 
     private static async Task<int> RunDaemonAsync()
     {

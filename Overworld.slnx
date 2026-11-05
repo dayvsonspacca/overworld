@@ -14,6 +14,7 @@
     <Project Path="src/Overworld.Bedrock.Hosting/Overworld.Bedrock.Hosting.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Overworld.Tests/Overworld.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Cli.Tests/Overworld.Bedrock.Cli.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Mcp.Tests/Overworld.Bedrock.Mcp.Tests.csproj" />
