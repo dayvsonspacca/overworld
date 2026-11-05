@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:desktop="using:Overworld.Desktop">
+  <!-- A label, a box to type in, and one line under it: the hint, or the error that refused the value. -->
+  <ControlTheme x:Key="{x:Type desktop:TextField}" TargetType="desktop:TextField">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Spacing="6">
+          <TextBlock Name="PART_Label"
+                     Text="{TemplateBinding Label}"
+                     IsVisible="{TemplateBinding Label, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                     FontSize="{StaticResource FontSizeCallout}"
+                     FontWeight="SemiBold" />
+          <TextBox Name="PART_Input"
+                   Classes="field"
+                   Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                   PlaceholderText="{TemplateBinding Placeholder}"
+                   IsEnabled="{TemplateBinding IsEnabled}" />
+          <TextBlock Name="PART_Hint"
+                     Text="{TemplateBinding Hint}"
+                     IsVisible="{TemplateBinding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                     FontSize="{StaticResource FontSizeFootnote}"
+                     TextWrapping="Wrap"
+                     Foreground="{DynamicResource ForegroundMutedBrush}" />
+          <TextBlock Name="PART_Error"
+                     Text="{TemplateBinding Error}"
+                     IsVisible="False"
+                     FontSize="{StaticResource FontSizeFootnote}"
+                     TextWrapping="Wrap"
+                     Foreground="{DynamicResource DangerBrush}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^ /template/ TextBox#PART_Input">
+      <Setter Property="MinHeight" Value="{StaticResource ControlLarge}" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="CaretBrush" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
+      <Setter Property="PlaceholderForeground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="^:focus-within /template/ TextBox#PART_Input">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="^:invalid /template/ TextBlock#PART_Hint">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^:invalid /template/ TextBlock#PART_Error">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^:invalid /template/ TextBox#PART_Input">
+      <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

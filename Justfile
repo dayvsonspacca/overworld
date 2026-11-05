@@ -29,7 +29,7 @@ install-dye:
 # A running daemon keeps its old build until the session restarts it.
 install-overworld:
     rm -rf dist/overworld
-    dotnet publish src/Overworld -c Release -r linux-x64 --self-contained false -p:PublishSingleFile=true -o dist/overworld
+    dotnet publish src/Overworld.Daemon -c Release -r linux-x64 --self-contained false -p:PublishSingleFile=true -o dist/overworld
     mkdir -p "$(dirname "{{bin}}")"
     rm -rf "{{bin}}.new"
     cp -r dist/overworld "{{bin}}.new"

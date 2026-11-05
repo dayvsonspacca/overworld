@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:desktop="using:Overworld.Bedrock.Desktop"
+             xmlns:desktop="using:Overworld.Desktop"
              xmlns:palettes="using:Overworld.Apps.Dye.Palettes"
              xmlns:presentation="using:Overworld.Apps.Dye.Presentation"
              x:Class="Overworld.Apps.Dye.Desktop.PalettesView"

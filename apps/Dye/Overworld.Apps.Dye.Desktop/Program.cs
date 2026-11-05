@@ -2,10 +2,10 @@ using Overworld.Apps.Dye.Desktop;
 using Overworld.Apps.Dye.Palettes;
 using Overworld.Apps.Dye.Presentation;
 using Overworld.Bedrock.Apps;
-using Overworld.Bedrock.Desktop;
-using Overworld.Bedrock.Hosting;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
+using Overworld.Desktop;
+using Overworld.Hosting;
 
 var app = new AppIdentity("dye");
 var store = new PaletteStore(DataDirectory.For(app.Name));
