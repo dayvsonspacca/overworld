@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>dye</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Bedrock.Hosting/Overworld.Bedrock.Hosting.csproj" />
+  </ItemGroup>
+</Project>
