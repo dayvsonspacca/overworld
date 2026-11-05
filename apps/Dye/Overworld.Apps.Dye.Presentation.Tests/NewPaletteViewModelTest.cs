@@ -37,7 +37,7 @@ public sealed class NewPaletteViewModelTest : IDisposable
         Assert.Equal("", _form.Name);
         Assert.Equal("", _form.Colors);
         Assert.False(_form.IsSaving);
-        Assert.Single(await _store.ListAsync(TestContext.Current.CancellationToken));
+        Assert.Single((await _store.ListAsync(TestContext.Current.CancellationToken)).Value);
     }
 
     [Fact]

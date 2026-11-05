@@ -12,7 +12,12 @@ public sealed class ShowPaletteOp(PaletteStore store) : IOperation<ShowPalette, 
 
         var palettes = await store.ListAsync(cancellationToken);
 
-        return palettes.FirstOrDefault(palette => palette.Name == name) is { } found
+        if (!palettes.IsSuccess)
+        {
+            return palettes.Error;
+        }
+
+        return palettes.Value.FirstOrDefault(palette => palette.Name == name) is { } found
             ? found
             : new Error("palette.not_found", $"There is no palette named '{name}'.");
     }

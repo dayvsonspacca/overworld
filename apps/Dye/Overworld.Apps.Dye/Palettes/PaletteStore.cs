@@ -1,37 +1,26 @@
-using System.Text.Json;
-using Overworld.Bedrock.Json;
+using Overworld.Bedrock.Chest;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Dye.Palettes;
 
 public sealed class PaletteStore(string directory)
 {
-    private readonly string _path = Path.Combine(directory, "palettes.json");
+    private readonly JsonFile<IReadOnlyList<Palette>> _file = new(Path.Combine(directory, "palettes.json"), () => []);
 
-    public async Task<IReadOnlyList<Palette>> ListAsync(CancellationToken cancellationToken)
+    public Task<Result<IReadOnlyList<Palette>>> ListAsync(CancellationToken cancellationToken) =>
+        _file.ReadAsync(cancellationToken);
+
+    public async Task<Result<Palette>> AddAsync(Palette palette, CancellationToken cancellationToken)
     {
-        if (!File.Exists(_path))
+        var palettes = await ListAsync(cancellationToken);
+
+        if (!palettes.IsSuccess)
         {
-            return [];
+            return palettes.Error;
         }
 
-        await using var stream = File.OpenRead(_path);
+        await _file.WriteAsync([.. palettes.Value, palette], cancellationToken);
 
-        return await JsonSerializer.DeserializeAsync<List<Palette>>(stream, BedrockJson.Options, cancellationToken) ?? [];
-    }
-
-    public async Task AddAsync(Palette palette, CancellationToken cancellationToken)
-    {
-        List<Palette> palettes = [.. await ListAsync(cancellationToken), palette];
-
-        Directory.CreateDirectory(directory);
-
-        var temporary = _path + ".tmp";
-
-        await using (var stream = File.Create(temporary))
-        {
-            await JsonSerializer.SerializeAsync(stream, palettes, BedrockJson.Options, cancellationToken);
-        }
-
-        File.Move(temporary, _path, overwrite: true);
+        return palette;
     }
 }

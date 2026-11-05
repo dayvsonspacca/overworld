@@ -14,7 +14,7 @@ public sealed class PaletteStoreTest
     {
         using var folder = new TemporaryFolder();
 
-        Assert.Empty(await new PaletteStore(folder.Path).ListAsync(TestContext.Current.CancellationToken));
+        Assert.Empty((await new PaletteStore(folder.Path).ListAsync(TestContext.Current.CancellationToken)).Value);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public sealed class PaletteStoreTest
         await store.AddAsync(Sea, TestContext.Current.CancellationToken);
         await store.AddAsync(Fire, TestContext.Current.CancellationToken);
 
-        var palettes = await new PaletteStore(folder.Path).ListAsync(TestContext.Current.CancellationToken);
+        var palettes = (await new PaletteStore(folder.Path).ListAsync(TestContext.Current.CancellationToken)).Value;
 
         Assert.Equal(["Sea", "Fire"], palettes.Select(palette => palette.Name));
         Assert.Equal(Sea.Colors, palettes[0].Colors);
@@ -55,5 +55,29 @@ public sealed class PaletteStoreTest
 
         Assert.Contains("\"name\": \"Fire\"", json);
         Assert.Contains("\"#FF6347\"", json);
+    }
+
+    [Fact]
+    public async Task RefusesToListAFileItCannotRead()
+    {
+        using var folder = new TemporaryFolder();
+        await File.WriteAllTextAsync(Path.Combine(folder.Path, "palettes.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        var palettes = await new PaletteStore(folder.Path).ListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("file.unreadable", palettes.Error.Code);
+    }
+
+    [Fact]
+    public async Task LeavesAFileItCannotReadUntouchedRatherThanAddTo()
+    {
+        using var folder = new TemporaryFolder();
+        var path = Path.Combine(folder.Path, "palettes.json");
+        await File.WriteAllTextAsync(path, "{ not json", TestContext.Current.CancellationToken);
+
+        var added = await new PaletteStore(folder.Path).AddAsync(Sea, TestContext.Current.CancellationToken);
+
+        Assert.Equal("file.unreadable", added.Error.Code);
+        Assert.Equal("{ not json", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
     }
 }

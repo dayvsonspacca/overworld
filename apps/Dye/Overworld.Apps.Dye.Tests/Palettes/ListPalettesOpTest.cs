@@ -39,4 +39,12 @@ public sealed class ListPalettesOpTest : IDisposable
 
     private Task<Result<IReadOnlyList<Palette>>> List() =>
         new ListPalettesOp(_store).ExecuteAsync(new ListPalettes(), TestContext.Current.CancellationToken);
+
+    [Fact]
+    public async Task PassesOnAFileItCannotRead()
+    {
+        await File.WriteAllTextAsync(Path.Combine(_folder.Path, "palettes.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        Assert.Equal("file.unreadable", (await List()).Error.Code);
+    }
 }

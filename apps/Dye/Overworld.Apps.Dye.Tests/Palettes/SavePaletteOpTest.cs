@@ -93,11 +93,19 @@ public sealed class SavePaletteOpTest : IDisposable
     private Task<Result<Palette>> Save(string name, params string[] colors) =>
         _save.ExecuteAsync(new SavePalette(name, colors), TestContext.Current.CancellationToken);
 
-    private Task<IReadOnlyList<Palette>> Stored() => _store.ListAsync(TestContext.Current.CancellationToken);
+    private async Task<IReadOnlyList<Palette>> Stored() => (await _store.ListAsync(TestContext.Current.CancellationToken)).Value;
 
     private static void AssertFails(string code, Result<Palette> result)
     {
         Assert.False(result.IsSuccess);
         Assert.Equal(code, result.Error.Code);
+    }
+
+    [Fact]
+    public async Task PassesOnAFileItCannotRead()
+    {
+        await File.WriteAllTextAsync(Path.Combine(_folder.Path, "palettes.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        AssertFails("file.unreadable", await Save("Sea", "#003F5C"));
     }
 }
