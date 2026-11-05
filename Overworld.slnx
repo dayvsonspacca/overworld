@@ -6,6 +6,7 @@
     <File Path="Justfile" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Overworld/Overworld.csproj" />
     <Project Path="src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <Project Path="src/Overworld.Bedrock.Cli/Overworld.Bedrock.Cli.csproj" />
     <Project Path="src/Overworld.Bedrock.Mcp/Overworld.Bedrock.Mcp.csproj" />
