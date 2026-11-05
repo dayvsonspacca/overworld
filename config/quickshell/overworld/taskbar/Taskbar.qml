@@ -3,6 +3,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import qs.menu
+import qs.notifications
 import qs.session
 import qs.theme
 
@@ -60,6 +61,10 @@ PanelWindow {
 
     TaskMenu {
         id: tasks
+    }
+
+    Toasts {
+        bar: root
     }
 
     MouseArea {
