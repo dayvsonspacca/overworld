@@ -32,4 +32,5 @@ Structural parts are named after Minecraft blocks and mechanics, apps after item
 
 - `just build`
 - `just test`
-- `just seed` (on a new machine, first `sudo pacman -S --needed dotnet-sdk just`, which Seed needs to run)
+- `just seed`
+- On a new Arch machine: `curl -fsSL https://raw.githubusercontent.com/dayvsonspacca/overworld/main/scripts/install.sh | bash` (installs what Seed needs to run, clones the repository and runs Seed)
