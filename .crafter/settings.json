@@ -8,7 +8,6 @@
     "Keep an app's logic in one place, apart from the ways the app is reached.",
     "Make every app and the environment itself usable both by the user, by hand, and by agents and programs.",
     "Name each structural part after a Minecraft block or mechanic, and each app after a Minecraft item that is also an ordinary word.",
-    "Never put Minecraft terms or visuals in the user interface; only part and app names carry the theme.",
     "Name every app's CLI command overworld:<app>, like overworld:dye list.",
     "Never let an app or the shell define its own theme; all of them take the one Overworld theme.",
     "Open the design of each new UI component in the user's browser for review before building it.",
@@ -21,9 +20,6 @@
     "Prefer short names when the context makes them clear (locator, not shellLocator).",
     "Show each new C# file, except tests, in full and one at a time, explaining only why it exists and its role, and wait for the user's review before writing the next.",
     "Bring code from Amethyst and Bedrock one logical piece per commit, never as a bulk copy.",
-    "Prefix every project and namespace with Overworld., and every app's with Overworld.Apps. (like Overworld.Bedrock.Results, Overworld.Apps.Dye).",
-    "Treat code brought from Bedrock as already reviewed: write it without showing it, and show only what differs from the original beyond the Overworld. namespace rename.",
-    "Apply analyzer fixes that keep behavior and API unchanged to code from Bedrock or Amethyst without asking, and name them in the commit message; ask only when a fix changes behavior or API.",
-    "Treat code brought from Amethyst as already reviewed, like Bedrock's: write it without showing it, and show only what differs from the original beyond the agreed renames."
+    "Prefix every project and namespace with Overworld., and every app's with Overworld.Apps. (like Overworld.Bedrock.Results, Overworld.Apps.Dye)."
   ]
 }
