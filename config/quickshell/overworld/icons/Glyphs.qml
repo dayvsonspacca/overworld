@@ -1,0 +1,38 @@
+pragma Singleton
+
+import Quickshell
+import QtQuick
+
+Singleton {
+    readonly property string wired: "M6 1.5h4v3h-4z M8 4.5v3 M3 11.5v-2h10v2 M8 7.5v4 M1.5 11.5h3v3h-3z M6.5 11.5h3v3h-3z M11.5 11.5h3v3h-3z"
+    readonly property string wifi: "M1.5 6a9.5 9.5 0 0 1 13 0 M3.8 8.6a6.2 6.2 0 0 1 8.4 0 M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M7.5 13.3a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0"
+    readonly property string offline: "M1.5 6a9.5 9.5 0 0 1 13 0 M3.8 8.6a6.2 6.2 0 0 1 8.4 0 M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M2 2l12 12"
+    readonly property string volume: "M2 6h2.5L8 3v10L4.5 10H2z M10.5 5.5a3.5 3.5 0 0 1 0 5 M12.3 3.8a6 6 0 0 1 0 8.4"
+    readonly property string volumeLow: "M2 6h2.5L8 3v10L4.5 10H2z M10.5 5.5a3.5 3.5 0 0 1 0 5"
+    readonly property string muted: "M2 6h2.5L8 3v10L4.5 10H2z M11 6l4 4 M15 6l-4 4"
+    readonly property string bell: "M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z M6.5 14a1.6 1.6 0 0 0 3 0"
+    readonly property string calendar: "M2 3h12v11H2z M2 6.5h12 M5.5 1.5v3 M10.5 1.5v3"
+    readonly property string tray: "M3 10l5-5 5 5"
+    readonly property string sun: "M5 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M8 1.5v1.5 M8 13v1.5 M1.5 8H3 M13 8h1.5 M3.4 3.4l1 1 M11.6 11.6l1 1 M3.4 12.6l1-1 M11.6 4.4l1-1"
+    readonly property string left: "M10 3L5 8l5 5"
+    readonly property string right: "M6 3l5 5-5 5"
+    readonly property string check: "M3 8.5l3 3 7-7"
+    readonly property string previous: "M13 3L6 8l7 5z M3.5 3v10"
+    readonly property string next: "M3 3l7 5-7 5z M12.5 3v10"
+    readonly property string play: "M4.5 2.5l9 5.5-9 5.5z"
+    readonly property string pause: "M5 3v10 M11 3v10"
+    readonly property string lock: "M3.5 7h9v7h-9z M5.5 7V5a2.5 2.5 0 0 1 5 0v2"
+    readonly property string logout: "M6 2.5H3.5v11H6 M10 5l3 3-3 3 M13 8H6.5"
+    readonly property string sleep: "M13 9.5A5.5 5.5 0 1 1 6.5 3a4.3 4.3 0 0 0 6.5 6.5z"
+    readonly property string restart: "M13 8a5 5 0 1 1-1.5-3.6 M13 2.5v3h-3"
+    readonly property string power: "M8 2v6 M4.5 4.5a5 5 0 1 0 7 0"
+    readonly property string plus: "M8 3v10 M3 8h10"
+    readonly property string close: "M4 4l8 8 M12 4l-8 8"
+    readonly property string pin: "M6 2h4 M7 2v4L4.5 9h7L9 6V2 M8 9v5"
+    readonly property string unpin: "M6 2h4 M7 2v4L4.5 9h7L9 6V2 M8 9v5 M2 2l12 12"
+    readonly property string region: "M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5 M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5 M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11 M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11"
+    readonly property string window: "M2 4.5A1.5 1.5 0 0 1 3.5 3h9A1.5 1.5 0 0 1 14 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z M2 6.5h12"
+    readonly property string screen: "M2 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z M6 14h4 M8 11.5V14"
+    readonly property string enter: "M3 8h10 M9 4l4 4-4 4"
+    readonly property string note: "M6 12V3l7-1.5v9 M2.7 12a1.8 1.8 0 1 0 3.6 0a1.8 1.8 0 1 0 -3.6 0 M9.7 10.5a1.8 1.8 0 1 0 3.6 0a1.8 1.8 0 1 0 -3.6 0"
+}

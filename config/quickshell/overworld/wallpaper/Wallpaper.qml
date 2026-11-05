@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import qs.session
 import qs.theme
 
 PanelWindow {
@@ -23,5 +24,9 @@ PanelWindow {
 
     Backdrop {
         anchors.fill: parent
+    }
+
+    Snapshot {
+        screen: root.modelData
     }
 }

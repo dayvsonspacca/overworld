@@ -1,6 +1,11 @@
 local programs = require("modules.programs")
 
 local mod = "SUPER"
+local config = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
+local shell = os.getenv("OVERWORLD_SHELL") or (config .. "/quickshell/overworld")
+local ipc = "qs -p " .. shell .. " ipc call "
+
+hl.bind(mod .. " + L",       hl.dsp.exec_cmd(ipc .. "lock lock"))
 
 hl.bind(mod .. " + T", hl.dsp.exec_cmd(programs.terminal))
 hl.bind(mod .. " + E", hl.dsp.exec_cmd(programs.fileManager))

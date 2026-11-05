@@ -1,4 +1,5 @@
 import Quickshell
+import qs.lock
 import qs.wallpaper
 
 ShellRoot {
@@ -7,4 +8,6 @@ ShellRoot {
 
         Wallpaper {}
     }
+
+    LockScreen {}
 }
