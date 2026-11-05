@@ -5,6 +5,7 @@
     "dotnet-sdk",
     "just",
     "hyprland",
+    "xdg-desktop-portal-hyprland",
     "pipewire",
     "wireplumber",
     "playerctl",
