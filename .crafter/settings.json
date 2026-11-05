@@ -23,6 +23,7 @@
     "Bring code from Amethyst and Bedrock one logical piece per commit, never as a bulk copy.",
     "Prefix every project and namespace with Overworld., and every app's with Overworld.Apps. (like Overworld.Bedrock.Results, Overworld.Apps.Dye).",
     "Treat code brought from Bedrock as already reviewed: write it without showing it, and show only what differs from the original beyond the Overworld. namespace rename.",
-    "Apply analyzer fixes that keep behavior and API unchanged to code from Bedrock or Amethyst without asking, and name them in the commit message; ask only when a fix changes behavior or API."
+    "Apply analyzer fixes that keep behavior and API unchanged to code from Bedrock or Amethyst without asking, and name them in the commit message; ask only when a fix changes behavior or API.",
+    "Treat code brought from Amethyst as already reviewed, like Bedrock's: write it without showing it, and show only what differs from the original beyond the agreed renames."
   ]
 }
