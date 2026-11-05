@@ -28,17 +28,10 @@ public sealed class OperationTool(Operation operation) : McpServerTool
     {
         var arguments = JsonSerializer.SerializeToNode(request.Params?.Arguments ?? new Dictionary<string, JsonElement>());
 
-        var input = BedrockJson.ReadInput(arguments, operation.InputType);
-
-        if (!input.IsSuccess)
-        {
-            return Failure(input.Error);
-        }
-
-        var result = await operation.ExecuteAsync(input.Value, cancellationToken);
+        var result = await operation.RunAsync(arguments, cancellationToken);
 
         return result.IsSuccess
-            ? Text(JsonSerializer.Serialize(result.Value, BedrockJson.Options))
+            ? Text(result.Value?.ToJsonString(BedrockJson.Options) ?? "null")
             : Failure(result.Error);
     }
 

@@ -1,5 +1,8 @@
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Overworld.Bedrock.Json;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Bedrock.Operations;
@@ -22,6 +25,22 @@ public abstract partial class Operation
     public Type InputType { get; }
 
     public abstract Task<Result<object?>> ExecuteAsync(object input, CancellationToken cancellationToken);
+
+    public async Task<Result<JsonNode?>> RunAsync(JsonNode? input, CancellationToken cancellationToken)
+    {
+        var read = BedrockJson.ReadInput(input, InputType);
+
+        if (!read.IsSuccess)
+        {
+            return Result.Failure<JsonNode?>(read.Error);
+        }
+
+        var result = await ExecuteAsync(read.Value, cancellationToken);
+
+        return result.IsSuccess
+            ? Result.Success(JsonSerializer.SerializeToNode(result.Value, BedrockJson.Options))
+            : Result.Failure<JsonNode?>(result.Error);
+    }
 
     public static Operation<TInput, TOutput> From<TInput, TOutput>(IOperation<TInput, TOutput> operation)
         where TInput : notnull

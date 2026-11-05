@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+using Overworld.Bedrock.Json;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
 
@@ -110,6 +112,36 @@ public sealed class OperationTest
             : untyped.ExecuteAsync(new Greet("Steve"), TestContext.Current.CancellationToken))));
 
         Assert.Equal(1, count.MostAtOnce);
+    }
+
+    [Fact]
+    public async Task RunsFromJsonAndAnswersInJson()
+    {
+        var result = await Operation.From(new GreetOp())
+            .RunAsync(new JsonObject { ["name"] = "Steve" }, TestContext.Current.CancellationToken);
+
+        Assert.Equal("Hello, Steve!", result.Value!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RunsNothingWhenTheJsonIsNotItsInput()
+    {
+        var count = new CountOp();
+
+        var result = await Operation.From(count)
+            .RunAsync(new JsonObject { ["name"] = 42 }, TestContext.Current.CancellationToken);
+
+        Assert.Equal(BedrockJson.InvalidInput, result.Error.Code);
+        Assert.Equal(0, count.MostAtOnce);
+    }
+
+    [Fact]
+    public async Task PassesTheErrorOfAFailureThroughJson()
+    {
+        var result = await Operation.From(new GreetOp())
+            .RunAsync(new JsonObject { ["name"] = "" }, TestContext.Current.CancellationToken);
+
+        Assert.Equal("greet.nobody", result.Error.Code);
     }
 
     [Fact]

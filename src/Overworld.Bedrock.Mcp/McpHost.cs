@@ -16,7 +16,7 @@ public sealed class McpHost(string name, IEnumerable<Operation> operations)
                 Name = name,
                 Version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.0.0",
             },
-            ToolCollection = [.. operations.Select(operation => new OperationTool(operation))],
+            ToolCollection = [.. new Catalog(operations).All.Select(operation => new OperationTool(operation))],
         };
 
         await using var transport = new StreamServerTransport(input, output, name);

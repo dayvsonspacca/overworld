@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Reflection;
-using System.Text.Json;
 using Overworld.Bedrock.Json;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
@@ -14,19 +13,12 @@ public sealed class CliHost
     private const int Misused = 2;
 
     private readonly string _command;
-    private readonly IReadOnlyDictionary<string, Operation> _operations;
+    private readonly Catalog _catalog;
 
     public CliHost(string command, IEnumerable<Operation> operations)
     {
-        var list = operations.ToList();
-
-        if (list.GroupBy(operation => operation.Name).FirstOrDefault(group => group.Count() > 1) is { } repeated)
-        {
-            throw new ArgumentException($"Two operations are named '{repeated.Key}'.", nameof(operations));
-        }
-
         _command = command;
-        _operations = list.ToDictionary(operation => operation.Name);
+        _catalog = new Catalog(operations);
     }
 
     public async Task<int> RunAsync(
@@ -42,7 +34,7 @@ public sealed class CliHost
             return Succeeded;
         }
 
-        if (!_operations.TryGetValue(args[0], out var operation))
+        if (_catalog.Find(args[0]) is not { } operation)
         {
             WriteError(errors, new Error(
                 "cli.unknown_operation",
@@ -70,25 +62,16 @@ public sealed class CliHost
             return Misused;
         }
 
-        var input = BedrockJson.ReadInput(json.Value, operation.InputType);
-
-        if (!input.IsSuccess)
-        {
-            WriteError(errors, input.Error);
-
-            return Misused;
-        }
-
-        var result = await operation.ExecuteAsync(input.Value, cancellationToken);
+        var result = await operation.RunAsync(json.Value, cancellationToken);
 
         if (!result.IsSuccess)
         {
             WriteError(errors, result.Error);
 
-            return Failed;
+            return result.Error.Code == BedrockJson.InvalidInput ? Misused : Failed;
         }
 
-        output.WriteLine(JsonSerializer.Serialize(result.Value, BedrockJson.Options));
+        output.WriteLine(result.Value?.ToJsonString(BedrockJson.Options) ?? "null");
 
         return Succeeded;
     }
@@ -99,7 +82,7 @@ public sealed class CliHost
         output.WriteLine();
         output.WriteLine("Operations:");
 
-        WriteColumns(output, _operations.Values.Select(operation => (operation.Name, operation.Description)));
+        WriteColumns(output, _catalog.All.Select(operation => (operation.Name, operation.Description)));
 
         output.WriteLine();
         output.WriteLine($"Run {_command} <operation> --help to see its options.");

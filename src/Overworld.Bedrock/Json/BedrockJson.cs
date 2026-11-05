@@ -6,6 +6,8 @@ namespace Overworld.Bedrock.Json;
 
 public static class BedrockJson
 {
+    public const string InvalidInput = "input.invalid";
+
     public static JsonSerializerOptions Options { get; } = CreateOptions();
 
     public static Result<object> ReadInput(JsonNode? json, Type inputType)
@@ -14,11 +16,11 @@ public static class BedrockJson
         {
             return JsonSerializer.Deserialize(json, inputType, Options) is { } input
                 ? Result.Success<object>(input)
-                : new Error("input.invalid", "The input must be an object, not null.");
+                : new Error(InvalidInput, "The input must be an object, not null.");
         }
         catch (JsonException exception)
         {
-            return new Error("input.invalid", exception.Message);
+            return new Error(InvalidInput, exception.Message);
         }
     }
 
