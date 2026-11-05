@@ -23,6 +23,7 @@ var apps = Environment.GetEnvironmentVariable("OVERWORLD_APPS") ?? Path.Combine(
 
 IReadOnlyList<IStep> Plan(Install install) =>
 [
+    new PackagesStep(root.PathTo("src", "Overworld.Seed", "packages.json")),
     new LinkStep(root.PathTo("config", "hypr"), Path.Combine(config, "hypr")),
     new LinkStep(root.PathTo("config", "quickshell", "overworld"), Path.Combine(config, "quickshell", "overworld")),
     new ThemeStep(root.PathTo("config", "overworld", "themes"), install.Theme, Path.Combine(config, "overworld", "theme.json")),

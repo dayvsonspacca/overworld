@@ -4,7 +4,7 @@ using Overworld.Seed.Steps;
 
 namespace Overworld.Seed;
 
-[Operation("install", "Installs Overworld on this machine: links its config and theme, publishes the daemon and the apps, and puts them on the PATH.")]
+[Operation("install", "Installs Overworld on this machine: installs the packages it needs, links its config and theme, publishes the daemon and the apps, and puts them on the PATH.")]
 public sealed class InstallOp(Func<Install, IReadOnlyList<IStep>> plan) : IOperation<Install, IReadOnlyList<string>>
 {
     public async Task<Result<IReadOnlyList<string>>> ExecuteAsync(Install input, CancellationToken cancellationToken)

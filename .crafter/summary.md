@@ -12,7 +12,7 @@ Structural parts are named after Minecraft blocks and mechanics, apps after item
 - **Themes** (`config/overworld/themes`): the colors, type sizes, radii and spacing the shell and the apps share, one JSON file per theme, Amethyst first. Seed installs the chosen one as `~/.config/overworld/theme.json`, the only file either side reads.
 - **Dye** (`apps/Dye`): an app for saving color palettes and seeing them as swatches.
 - **The daemon** (`src/Overworld.Daemon`, binary `overworld`): the environment's own process. Hyprland starts it; it keeps the shell running and answers the environment's operations, which people and agents reach as `overworld <operation>` and `overworld mcp`.
-- **Seed** (`src/Overworld.Seed`, `overworld:seed`): installs Overworld on a machine: links its config, publishes the daemon and the apps, and puts them on the PATH.
+- **Seed** (`src/Overworld.Seed`, `overworld:seed`): installs Overworld on an Arch machine: installs the packages it needs (`src/Overworld.Seed/packages.json`, the AUR ones built with makepkg), links its config and theme, publishes the daemon and the apps, and puts them on the PATH.
 - **Spawner** (`Overworld.Daemon.Spawner`): starts and supervises processes, Quickshell first.
 - **Redstone** (`src/Overworld.Redstone`): carries operations between processes, from the shell, the CLI and agents to the daemon.
 - **Pins** (`Overworld.Daemon.Pins`): the apps pinned to the start menu and the taskbar.
@@ -32,4 +32,4 @@ Structural parts are named after Minecraft blocks and mechanics, apps after item
 
 - `just build`
 - `just test`
-- `just seed`
+- `just seed` (on a new machine, first `sudo pacman -S --needed dotnet-sdk just`, which Seed needs to run)

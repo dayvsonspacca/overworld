@@ -1,0 +1,23 @@
+{
+  "repo": [
+    "base-devel",
+    "git",
+    "dotnet-sdk",
+    "just",
+    "hyprland",
+    "pipewire",
+    "wireplumber",
+    "playerctl",
+    "wl-clipboard",
+    "libnotify",
+    "xdg-utils",
+    "xdg-user-dirs",
+    "glib2",
+    "ttf-jetbrains-mono-nerd",
+    "ibus",
+    "wlsunset",
+    "kitty",
+    "nautilus"
+  ],
+  "aur": ["quickshell-git"]
+}
