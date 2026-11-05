@@ -3,6 +3,7 @@ using Overworld.Bedrock.Cli;
 using Overworld.Bedrock.Mcp;
 using Overworld.Bedrock.Operations;
 using Overworld.Daemon;
+using Overworld.Desktop;
 using Overworld.Lifetime;
 using Overworld.Logging;
 using Overworld.Pins;
@@ -49,6 +50,7 @@ internal static class Program
 
         var supervisor = new QuickshellSupervisor(
             new SystemProcessLauncher(),
+            new GsettingsIconThemeSource(),
             new RestartPolicy(),
             logging.CreateLogger<QuickshellSupervisor>());
 
