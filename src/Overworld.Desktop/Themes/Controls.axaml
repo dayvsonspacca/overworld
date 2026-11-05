@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="Window">
     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
   </Style>
 
@@ -11,7 +11,7 @@
     <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
     <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
     <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
   </Style>
 
   <!-- The title of a group of rows: sentence case, never tracked capitals. -->
@@ -19,7 +19,7 @@
     <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="VerticalAlignment" Value="Center" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
   </Style>
 
   <!-- Buttons: primary is the one action a place is for, ghost is everything beside it. -->
@@ -56,25 +56,25 @@
 
   <Style Selector="Button.ghost /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
   </Style>
   <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
   </Style>
   <Style Selector="Button.ghost:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
   </Style>
 
   <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter, Button.ghost:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
     <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
   </Style>
 
   <!-- The box inside a TextField: it keeps the background and border the TextField gives it in every state. -->
@@ -98,11 +98,11 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
   </Style>
   <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
   </Style>
 
   <!-- Anything you click shows a hand; anything you can select shows a text cursor. -->

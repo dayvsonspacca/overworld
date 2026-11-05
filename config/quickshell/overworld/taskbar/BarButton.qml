@@ -17,7 +17,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.tileRadius
+        radius: Theme.radiusSmall
         color: root.active
             ? (root.hovered ? Theme.activeHoverTint : Theme.activeTint)
             : (root.hovered ? Theme.hoverTint : "transparent")

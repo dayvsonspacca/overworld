@@ -6,7 +6,7 @@ Rectangle {
 
     anchors.fill: parent
     anchors.margins: -gap
-    radius: Theme.itemRadius + gap
+    radius: Theme.radiusControl + gap
     color: "transparent"
     border.width: 2
     border.color: Theme.accentLight

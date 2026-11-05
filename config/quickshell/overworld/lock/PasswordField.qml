@@ -38,7 +38,7 @@ FocusScope {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: Qt.alpha(Theme.background, 0.75)
         border.width: input.activeFocus ? 2 : 1
         border.color: input.activeFocus ? Theme.accentLight : Theme.edge
@@ -62,7 +62,7 @@ FocusScope {
         echoMode: TextInput.Password
         passwordCharacter: "●"
         color: Theme.text
-        font.pixelSize: Theme.fontSize + 2
+        font.pixelSize: Theme.fontContent + 2
         font.letterSpacing: 2
         onAccepted: root.submit()
         onActiveFocusChanged: {
@@ -75,7 +75,7 @@ FocusScope {
             anchors.verticalCenter: parent.verticalCenter
             text: root.busy ? "Checking…" : "Password"
             color: Theme.subtle
-            font.pixelSize: Theme.fontSize - 1
+            font.pixelSize: Theme.fontContent - 1
             font.letterSpacing: 0
             visible: input.text === "" || root.busy
         }
@@ -89,7 +89,7 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         width: 30
         height: 30
-        radius: Theme.tileRadius
+        radius: Theme.radiusSmall
         color: goMouse.containsMouse ? Theme.accentLight : Theme.accent
         opacity: root.busy ? 0.5 : 1
 

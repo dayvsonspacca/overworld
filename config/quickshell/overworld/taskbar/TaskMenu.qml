@@ -64,7 +64,7 @@ PopupWindow {
 
         anchors.fill: parent
         implicitHeight: content.implicitHeight + 12
-        radius: Theme.panelRadius
+        radius: Theme.radiusPanel
         color: Theme.background
         border.width: 1
         border.color: Theme.edge
@@ -102,7 +102,7 @@ PopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.group ? Tasks.name(root.group) : ""
                     color: Theme.text
-                    font.pixelSize: Theme.fontSize - 1
+                    font.pixelSize: Theme.fontContent - 1
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }

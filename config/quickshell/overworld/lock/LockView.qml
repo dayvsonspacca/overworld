@@ -121,7 +121,7 @@ Item {
         Text {
             text: clock.date.toLocaleDateString(Qt.locale(), Dates.dayFormat)
             color: Qt.alpha(Theme.text, 0.7)
-            font.pixelSize: Theme.fontTitle + 3
+            font.pixelSize: Theme.fontTitle2 + 3
         }
     }
 
@@ -181,7 +181,7 @@ Item {
                     anchors.right: parent.right
                     text: root.user
                     color: Theme.text
-                    font.pixelSize: Theme.fontSize + 2
+                    font.pixelSize: Theme.fontContent + 2
                     font.weight: Font.DemiBold
                 }
 
@@ -199,7 +199,7 @@ Item {
                     Text {
                         text: "locked"
                         color: Theme.subtle
-                        font.pixelSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontCallout
                     }
                 }
             }
@@ -221,8 +221,8 @@ Item {
         Text {
             anchors.right: parent.right
             text: root.error
-            color: "#F2A5B4"
-            font.pixelSize: Theme.fontSmall
+            color: Theme.danger
+            font.pixelSize: Theme.fontCallout
             opacity: root.error !== "" ? 1 : 0
         }
     }

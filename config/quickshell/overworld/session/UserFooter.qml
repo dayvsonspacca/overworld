@@ -59,7 +59,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             text: root.user
             color: Theme.text
-            font.pixelSize: Theme.fontSize - 1
+            font.pixelSize: Theme.fontContent - 1
         }
     }
 
@@ -71,7 +71,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 36
         height: 36
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: root.powerOpen || powerMouse.containsMouse ? Theme.surface : "transparent"
 
         Glyph {
@@ -106,7 +106,7 @@ Rectangle {
         z: 1001
         width: 200
         height: options.implicitHeight + 12
-        radius: Theme.panelRadius
+        radius: Theme.radiusPanel
         color: Theme.background
         border.width: 1
         border.color: Theme.edge

@@ -66,7 +66,7 @@ PopupWindow {
         anchors.fill: parent
         implicitWidth: content.implicitWidth + 16
         implicitHeight: content.implicitHeight + 16
-        radius: Theme.panelRadius
+        radius: Theme.radiusPanel
         color: Theme.background
         border.width: 1
         border.color: Theme.edge
@@ -89,7 +89,7 @@ PopupWindow {
             visible: root.windows.length === 0
             text: root.group ? Tasks.name(root.group) : ""
             color: Theme.text
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
         }
 
         Row {
@@ -110,7 +110,7 @@ PopupWindow {
 
                     width: Theme.previewWidth - 16
                     height: tile.implicitHeight + 12
-                    radius: Theme.itemRadius
+                    radius: Theme.radiusControl
                     color: tileHover.hovered ? Theme.activeTint : "transparent"
 
                     Behavior on color {
@@ -164,7 +164,7 @@ PopupWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: preview.modelData.title
                                 color: Theme.text
-                                font.pixelSize: Theme.fontSmall
+                                font.pixelSize: Theme.fontCallout
                                 elide: Text.ElideRight
                             }
 
@@ -175,7 +175,7 @@ PopupWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 20
                                 height: 20
-                                radius: Theme.tileRadius
+                                radius: Theme.radiusSmall
                                 color: closeMouse.containsMouse ? Theme.hoverTint : "transparent"
 
                                 CloseIcon {

@@ -70,7 +70,7 @@ Column {
         Text {
             text: "No apps playing sound"
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             visible: Audio.streams.length === 0
         }
     }

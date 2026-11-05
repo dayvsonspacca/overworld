@@ -15,7 +15,7 @@ Rectangle {
     activeFocusOnTab: true
     Keys.onReturnPressed: clicked()
     Keys.onSpacePressed: clicked()
-    radius: Theme.itemRadius
+    radius: Theme.radiusControl
     color: selected ? Theme.activeTint : mouse.containsMouse ? Theme.hoverTint : "transparent"
 
     Glyph {
@@ -36,7 +36,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: Theme.text
-        font.pixelSize: Theme.fontSmall + 1
+        font.pixelSize: Theme.fontCallout + 1
         elide: Text.ElideRight
     }
 

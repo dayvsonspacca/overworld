@@ -174,7 +174,7 @@ PanelWindow {
         readonly property Item focused: Window.activeFocusItem
 
         anchors.fill: parent
-        radius: Theme.panelRadius
+        radius: Theme.radiusPanel
         color: Theme.background
         border.width: 1
         border.color: Theme.border
@@ -188,7 +188,7 @@ PanelWindow {
             anchors.left: parent.left
             anchors.margins: 1
             anchors.bottomMargin: 0
-            topLeftRadius: Theme.panelRadius - 1
+            topLeftRadius: Theme.radiusPanel - 1
             current: root.page
             focus: true
             onSelected: page => root.page = page
@@ -255,8 +255,8 @@ PanelWindow {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 1
-            bottomLeftRadius: Theme.panelRadius - 1
-            bottomRightRadius: Theme.panelRadius - 1
+            bottomLeftRadius: Theme.radiusPanel - 1
+            bottomRightRadius: Theme.radiusPanel - 1
             onDone: root.dismissed()
         }
     }

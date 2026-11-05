@@ -10,7 +10,7 @@ Rectangle {
     required property Notification notification
 
     implicitHeight: content.implicitHeight + 20
-    radius: Theme.itemRadius
+    radius: Theme.radiusControl
     color: mouse.containsMouse ? Theme.surface : Qt.alpha(Theme.surface, 0.75)
     border.width: 1
     border.color: Theme.edge
@@ -61,7 +61,7 @@ Rectangle {
                 anchors.rightMargin: 8
                 text: root.notification.summary
                 color: Theme.text
-                font.pixelSize: Theme.fontSmall
+                font.pixelSize: Theme.fontCallout
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -81,7 +81,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Notifications.time(root.notification)
                     color: Theme.subtle
-                    font.pixelSize: Theme.fontSmall - 1
+                    font.pixelSize: Theme.fontCallout - 1
                     visible: !mouse.containsMouse && !closeMouse.containsMouse && !root.activeFocus
                 }
 
@@ -90,7 +90,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 20
                     height: 20
-                    radius: Theme.tileRadius
+                    radius: Theme.radiusSmall
                     color: closeMouse.containsMouse ? Theme.hoverTint : "transparent"
                     visible: !time.visible
 
@@ -117,7 +117,7 @@ Rectangle {
             textFormat: Text.PlainText
             visible: text !== ""
             color: Theme.text
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             wrapMode: Text.Wrap
             maximumLineCount: 3
             elide: Text.ElideRight

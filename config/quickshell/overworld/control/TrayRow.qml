@@ -20,7 +20,7 @@ Rectangle {
         else
             event.accepted = false;
     }
-    radius: Theme.itemRadius
+    radius: Theme.radiusControl
     color: mouse.containsMouse ? Theme.activeTint : Theme.hoverTint
 
     function open(): void {
@@ -50,7 +50,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         text: root.title
         color: Theme.text
-        font.pixelSize: Theme.fontSmall + 1
+        font.pixelSize: Theme.fontCallout + 1
         elide: Text.ElideRight
     }
 
@@ -73,7 +73,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 32
         height: 32
-        radius: Theme.tileRadius
+        radius: Theme.radiusSmall
         color: arrowMouse.containsMouse ? Theme.hoverTint : "transparent"
         visible: root.item.hasMenu
 

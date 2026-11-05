@@ -17,7 +17,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: root.selected ? Theme.activeTint : mouse.containsMouse ? Theme.hoverTint : "transparent"
     }
 

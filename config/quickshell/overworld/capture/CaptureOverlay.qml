@@ -158,7 +158,7 @@ PanelWindow {
             y: below ? root.hole.y + root.hole.height + 10 : root.hole.y - height - 10
             width: dimensions.implicitWidth + 16
             height: 22
-            radius: Theme.tileRadius
+            radius: Theme.radiusSmall
             color: Qt.alpha(Theme.background, 0.9)
             border.width: 1
             border.color: Theme.edge
@@ -170,7 +170,7 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: `${Math.round(root.hole.width * root.ratio)} × ${Math.round(root.hole.height * root.ratio)}`
                 color: Theme.text
-                font.pixelSize: Theme.fontSmall
+                font.pixelSize: Theme.fontCallout
                 font.features: { "tnum": 1 }
             }
         }

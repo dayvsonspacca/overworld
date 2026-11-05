@@ -21,7 +21,7 @@
                      IsVisible="{TemplateBinding Hint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                      FontSize="{StaticResource FontSizeFootnote}"
                      TextWrapping="Wrap"
-                     Foreground="{DynamicResource ForegroundMutedBrush}" />
+                     Foreground="{DynamicResource SubtleBrush}" />
           <TextBlock Name="PART_Error"
                      Text="{TemplateBinding Error}"
                      IsVisible="False"
@@ -37,12 +37,12 @@
       <Setter Property="Padding" Value="10,0" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
-      <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-      <Setter Property="CaretBrush" Value="{DynamicResource ForegroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+      <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
       <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
-      <Setter Property="PlaceholderForeground" Value="{DynamicResource ForegroundMutedBrush}" />
+      <Setter Property="PlaceholderForeground" Value="{DynamicResource SubtleBrush}" />
       <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
     </Style>
     <Style Selector="^:focus-within /template/ TextBox#PART_Input">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />

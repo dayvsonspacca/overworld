@@ -43,7 +43,7 @@ Rectangle {
 
     implicitWidth: 300
     implicitHeight: 64
-    radius: Theme.panelRadius
+    radius: Theme.radiusPanel
     color: Qt.alpha(Theme.background, 0.72)
     border.width: 1
     border.color: Theme.edge
@@ -56,7 +56,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 44
         height: 44
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         clip: true
         gradient: Gradient {
             GradientStop { position: 0; color: Theme.accentLight }
@@ -83,7 +83,7 @@ Rectangle {
             width: parent.width
             text: root.player.trackTitle || root.player.identity
             color: Theme.text
-            font.pixelSize: Theme.fontSmall + 1
+            font.pixelSize: Theme.fontCallout + 1
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
@@ -92,7 +92,7 @@ Rectangle {
             width: parent.width
             text: root.player.trackArtist
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             elide: Text.ElideRight
             visible: text !== ""
         }

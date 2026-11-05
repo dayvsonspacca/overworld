@@ -14,12 +14,12 @@
             <TextBlock Text="{TemplateBinding Title}"
                        FontSize="{StaticResource FontSizeFootnote}"
                        FontWeight="SemiBold"
-                       Foreground="{DynamicResource ForegroundMutedBrush}" />
+                       Foreground="{DynamicResource SubtleBrush}" />
             <TextBlock Grid.Column="1"
                        Text="{TemplateBinding Count}"
                        FontFamily="{StaticResource MonoFont}"
                        FontSize="{StaticResource FontSizeFootnote}"
-                       Foreground="{DynamicResource ForegroundMutedBrush}" />
+                       Foreground="{DynamicResource SubtleBrush}" />
           </Grid>
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}" />

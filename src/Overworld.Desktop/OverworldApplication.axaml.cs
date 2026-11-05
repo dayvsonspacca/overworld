@@ -8,7 +8,7 @@ namespace Overworld.Desktop;
 
 public sealed partial class OverworldApplication(Func<Window> mainWindow) : Application
 {
-    public static readonly ThemeVariant Amethyst = new("Amethyst", ThemeVariant.Dark);
+    public static readonly ThemeVariant Variant = new("Overworld", ThemeVariant.Dark);
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 

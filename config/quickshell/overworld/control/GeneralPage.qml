@@ -66,7 +66,7 @@ Column {
             leftPadding: 32
             text: Audio.sink?.description ?? "No audio output"
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall - 1
+            font.pixelSize: Theme.fontCallout - 1
         }
     }
 

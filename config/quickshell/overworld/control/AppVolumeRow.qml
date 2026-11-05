@@ -72,7 +72,7 @@ Item {
         anchors.rightMargin: 8
         text: Audio.label(root.node)
         color: root.muted ? Theme.subtle : Theme.text
-        font.pixelSize: Theme.fontSmall + 1
+        font.pixelSize: Theme.fontCallout + 1
         elide: Text.ElideRight
     }
 
@@ -85,7 +85,7 @@ Item {
         horizontalAlignment: Text.AlignRight
         text: `${Math.round(root.volume * 100)}%`
         color: Theme.text
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
     }
 
     VolumeSlider {

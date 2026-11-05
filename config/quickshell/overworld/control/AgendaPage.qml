@@ -21,7 +21,7 @@ Column {
 
         width: 28
         height: 28
-        radius: Theme.tileRadius
+        radius: Theme.radiusSmall
         activeFocusOnTab: true
         Keys.onReturnPressed: clicked()
         Keys.onSpacePressed: clicked()
@@ -68,7 +68,7 @@ Column {
             topPadding: 6
             text: clock.date.toLocaleDateString(Qt.locale(), Locale.LongFormat)
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall + 1
+            font.pixelSize: Theme.fontCallout + 1
         }
     }
 
@@ -100,7 +100,7 @@ Column {
     Rectangle {
         width: parent.width
         height: calendar.implicitHeight + 24
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: Qt.alpha(Theme.surface, 0.75)
         border.width: 1
         border.color: Theme.edge

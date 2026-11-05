@@ -25,7 +25,7 @@ Rectangle {
 
         width: label === "" ? 34 : content.implicitWidth + 20
         height: 34
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: selected ? Theme.accent : mouse.containsMouse ? Theme.hoverTint : "transparent"
 
         Row {
@@ -45,7 +45,7 @@ Rectangle {
                 text: tool.label
                 visible: tool.label !== ""
                 color: tool.selected ? "white" : Theme.text
-                font.pixelSize: Theme.fontSmall + 1
+                font.pixelSize: Theme.fontCallout + 1
             }
         }
 
@@ -61,7 +61,7 @@ Rectangle {
 
     implicitWidth: row.implicitWidth + 10
     implicitHeight: row.implicitHeight + 10
-    radius: Theme.panelRadius
+    radius: Theme.radiusPanel
     color: Qt.alpha(Theme.background, 0.92)
     border.width: 1
     border.color: Theme.edge

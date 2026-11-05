@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.MergedDictionaries>
+    <ColorPaletteResources Accent="{StaticResource AccentColor}"
+                           AltHigh="{StaticResource BackgroundColor}"
+                           AltLow="{StaticResource BackgroundColor}"
+                           AltMedium="{StaticResource BackgroundColor}"
+                           AltMediumHigh="{StaticResource BackgroundColor}"
+                           AltMediumLow="{StaticResource BackgroundColor}"
+                           BaseHigh="{StaticResource TextColor}"
+                           BaseLow="{StaticResource DividerColor}"
+                           BaseMedium="{StaticResource SubtleColor}"
+                           BaseMediumHigh="{StaticResource TextSoftColor}"
+                           BaseMediumLow="{StaticResource FaintColor}"
+                           ChromeAltLow="{StaticResource TextSoftColor}"
+                           ChromeBlackHigh="#000000"
+                           ChromeBlackLow="{StaticResource TextSoftColor}"
+                           ChromeBlackMedium="{StaticResource BackgroundColor}"
+                           ChromeBlackMediumLow="{StaticResource BackgroundColor}"
+                           ChromeDisabledHigh="{StaticResource DividerColor}"
+                           ChromeDisabledLow="{StaticResource SubtleColor}"
+                           ChromeGray="{StaticResource FaintColor}"
+                           ChromeHigh="{StaticResource FaintColor}"
+                           ChromeLow="{StaticResource RaisedColor}"
+                           ChromeMedium="{StaticResource SurfaceColor}"
+                           ChromeMediumLow="{StaticResource RaisedColor}"
+                           ChromeWhite="{StaticResource TextColor}"
+                           ListLow="{StaticResource RaisedColor}"
+                           ListMedium="{StaticResource DividerColor}"
+                           RegionColor="{StaticResource BackgroundColor}" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource AccentColor}" Opacity="0.35" />
+
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource RaisedColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource TextColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource TextColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource RaisedColor}" />
+  <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource DividerColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="{StaticResource SelectedColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource TextColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource TextColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="{StaticResource TextColor}" />
+</ResourceDictionary>

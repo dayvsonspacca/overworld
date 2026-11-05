@@ -44,7 +44,7 @@ Rectangle {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.itemRadius
+            radius: Theme.radiusControl
             color: action.highlighted || mouse.containsMouse ? Theme.surface : "transparent"
         }
 
@@ -54,7 +54,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             text: action.label
             color: Theme.text
-            font.pixelSize: Theme.fontSize - 1
+            font.pixelSize: Theme.fontContent - 1
         }
 
         MouseArea {
@@ -71,7 +71,7 @@ Rectangle {
     onFocusedChanged: selected = 0
 
     color: Theme.raised
-    radius: Theme.panelRadius
+    radius: Theme.radiusPanel
     border.width: 1
     border.color: focused ? Theme.accent : Theme.divider
 
@@ -94,7 +94,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             text: root.entry.name
             color: Theme.text
-            font.pixelSize: Theme.fontTitle
+            font.pixelSize: Theme.fontTitle2
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
@@ -106,7 +106,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             text: ["App", Apps.category(root.entry)].filter(s => s).join(" · ")
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
         }
 
         Rectangle {

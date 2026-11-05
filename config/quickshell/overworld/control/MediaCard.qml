@@ -53,7 +53,7 @@ Rectangle {
     }
 
     implicitHeight: content.implicitHeight + 24
-    radius: Theme.itemRadius
+    radius: Theme.radiusControl
     color: Qt.alpha(Theme.surface, 0.75)
     border.width: 1
     border.color: Theme.edge
@@ -81,7 +81,7 @@ Rectangle {
             Rectangle {
                 width: 56
                 height: 56
-                radius: Theme.itemRadius
+                radius: Theme.radiusControl
                 gradient: Gradient {
                     GradientStop { position: 0; color: Theme.accentLight }
                     GradientStop { position: 1; color: Theme.accentDeep }
@@ -114,7 +114,7 @@ Rectangle {
                     width: parent.width
                     text: root.player.trackTitle || root.player.identity
                     color: Theme.text
-                    font.pixelSize: Theme.fontSmall + 1
+                    font.pixelSize: Theme.fontCallout + 1
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -123,7 +123,7 @@ Rectangle {
                     width: parent.width
                     text: [root.player.trackArtist, root.player.identity].filter(s => s).join(" · ")
                     color: Theme.subtle
-                    font.pixelSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontCallout
                     elide: Text.ElideRight
                 }
 
@@ -158,14 +158,14 @@ Rectangle {
                         Text {
                             text: root.time(root.player.position)
                             color: Theme.subtle
-                            font.pixelSize: Theme.fontSmall - 1
+                            font.pixelSize: Theme.fontCallout - 1
                         }
 
                         Text {
                             anchors.right: parent.right
                             text: root.time(root.player.length)
                             color: Theme.subtle
-                            font.pixelSize: Theme.fontSmall - 1
+                            font.pixelSize: Theme.fontCallout - 1
                         }
                     }
                 }

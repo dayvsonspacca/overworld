@@ -51,7 +51,7 @@ Column {
 
             width: 28
             height: 28
-            radius: Theme.tileRadius
+            radius: Theme.radiusSmall
             activeFocusOnTab: true
             Keys.onReturnPressed: root.back()
             Keys.onSpacePressed: root.back()

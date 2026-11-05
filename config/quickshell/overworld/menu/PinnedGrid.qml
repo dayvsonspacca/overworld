@@ -14,7 +14,7 @@ Item {
 
         text: "Pinned"
         color: Theme.text
-        font.pixelSize: Theme.fontSize
+        font.pixelSize: Theme.fontContent
         font.weight: Font.DemiBold
     }
 
@@ -50,7 +50,7 @@ Item {
             ? "No pinned apps.\nSearch for an app and choose “Pin to Start”."
             : "Pinned apps are kept by the Overworld daemon, which isn't running."
         color: Theme.subtle
-        font.pixelSize: Theme.fontSize - 1
+        font.pixelSize: Theme.fontContent - 1
         lineHeight: 1.3
         visible: Pins.menu.entries.length === 0
     }

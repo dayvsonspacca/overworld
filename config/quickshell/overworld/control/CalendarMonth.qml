@@ -31,7 +31,7 @@ Column {
                 verticalAlignment: Text.AlignVCenter
                 text: Qt.locale().dayName((root.first + index) % 7, Locale.NarrowFormat)
                 color: Theme.subtle
-                font.pixelSize: Theme.fontSmall
+                font.pixelSize: Theme.fontCallout
             }
         }
     }
@@ -64,7 +64,7 @@ Column {
                     anchors.centerIn: parent
                     text: cell.modelData.getDate()
                     color: cell.isToday ? "white" : cell.inMonth ? Theme.text : Qt.alpha(Theme.text, 0.25)
-                    font.pixelSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontCallout
                     font.weight: cell.isToday ? Font.DemiBold : Font.Normal
                 }
             }

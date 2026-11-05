@@ -23,7 +23,7 @@ Column {
     Rectangle {
         width: parent.width
         height: 36
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: mouse.containsMouse ? Theme.activeTint : "transparent"
 
         Glyph {
@@ -44,7 +44,7 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
             color: Theme.text
-            font.pixelSize: Theme.fontSize - 1
+            font.pixelSize: Theme.fontContent - 1
             elide: Text.ElideRight
         }
 

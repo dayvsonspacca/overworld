@@ -56,7 +56,7 @@ Rectangle {
         color: Theme.text
         selectionColor: Theme.accentDeep
         selectedTextColor: Theme.text
-        font.pixelSize: Theme.fontSize - 1
+        font.pixelSize: Theme.fontContent - 1
         clip: true
         onAccepted: root.accepted()
         Keys.onUpPressed: root.up()

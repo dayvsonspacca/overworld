@@ -3,6 +3,6 @@ import qs.theme
 
 Text {
     color: Theme.text
-    font.pixelSize: Theme.fontSize
+    font.pixelSize: Theme.fontContent
     font.weight: Font.DemiBold
 }

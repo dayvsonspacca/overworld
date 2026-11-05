@@ -1,34 +1,47 @@
 pragma Singleton
 
 import Quickshell
+import Quickshell.Io
 import QtQuick
 
+// Colors, type sizes and radii come from the theme Seed installs; the measures below are the shell's own.
 Singleton {
-    readonly property color background: "#1C1B21"
-    readonly property color raised: "#25242B"
-    readonly property color surface: "#2E2D35"
-    readonly property color border: "#4A4952"
-    readonly property color accentDeep: "#5B3A9C"
-    readonly property color accent: "#8E62D1"
-    readonly property color accentLight: "#C9A5F2"
-    readonly property color text: "#E4E2DC"
-    readonly property color subtle: "#8A8888"
-    readonly property color divider: Qt.alpha(border, 0.6)
+    id: root
 
+    readonly property string path: {
+        const xdg = Quickshell.env("XDG_CONFIG_HOME") ?? "";
+        return `${xdg.startsWith("/") ? xdg : `${Quickshell.env("HOME")}/.config`}/overworld/theme.json`;
+    }
+    readonly property var theme: JSON.parse(file.text() || '{"colors":{},"font":{"sizes":{}},"radii":{}}')
+
+    readonly property color background: theme.colors.background
+    readonly property color raised: theme.colors.raised
+    readonly property color surface: theme.colors.surface
+    readonly property color divider: theme.colors.divider
+    readonly property color border: theme.colors.border
+    readonly property color text: theme.colors.text
+    readonly property color subtle: theme.colors.subtle
+    readonly property color accentDeep: theme.colors.accentDeep
+    readonly property color accent: theme.colors.accent
+    readonly property color accentLight: theme.colors.accentLight
+    readonly property color danger: theme.colors.danger
+    readonly property color edge: theme.colors.edge
+    readonly property color hoverTint: theme.colors.hoverTint
+    readonly property color activeTint: theme.colors.activeTint
+    readonly property color activeHoverTint: theme.colors.activeHoverTint
     readonly property color bar: Qt.alpha(background, 0.9)
-    readonly property color edge: Qt.alpha("white", 0.07)
-    readonly property color hoverTint: Qt.alpha("white", 0.06)
-    readonly property color activeTint: Qt.alpha("white", 0.09)
-    readonly property color activeHoverTint: Qt.alpha("white", 0.12)
 
-    readonly property int fontSize: 14
-    readonly property int fontSmall: 12
-    readonly property int fontTitle: 17
+    readonly property int fontCallout: theme.font.sizes.callout
+    readonly property int fontContent: theme.font.sizes.content
+    readonly property int fontTitle2: theme.font.sizes.title2
+
+    readonly property int radiusSmall: theme.radii.small
+    readonly property int radiusControl: theme.radii.control
+    readonly property int radiusPanel: theme.radii.panel
 
     readonly property int barHeight: 48
     readonly property int barPadding: 8
     readonly property int tileSize: 40
-    readonly property int tileRadius: 4
     readonly property int tileSpacing: 4
     readonly property int iconSize: 24
     readonly property int pillWidth: 6
@@ -45,8 +58,6 @@ Singleton {
     readonly property int toastTimeout: 5000
 
     readonly property int gap: 12
-    readonly property int panelRadius: 8
-    readonly property int itemRadius: 6
 
     readonly property int controlWidth: 420
     readonly property int controlHeight: 560
@@ -68,4 +79,12 @@ Singleton {
     readonly property int lockMargin: 56
     readonly property int lockClock: 132
     readonly property int lockFieldWidth: 300
+
+    FileView {
+        id: file
+
+        path: root.path
+        blockLoading: true
+        onLoadFailed: console.error(`overworld: no theme at ${root.path}; run just seed to install one`)
+    }
 }

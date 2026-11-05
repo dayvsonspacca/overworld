@@ -17,7 +17,7 @@ Rectangle {
     activeFocusOnTab: interactive
     Keys.onReturnPressed: clicked()
     Keys.onSpacePressed: clicked()
-    radius: Theme.panelRadius
+    radius: Theme.radiusPanel
     color: on ? Theme.accent : mouse.containsMouse ? Theme.activeTint : Theme.hoverTint
 
     Glyph {
@@ -42,7 +42,7 @@ Rectangle {
             width: parent.width
             text: root.title
             color: root.on ? "white" : Theme.text
-            font.pixelSize: Theme.fontSmall + 1
+            font.pixelSize: Theme.fontCallout + 1
             elide: Text.ElideRight
         }
 
@@ -51,13 +51,13 @@ Rectangle {
             text: root.detail
             visible: root.detail !== ""
             color: root.on ? Qt.alpha("white", 0.75) : Theme.subtle
-            font.pixelSize: Theme.fontSmall - 1
+            font.pixelSize: Theme.fontCallout - 1
             elide: Text.ElideRight
         }
     }
 
     FocusRing {
-        radius: Theme.panelRadius + gap
+        radius: Theme.radiusPanel + gap
     }
 
     MouseArea {

@@ -84,7 +84,7 @@ Item {
         Text {
             text: "No apps in the background"
             color: Theme.subtle
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             visible: SystemTray.items.values.length === 0
         }
     }

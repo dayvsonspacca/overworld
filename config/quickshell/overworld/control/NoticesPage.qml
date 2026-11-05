@@ -35,14 +35,14 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             text: "Clear all"
             color: Theme.accentLight
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             visible: Notifications.count > 0
             activeFocusOnTab: visible
             Keys.onReturnPressed: Notifications.clear()
             Keys.onSpacePressed: Notifications.clear()
 
             FocusRing {
-                radius: Theme.tileRadius + gap
+                radius: Theme.radiusSmall + gap
             }
 
             MouseArea {
@@ -61,7 +61,7 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             text: "Do not disturb"
             color: Theme.text
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
         }
 
         Switch {
@@ -120,7 +120,7 @@ Column {
         horizontalAlignment: Text.AlignHCenter
         text: "No notifications"
         color: Theme.subtle
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
         visible: Notifications.count === 0
     }
 }

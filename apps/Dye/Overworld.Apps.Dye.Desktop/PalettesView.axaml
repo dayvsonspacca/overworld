@@ -21,7 +21,7 @@
           <TextBlock Text="No palettes yet."
                      IsVisible="{Binding !Palettes.Count}"
                      Margin="10,7"
-                     Foreground="{DynamicResource ForegroundMutedBrush}" />
+                     Foreground="{DynamicResource SubtleBrush}" />
         </Panel>
       </desktop:SidebarSection>
 
@@ -84,14 +84,14 @@
                   Spacing="8">
         <TextBlock Text="No palettes yet" FontSize="{StaticResource FontSizeTitle3}" HorizontalAlignment="Center" />
         <TextBlock Text="Save one on the left, or from a terminal:"
-                   Foreground="{DynamicResource ForegroundMutedBrush}"
+                   Foreground="{DynamicResource SubtleBrush}"
                    HorizontalAlignment="Center" />
         <TextBlock Classes="mono" Text="overworld:dye save --name Sea --colors &quot;#003F5C,#58508D&quot;" HorizontalAlignment="Center" />
       </StackPanel>
 
       <TextBlock Text="{Binding Problem}"
                  IsVisible="{Binding Problem, Converter={x:Static ObjectConverters.IsNotNull}}"
-                 Foreground="{DynamicResource ForegroundMutedBrush}"
+                 Foreground="{DynamicResource SubtleBrush}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center" />
     </Panel>

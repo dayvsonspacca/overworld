@@ -18,7 +18,7 @@ Rectangle {
             : Theme.toastTimeout
 
     implicitHeight: content.implicitHeight + 24
-    radius: Theme.panelRadius
+    radius: Theme.radiusPanel
     color: Theme.background
     border.width: 1
     border.color: Theme.edge
@@ -71,7 +71,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: `${root.notification.appName || "System"} · now`
                 color: Theme.subtle
-                font.pixelSize: Theme.fontSmall - 1
+                font.pixelSize: Theme.fontCallout - 1
                 elide: Text.ElideRight
             }
 
@@ -82,7 +82,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 20
                 height: 20
-                radius: Theme.tileRadius
+                radius: Theme.radiusSmall
                 color: closeMouse.containsMouse ? Theme.hoverTint : "transparent"
 
                 CloseIcon {
@@ -104,7 +104,7 @@ Rectangle {
         Rectangle {
             width: parent.width
             height: 150
-            radius: Theme.itemRadius
+            radius: Theme.radiusControl
             color: Theme.surface
             clip: true
             visible: root.preview
@@ -160,7 +160,7 @@ Rectangle {
                     width: parent.width
                     text: root.notification.summary
                     color: Theme.text
-                    font.pixelSize: Theme.fontSmall + 1
+                    font.pixelSize: Theme.fontCallout + 1
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -171,7 +171,7 @@ Rectangle {
                     textFormat: Text.PlainText
                     visible: text !== ""
                     color: Theme.text
-                    font.pixelSize: Theme.fontSmall
+                    font.pixelSize: Theme.fontCallout
                     wrapMode: Text.Wrap
                     maximumLineCount: 4
                     elide: Text.ElideRight
@@ -195,7 +195,7 @@ Rectangle {
 
                     width: (parent.width - parent.spacing * (root.actions.length - 1)) / root.actions.length
                     height: 30
-                    radius: Theme.tileRadius
+                    radius: Theme.radiusSmall
                     color: actionMouse.containsMouse ? Theme.activeTint : Theme.hoverTint
 
                     Text {
@@ -204,7 +204,7 @@ Rectangle {
                         horizontalAlignment: Text.AlignHCenter
                         text: action.modelData.text
                         color: Theme.text
-                        font.pixelSize: Theme.fontSmall
+                        font.pixelSize: Theme.fontCallout
                         elide: Text.ElideRight
                     }
 

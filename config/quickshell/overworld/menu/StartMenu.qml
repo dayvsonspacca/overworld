@@ -45,7 +45,7 @@ PanelWindow {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.panelRadius
+        radius: Theme.radiusPanel
         color: Theme.background
         border.width: 1
         border.color: Theme.border
@@ -164,7 +164,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     text: "No apps found"
                     color: Theme.subtle
-                    font.pixelSize: Theme.fontSize - 1
+                    font.pixelSize: Theme.fontContent - 1
                     visible: search.text !== "" && list.count === 0
                 }
             }
@@ -177,7 +177,7 @@ PanelWindow {
                 anchors.right: parent.right
                 anchors.margins: 1
                 anchors.leftMargin: 0
-                bottomRightRadius: Theme.panelRadius - 1
+                bottomRightRadius: Theme.radiusPanel - 1
                 onDone: root.dismissed()
             }
         }

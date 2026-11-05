@@ -13,7 +13,7 @@ Rectangle {
 
     implicitWidth: row.implicitWidth + 24
     implicitHeight: Theme.tileSize
-    radius: Theme.tileRadius
+    radius: Theme.radiusSmall
     color: active
         ? (hover.hovered ? Theme.activeHoverTint : Theme.activeTint)
         : (hover.hovered ? Theme.hoverTint : "transparent")

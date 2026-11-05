@@ -33,7 +33,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: mouse.containsMouse ? Theme.hoverTint : "transparent"
         visible: !root.entry.isSeparator
 
@@ -70,7 +70,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
             color: root.entry.enabled ? Theme.text : Theme.subtle
-            font.pixelSize: Theme.fontSmall + 1
+            font.pixelSize: Theme.fontCallout + 1
             elide: Text.ElideRight
         }
 

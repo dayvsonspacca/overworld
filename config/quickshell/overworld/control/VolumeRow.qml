@@ -62,6 +62,6 @@ Item {
         horizontalAlignment: Text.AlignRight
         text: `${Math.round(root.volume * 100)}%`
         color: Theme.text
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
     }
 }

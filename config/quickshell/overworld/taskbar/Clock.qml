@@ -14,7 +14,7 @@ Column {
         anchors.right: parent.right
         text: clock.date.toLocaleTimeString(Qt.locale(), Dates.timeFormat)
         color: Theme.text
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
         font.features: { "tnum": 1 }
     }
 
@@ -22,7 +22,7 @@ Column {
         anchors.right: parent.right
         text: clock.date.toLocaleDateString(Qt.locale(), Locale.ShortFormat)
         color: Theme.text
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
         font.features: { "tnum": 1 }
     }
 }

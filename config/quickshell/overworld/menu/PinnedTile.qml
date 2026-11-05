@@ -14,7 +14,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.itemRadius
+        radius: Theme.radiusControl
         color: mouse.containsMouse ? Theme.surface : "transparent"
     }
 
@@ -39,7 +39,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         text: root.entry.name
         color: Theme.text
-        font.pixelSize: Theme.fontSmall
+        font.pixelSize: Theme.fontCallout
         elide: Text.ElideRight
     }
 

@@ -9,6 +9,7 @@ Structural parts are named after Minecraft blocks and mechanics, apps after item
 - **Bedrock** (`src/Overworld.Bedrock`): the core every part is built on, depending on nothing else in Overworld: operations and their catalog, results and errors, one JSON shape.
 - **Chest** (`src/Overworld.Chest`): storage, the JSON files where Overworld keeps its data and the folder they live in.
 - **The ways in** (`src/Overworld.Cli`, `src/Overworld.Mcp`, `src/Overworld.Desktop`, `src/Overworld.Hosting`): how people and agents reach operations: a CLI, MCP, a window in the shared theme, and the entry point that picks one.
+- **Themes** (`config/overworld/themes`): the colors, type sizes, radii and spacing the shell and the apps share, one JSON file per theme, Amethyst first. Seed installs the chosen one as `~/.config/overworld/theme.json`, the only file either side reads.
 - **Dye** (`apps/Dye`): an app for saving color palettes and seeing them as swatches.
 - **The daemon** (`src/Overworld.Daemon`, binary `overworld`): the environment's own process. Hyprland starts it; it keeps the shell running and answers the environment's operations, which people and agents reach as `overworld <operation>` and `overworld mcp`.
 - **Seed** (`src/Overworld.Seed`, `overworld:seed`): installs Overworld on a machine: links its config, publishes the daemon and the apps, and puts them on the PATH.
@@ -18,7 +19,6 @@ Structural parts are named after Minecraft blocks and mechanics, apps after item
 - **The shell** (`config/quickshell/overworld`): the desktop itself, in QML: wallpaper, taskbar, start menu, control center, notifications, lock screen and captures.
 - **Hyprland config** (`config/hypr`): the compositor's setup in Lua, with the binds that reach the shell.
 
-Names floated for later, to use only when real code needs them: Amethyst (one theme for the shell and apps).
 
 ## Stack
 

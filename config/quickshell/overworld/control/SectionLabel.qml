@@ -3,5 +3,5 @@ import qs.theme
 
 Text {
     color: Theme.subtle
-    font.pixelSize: Theme.fontSmall
+    font.pixelSize: Theme.fontCallout
 }

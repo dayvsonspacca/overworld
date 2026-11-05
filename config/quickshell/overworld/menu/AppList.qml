@@ -61,7 +61,7 @@ ListView {
             bottomPadding: 4
             leftPadding: 10
             color: Theme.accentLight
-            font.pixelSize: Theme.fontSmall
+            font.pixelSize: Theme.fontCallout
             font.weight: Font.DemiBold
         }
 
