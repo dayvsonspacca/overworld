@@ -8,6 +8,11 @@ Singleton {
     id: root
 
     readonly property bool connected: socket.connected
+    // Same place as SocketPath in Overworld.Redstone: the runtime dir when it is a full path, the temp dir otherwise.
+    readonly property string runtime: {
+        const xdg = Quickshell.env("XDG_RUNTIME_DIR") ?? "";
+        return xdg.startsWith("/") ? xdg : (Quickshell.env("TMPDIR") || "/tmp");
+    }
     property var callbacks: []
 
     function call(operation: string, input: var, done: var): void {
@@ -22,7 +27,7 @@ Singleton {
     Socket {
         id: socket
 
-        path: `${Quickshell.env("XDG_RUNTIME_DIR")}/overworld.sock`
+        path: `${root.runtime}/overworld.sock`
         connected: true
         onConnectedChanged: root.callbacks = []
 
