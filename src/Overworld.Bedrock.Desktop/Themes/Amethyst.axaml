@@ -42,6 +42,7 @@
   <Color x:Key="ScrimColor">#9E0B0A0E</Color>
   <Color x:Key="SelectedColor">#332944</Color>
   <Color x:Key="AccentTextColor">#AB83E1</Color>
+  <Color x:Key="DangerColor">#E5806F</Color>
 
   <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
   <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
@@ -55,6 +56,8 @@
   <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
   <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}" />
   <SolidColorBrush x:Key="AccentTextBrush" Color="{StaticResource AccentTextColor}" />
+  <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+  <BoxShadows x:Key="FocusGlow">0 0 0 3 #388E62D1</BoxShadows>
   <SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource AccentColor}" Opacity="0.35" />
 
   <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource SurfaceColor}" />

@@ -22,6 +22,17 @@
     <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}" />
   </Style>
 
+  <!-- The box inside a TextField: it keeps the background and border the TextField gives it in every state. -->
+  <Style Selector="TextBox.field /template/ Border#PART_BorderElement, TextBox.field:pointerover /template/ Border#PART_BorderElement, TextBox.field:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{Binding $parent[TextBox].Background}" />
+    <Setter Property="BorderBrush" Value="{Binding $parent[TextBox].BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+  </Style>
+  <Style Selector="TextBox.field:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BoxShadow" Value="{DynamicResource FocusGlow}" />
+  </Style>
+
   <!-- Lists select in the theme's colours, not Fluent's blue. -->
   <Style Selector="ListBoxItem">
     <Setter Property="Padding" Value="10,7" />
