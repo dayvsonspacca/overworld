@@ -3,6 +3,5 @@
     <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <ProjectReference Include="../Overworld.Bedrock.Cli/Overworld.Bedrock.Cli.csproj" />
     <ProjectReference Include="../Overworld.Bedrock.Mcp/Overworld.Bedrock.Mcp.csproj" />
-    <ProjectReference Include="../Overworld.Bedrock.Desktop/Overworld.Bedrock.Desktop.csproj" />
   </ItemGroup>
 </Project>

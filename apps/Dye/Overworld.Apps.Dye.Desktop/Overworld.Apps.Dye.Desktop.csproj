@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
     <ProjectReference Include="../Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Bedrock.Desktop/Overworld.Bedrock.Desktop.csproj" />
     <ProjectReference Include="../../../src/Overworld.Bedrock.Hosting/Overworld.Bedrock.Hosting.csproj" />
   </ItemGroup>
 </Project>

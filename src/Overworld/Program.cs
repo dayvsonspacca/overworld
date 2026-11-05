@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
-using Overworld.Bedrock.Cli;
-using Overworld.Bedrock.Mcp;
+using Overworld.Bedrock.Hosting;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Daemon;
@@ -18,8 +17,16 @@ internal static class Program
 {
     private const string Command = "overworld";
 
-    private static Task<int> Main(string[] args) =>
-        args.Length == 0 ? RunDaemonAsync() : RunClientAsync(args);
+    private static Task<int> Main(string[] args)
+    {
+        var client = new RedstoneClient(SocketPath.Resolve());
+
+        return AppHost.RunAsync(
+            Command,
+            [.. Operations().Select(operation => new RemoteOperation(operation, client))],
+            args,
+            withoutArgs: RunDaemonAsync);
+    }
 
     private static Operation[] Operations()
     {
@@ -62,22 +69,5 @@ internal static class Program
             logging.CreateLogger<OverworldDaemon>());
 
         return await daemon.RunAsync(shutdown.Token);
-    }
-
-    private static async Task<int> RunClientAsync(string[] args)
-    {
-        var client = new RedstoneClient(SocketPath.Resolve());
-        Operation[] operations = [.. Operations().Select(operation => new RemoteOperation(operation, client))];
-
-        if (args is ["mcp"])
-        {
-            await new McpHost(Command, operations)
-                .RunAsync(Console.OpenStandardInput(), Console.OpenStandardOutput(), CancellationToken.None);
-
-            return 0;
-        }
-
-        return await new CliHost(Command, operations)
-            .RunAsync(args, Console.Out, Console.Error, CancellationToken.None);
     }
 }
