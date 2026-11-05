@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>seed</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
+    <ProjectReference Include="../Overworld.Hosting/Overworld.Hosting.csproj" />
+  </ItemGroup>
+</Project>
