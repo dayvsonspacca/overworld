@@ -37,6 +37,8 @@
   <Color x:Key="ForegroundColor">#E4E2DC</Color>
   <Color x:Key="ForegroundMutedColor">#8A8888</Color>
   <Color x:Key="AccentColor">#8E62D1</Color>
+  <Color x:Key="AccentHoverColor">#9B72DA</Color>
+  <Color x:Key="AccentPressedColor">#7D53BF</Color>
   <Color x:Key="AccentSecondaryColor">#C9A5F2</Color>
   <Color x:Key="OnAccentColor">#FFFFFF</Color>
   <Color x:Key="ScrimColor">#9E0B0A0E</Color>
@@ -51,6 +53,8 @@
   <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
   <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource ForegroundMutedColor}" />
   <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
+  <SolidColorBrush x:Key="AccentPressedBrush" Color="{StaticResource AccentPressedColor}" />
   <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource AccentSecondaryColor}" />
   <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
   <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
