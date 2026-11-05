@@ -26,7 +26,7 @@ Folders appear with their first content.
 
 ## Parts
 
-Structural parts are named after Minecraft blocks and mechanics, apps after items that are ordinary words; the UI never shows the theme. Bedrock is the foundation and depends on nothing else. Names already floated for later, to use only when real code needs them: Redstone (signals between processes), Spawner (starting and supervising processes), Amethyst (the shared theme for the shell and apps), Chest (stored user data), Seed (installing the environment on a machine).
+Structural parts are named after Minecraft blocks and mechanics, apps after items that are ordinary words; the UI never shows the theme. Bedrock is the foundation and depends on nothing else. Chest (`Overworld.Bedrock.Chest`) is Bedrock's storage protocol: `JsonFile<T>` reads a whole JSON document (missing or null means empty, unreadable comes back as a `file.unreadable` Error) and writes it atomically through a `.tmp` file; each part says only where the file lives and what empty is. Where data lives stays with each app (`AppIdentity.DataDirectory`), and locking stays with the caller. Names already floated for later, to use only when real code needs them: Redstone (signals between processes), Spawner (starting and supervising processes), Amethyst (the shared theme for the shell and apps), Seed (installing the environment on a machine).
 
 ## Stack
 
