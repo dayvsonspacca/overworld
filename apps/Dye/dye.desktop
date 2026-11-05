@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Dye
+Comment=Save color palettes and see them as swatches
+Exec="@APPS@/dye/dye"
+Path=@APPS@/dye
+Icon=@APPS@/dye/@ICON@
+StartupWMClass=dye
+Categories=Graphics;
+Terminal=false
