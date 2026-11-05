@@ -15,5 +15,6 @@
     <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Cli.Tests/Overworld.Bedrock.Cli.Tests.csproj" />
     <Project Path="tests/Overworld.Bedrock.Mcp.Tests/Overworld.Bedrock.Mcp.Tests.csproj" />
+    <Project Path="tests/Overworld.Bedrock.Desktop.Tests/Overworld.Bedrock.Desktop.Tests.csproj" />
   </Folder>
 </Solution>

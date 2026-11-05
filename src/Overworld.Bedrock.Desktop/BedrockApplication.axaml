@@ -11,6 +11,8 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="/Themes/Tokens.axaml" />
         <ResourceInclude Source="/Themes/TextField.axaml" />
+        <ResourceInclude Source="/Themes/SidebarSection.axaml" />
+        <ResourceInclude Source="/Themes/Sidebar.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

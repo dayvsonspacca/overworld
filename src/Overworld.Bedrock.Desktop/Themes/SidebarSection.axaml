@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:desktop="using:Overworld.Bedrock.Desktop">
+  <!-- One part of a sidebar: a small title, an optional count beside it, and what the part holds. -->
+  <ControlTheme x:Key="{x:Type desktop:SidebarSection}" TargetType="desktop:SidebarSection">
+    <Setter Property="Padding" Value="12,16" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel Margin="{TemplateBinding Padding}">
+          <Grid DockPanel.Dock="Top"
+                ColumnDefinitions="*,Auto"
+                Margin="4,0,4,10"
+                IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{TemplateBinding Title}"
+                       FontSize="{StaticResource FontSizeFootnote}"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource ForegroundMutedBrush}" />
+            <TextBlock Grid.Column="1"
+                       Text="{TemplateBinding Count}"
+                       FontFamily="{StaticResource MonoFont}"
+                       FontSize="{StaticResource FontSizeFootnote}"
+                       Foreground="{DynamicResource ForegroundMutedBrush}" />
+          </Grid>
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>
