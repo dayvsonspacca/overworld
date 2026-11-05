@@ -11,7 +11,7 @@ Overworld is being built by merging two older repositories, one commit at a time
 - **Amethyst** (`~/Projetos/me/amethyst`): the environment. The daemon in `src/Amethyst` (supervision, processes, IPC, CLI, pins, XDG paths, logging), the QML shell in `shell/`, the Hyprland Lua config in `hypr/`. Amethyst's daemon becomes Overworld's.
 - **Bedrock** (`~/Projetos/me/desktop/bedrock`): the foundation for apps (`Bedrock.Core`, `.Cli`, `.Mcp`, `.Desktop`, with the Avalonia theme) and the first app, Dye, a color palette app.
 
-So far the root build setup and Bedrock's results (`Error`, `Result<T>`), operations (`IOperation`, `[Operation]`, `Operation`), shared JSON (`BedrockJson`), app identity (`AppIdentity`), the CLI (`Overworld.Bedrock.Cli`) and MCP (`Overworld.Bedrock.Mcp`) have arrived. Bedrock's code has never been built with Amethyst's analyzers; expect fixes as it comes in (so far: `Result<T>` lost its static factories to a `Result` class for CA1000, and the CLI compares `--` ordinally for CA1310).
+So far the root build setup and Bedrock's results (`Error`, `Result<T>`), operations (`IOperation`, `[Operation]`, `Operation`), shared JSON (`BedrockJson`), app identity (`AppIdentity`), the CLI (`Overworld.Bedrock.Cli`), MCP (`Overworld.Bedrock.Mcp`) and the desktop window with its theme (`Overworld.Bedrock.Desktop`) have arrived. Bedrock's code has never been built with Amethyst's analyzers; expect fixes as it comes in (so far: `Result<T>` lost its static factories to a `Result` class for CA1000, and the CLI compares `--` ordinally for CA1310).
 
 ## Layout
 
