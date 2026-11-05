@@ -1,4 +1,25 @@
 {
   "name": "Overworld",
-  "icon": ".crafter/icon.png"
+  "icon": ".crafter/icon.png",
+  "axioms": [
+    "Keep Bedrock as the foundation: it depends on no other part of Overworld, and any part may depend on it.",
+    "Put what two or more parts share in Bedrock instead of letting each reinvent it.",
+    "Grow Bedrock, or create a new part, only from what real code needs now; don't design for guessed futures.",
+    "Keep an app's logic in one place, apart from the ways the app is reached.",
+    "Make every app and the environment itself usable both by the user, by hand, and by agents and programs.",
+    "Name each structural part after a Minecraft block or mechanic, and each app after a Minecraft item that is also an ordinary word.",
+    "Never put Minecraft terms or visuals in the user interface; only part and app names carry the theme.",
+    "Name every app's CLI command overworld:<app>, like overworld:dye list.",
+    "Never let an app or the shell define its own theme; all of them take the one Overworld theme.",
+    "Open the design of each new UI component in the user's browser for review before building it.",
+    "Write the Hyprland config in Lua (hyprland.lua with the hl.* API), never in the legacy hyprlang format.",
+    "Never tie code or config to the current machine (monitors, hardware, paths, hostnames); detect it at runtime, and keep anything truly local in untracked files.",
+    "Keep config/ mirroring ~/.config so each folder installs as one symlink.",
+    "Use other shells like Ambxst only as reference for ideas; never copy their code, structure or features.",
+    "Follow SOLID principles and idiomatic modern C# conventions.",
+    "Group code into namespaces by responsibility, with folders matching the namespaces.",
+    "Prefer short names when the context makes them clear (locator, not shellLocator).",
+    "Show each new C# file, except tests, in full and one at a time, explaining only why it exists and its role, and wait for the user's review before writing the next.",
+    "Bring code from Amethyst and Bedrock one logical piece per commit, never as a bulk copy."
+  ]
 }
