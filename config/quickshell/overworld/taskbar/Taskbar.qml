@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import qs.control
 import qs.menu
 import qs.notifications
 import qs.session
@@ -11,11 +12,28 @@ PanelWindow {
     id: root
 
     required property ShellScreen modelData
+    property string requestedPage: "general"
 
     function dismiss(): void {
         menu.active = false;
+        control.active = false;
         preview.hide();
         tasks.close();
+    }
+
+    function openControl(page: string): void {
+        menu.active = false;
+        preview.hide();
+        tasks.close();
+
+        if (!control.active) {
+            requestedPage = page;
+            control.active = true;
+        } else if (control.item.page === page) {
+            control.active = false;
+        } else {
+            control.item.page = page;
+        }
     }
 
     screen: modelData
@@ -38,12 +56,31 @@ PanelWindow {
         }
     }
 
+    LazyLoader {
+        id: control
+
+        ControlCenter {
+            bar: root
+            page: root.requestedPage
+            onDismissed: control.active = false
+        }
+    }
+
     IpcHandler {
         target: "menu"
 
         function toggle(): void {
+            control.active = false;
             tasks.close();
             menu.active = !menu.active;
+        }
+    }
+
+    IpcHandler {
+        target: "control"
+
+        function toggle(): void {
+            root.openControl("general");
         }
     }
 
@@ -65,6 +102,7 @@ PanelWindow {
 
     Toasts {
         bar: root
+        suppressed: control.active
     }
 
     MouseArea {
@@ -91,6 +129,7 @@ PanelWindow {
             onClicked: {
                 preview.hide();
                 tasks.close();
+                control.active = false;
                 menu.active = !menu.active;
             }
         }
@@ -117,12 +156,20 @@ PanelWindow {
                     tasks.open(button);
                 }
                 onHoveredChanged: {
-                    if (hovered && !menu.active && !tasks.visible)
+                    if (hovered && !menu.active && !control.active && !tasks.visible)
                         preview.show(button);
                     else
                         preview.leave();
                 }
             }
         }
+    }
+
+    StatusButton {
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.barPadding
+        anchors.verticalCenter: parent.verticalCenter
+        active: control.active
+        onOpened: page => root.openControl(page)
     }
 }
