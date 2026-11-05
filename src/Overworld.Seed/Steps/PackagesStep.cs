@@ -8,6 +8,8 @@ public sealed class PackagesStep(string list) : IStep
 {
     private const int SomeMissing = 127;
 
+    private static readonly string[] Helpers = ["yay", "paru"];
+
     private sealed record Packages(IReadOnlyList<string> Repo, IReadOnlyList<string> Aur);
 
     public async Task<Result<string>> RunAsync(CancellationToken cancellationToken)
@@ -35,9 +37,18 @@ public sealed class PackagesStep(string list) : IStep
             return error;
         }
 
-        foreach (var package in packages.Aur.Where(missing.Value.Contains))
+        var aur = packages.Aur.Where(missing.Value.Contains).ToList();
+
+        if (aur.Count > 0)
         {
-            if (await BuildAsync(package, cancellationToken) is { } failed)
+            var helper = Helper();
+
+            if (helper is null)
+            {
+                return new Error("seed.packages_failed", $"{string.Join(", ", aur)} come from the AUR; install yay or paru and run Seed again.");
+            }
+
+            if (Failed(await Command.AttachAsync(helper, ["-S", "--needed", "--noconfirm", .. aur], null, cancellationToken), helper) is { } failed)
             {
                 return failed;
             }
@@ -63,32 +74,11 @@ public sealed class PackagesStep(string list) : IStep
         };
     }
 
-    private static async Task<Error?> BuildAsync(string package, CancellationToken cancellationToken)
-    {
-        var folder = Directory.CreateTempSubdirectory("seed-aur-").FullName;
-
-        try
-        {
-            var cloned = await Command.CaptureAsync(
-                "git", ["clone", "--depth", "1", $"https://aur.archlinux.org/{package}.git", folder], cancellationToken);
-
-            if (!cloned.IsSuccess)
-            {
-                return cloned.Error;
-            }
-
-            if (cloned.Value.ExitCode != 0)
-            {
-                return new Error("seed.packages_failed", $"Could not clone {package} from the AUR: {cloned.Value.Output}");
-            }
-
-            return Failed(await Command.AttachAsync("makepkg", ["-si", "--noconfirm"], folder, cancellationToken), $"makepkg for {package}");
-        }
-        finally
-        {
-            Directory.Delete(folder, recursive: true);
-        }
-    }
+    // An AUR helper builds as the user and resolves conflicts with what is already installed, which a bare makepkg does not.
+    private static string? Helper() =>
+        Helpers.FirstOrDefault(helper =>
+            (Environment.GetEnvironmentVariable("PATH") ?? "").Split(':', StringSplitOptions.RemoveEmptyEntries)
+                .Any(folder => File.Exists(Path.Combine(folder, helper))));
 
     private static Error? Failed(Result<int> ran, string what) =>
         !ran.IsSuccess ? ran.Error

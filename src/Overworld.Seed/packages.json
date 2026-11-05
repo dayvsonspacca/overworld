@@ -18,7 +18,8 @@
     "ibus",
     "wlsunset",
     "kitty",
-    "nautilus"
+    "nautilus",
+    "quickshell"
   ],
-  "aur": ["quickshell-git"]
+  "aur": []
 }
