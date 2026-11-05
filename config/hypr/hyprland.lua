@@ -4,6 +4,7 @@ require("modules.input")
 require("modules.general")
 require("modules.animations")
 require("modules.binds")
+require("modules.switcher")
 require("modules.rules")
 require("modules.autostart")
 
