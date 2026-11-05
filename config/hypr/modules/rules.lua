@@ -27,3 +27,8 @@ hl.window_rule({
     size              = "480 270",
     move              = "(monitor_w-window_w-20) (monitor_h-window_h-20)",
 })
+
+hl.layer_rule({
+    match = { namespace = "^overworld:(taskbar|menu|control)$" },
+    blur  = true,
+})
