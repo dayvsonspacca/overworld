@@ -20,19 +20,14 @@ public sealed class EditProjectOp(Shelf shelf, SettingsStore settings) : IOperat
             return new Error("project.icon_conflict", "Give the project an icon or take its icon away, not both.");
         }
 
-        var folder = string.IsNullOrWhiteSpace(input.Folder) ? null : Project.Normalize(input.Folder);
-        var shelved = await shelf.ListAsync(cancellationToken);
+        var found = await shelf.FindAsync(input.Folder, cancellationToken);
 
-        if (!shelved.IsSuccess)
+        if (!found.IsSuccess)
         {
-            return shelved.Error;
+            return found.Error;
         }
 
-        if (folder is null || !shelved.Value.Contains(new Shelved(folder)))
-        {
-            return new Error("project.not_open", $"'{input.Folder}' is not a project open in Crafter.");
-        }
-
+        var folder = found.Value;
         var saved = await settings.ReadAsync(folder, cancellationToken);
 
         if (!saved.IsSuccess)

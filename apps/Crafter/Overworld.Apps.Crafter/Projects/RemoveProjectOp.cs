@@ -8,24 +8,14 @@ public sealed class RemoveProjectOp(Shelf shelf, SettingsStore settings) : IOper
 {
     public async Task<Result<Project>> ExecuteAsync(RemoveProject input, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(input.Folder))
+        var found = await shelf.FindAsync(input.Folder, cancellationToken);
+
+        if (!found.IsSuccess)
         {
-            return NotOpen(input.Folder);
+            return found.Error;
         }
 
-        var folder = Project.Normalize(input.Folder);
-        var shelved = await shelf.ListAsync(cancellationToken);
-
-        if (!shelved.IsSuccess)
-        {
-            return shelved.Error;
-        }
-
-        if (!shelved.Value.Contains(new Shelved(folder)))
-        {
-            return NotOpen(input.Folder);
-        }
-
+        var folder = found.Value;
         var removed = await shelf.RemoveAsync(folder, cancellationToken);
 
         if (!removed.IsSuccess)
@@ -37,7 +27,4 @@ public sealed class RemoveProjectOp(Shelf shelf, SettingsStore settings) : IOper
 
         return Project.Of(folder, described.IsSuccess ? described.Value : null);
     }
-
-    private static Error NotOpen(string folder) =>
-        new("project.not_open", $"'{folder}' is not a project open in Crafter.");
 }

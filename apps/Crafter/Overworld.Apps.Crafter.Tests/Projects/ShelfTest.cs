@@ -96,4 +96,28 @@ public sealed class ShelfTest : IDisposable
 
         Assert.Equal("file.unreadable", listed.Error.Code);
     }
+
+    [Fact]
+    public async Task FindsAProjectByAnySpellingOfItsFolder()
+    {
+        var shelf = new Shelf(_folder.Path);
+        await shelf.AddAsync("/work/overworld", Token);
+
+        var found = await shelf.FindAsync("/work/./overworld/", Token);
+
+        Assert.Equal("/work/overworld", found.Value);
+    }
+
+    [Theory]
+    [InlineData("/work/zarb")]
+    [InlineData("")]
+    public async Task FindsNoProjectThatIsNotOpen(string folder)
+    {
+        var shelf = new Shelf(_folder.Path);
+        await shelf.AddAsync("/work/overworld", Token);
+
+        var found = await shelf.FindAsync(folder, Token);
+
+        Assert.Equal("project.not_open", found.Error.Code);
+    }
 }
