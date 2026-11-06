@@ -50,6 +50,7 @@ Canvas {
 
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
+    onHueChanged: requestPaint()
 
     onPaint: {
         let seed = 7;
