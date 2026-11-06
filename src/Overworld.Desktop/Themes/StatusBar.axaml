@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:desktop="using:Overworld.Desktop">
+  <!-- The thin bar under an area of an app: what the app puts at its start and at its end. Its items are styled in Controls.axaml. -->
+  <ControlTheme x:Key="{x:Type desktop:StatusBar}" TargetType="desktop:StatusBar">
+    <Setter Property="Height" Value="{StaticResource ControlSmall}" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <ContentPresenter Content="{TemplateBinding Leading}" />
+            <ContentPresenter Grid.Column="2" Content="{TemplateBinding Trailing}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

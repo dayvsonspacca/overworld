@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:desktop="using:Overworld.Desktop">
   <Style Selector="Window">
     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -244,6 +245,53 @@
     <Setter Property="Padding" Value="8,6" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
     <Setter Property="MinHeight" Value="0" />
+  </Style>
+
+  <!-- Inside a status bar: small mono words and thin glyphs; an item pairs them; a button is the bar's full height and lights on hover. -->
+  <Style Selector="desktop|StatusBar TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+  </Style>
+  <Style Selector="desktop|StatusBar Path">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="StrokeThickness" Value="1.1" />
+    <Setter Property="Stroke" Value="{DynamicResource SubtleBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="desktop|StatusBar StackPanel.item">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="Spacing" Value="6" />
+    <Setter Property="Margin" Value="6,0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="desktop|StatusBar Button">
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="desktop|StatusBar Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, desktop|StatusBar Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+  </Style>
+  <Style Selector="desktop|StatusBar Button:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+  </Style>
+  <Style Selector="desktop|StatusBar Button:pointerover Path">
+    <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
+  </Style>
+  <Style Selector="desktop|StatusBar Separator">
+    <Setter Property="Width" Value="1" />
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Margin" Value="2,6" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
   </Style>
 
   <!-- Lists select in the theme's colours, not Fluent's blue. -->
