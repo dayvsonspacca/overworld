@@ -10,7 +10,7 @@ Rectangle {
     readonly property string user: Quickshell.env("USER") ?? ""
     readonly property var power: [
         { label: "Lock", glyph: Glyphs.lock, run: () => Locker.lock() },
-        { label: "Sign out", glyph: Glyphs.logout, run: () => Quickshell.execDetached(["sh", "-c", "loginctl terminate-session \"$XDG_SESSION_ID\""]) },
+        { label: "Sign out", glyph: Glyphs.logout, run: () => Quickshell.execDetached(["hyprctl", "eval", "hl.dispatch(hl.dsp.exit())"]) },
         { label: "Sleep", glyph: Glyphs.sleep, run: () => Quickshell.execDetached(["systemctl", "suspend"]) },
         { label: "Restart", glyph: Glyphs.restart, run: () => Quickshell.execDetached(["systemctl", "reboot"]) },
         { label: "Shut down", glyph: Glyphs.power, run: () => Quickshell.execDetached(["systemctl", "poweroff"]), apart: true }
