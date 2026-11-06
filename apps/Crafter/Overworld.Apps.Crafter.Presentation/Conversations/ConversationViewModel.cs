@@ -362,6 +362,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             ProposalEntry entry = proposal switch
             {
                 AxiomProposal axiom => new AxiomProposalEntry(axiom.Axiom),
+                AxiomRemovalProposal removal => new AxiomRemovalProposalEntry(removal.Axiom, removal.Why),
                 SummaryProposal summary => new SummaryProposalEntry(summary.Current, summary.Proposed),
                 _ => throw new ArgumentOutOfRangeException(nameof(proposal), proposal, "Crafter knows no such proposal."),
             };

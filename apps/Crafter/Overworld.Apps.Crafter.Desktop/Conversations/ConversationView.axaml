@@ -495,6 +495,23 @@
       </local:TimelineNode>
     </DataTemplate>
 
+    <DataTemplate DataType="conversations:AxiomRemovalProposalEntry">
+      <local:TimelineNode Glyph="§">
+        <Border Classes="request" Classes.open="{Binding IsOpen}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Drop an axiom of the project" FontWeight="SemiBold" />
+            <text:SelectableText Text="{Binding Axiom}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" TextDecorations="Strikethrough" />
+            <text:SelectableText Text="{Binding Why}" IsVisible="{Binding HasWhy}" TextWrapping="Wrap" Foreground="{DynamicResource SubtleBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOpen}">
+              <Button Classes="primary" Content="Drop it" Command="{Binding ApproveCommand}" />
+              <Button Classes="ghost" Content="Keep it" Command="{Binding DeclineCommand}" />
+            </StackPanel>
+            <TextBlock Classes="answer" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+          </StackPanel>
+        </Border>
+      </local:TimelineNode>
+    </DataTemplate>
+
     <DataTemplate DataType="conversations:SummaryProposalEntry">
       <local:TimelineNode Glyph="¶">
         <Border Classes="request" Classes.open="{Binding IsOpen}">

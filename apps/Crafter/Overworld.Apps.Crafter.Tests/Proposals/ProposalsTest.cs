@@ -110,5 +110,45 @@ public sealed class ProposalsTest : IDisposable
         Assert.DoesNotContain("propose-axiom", plain.FreeTools);
         Assert.Contains("propose-axiom", asking.FreeTools);
         Assert.Contains("propose-summary", asking.FreeTools);
+        Assert.Contains("propose-axiom-removal", asking.FreeTools);
+        Assert.DoesNotContain("propose-axiom-removal", plain.FreeTools);
+    }
+
+    [Fact]
+    public async Task DropsAnAxiomTheUserLetsGo()
+    {
+        await new AddAxiomOp(_axioms).ExecuteAsync(new AddAxiom(_project, "Never add comments"), Token);
+        await new AddAxiomOp(_axioms).ExecuteAsync(new AddAxiom(_project, "Be brief"), Token);
+
+        var said = await new ProposeAxiomRemovalOp(_axioms, Answering(true), () => _kept++)
+            .ExecuteAsync(new ProposeAxiomRemoval(_project, " Never add comments ", " The user asked for comments now. "), Token);
+
+        Assert.Equal("The user approved; the project no longer holds the axiom.", said.Value);
+        Assert.Equal(new AxiomRemovalProposal("Never add comments", "The user asked for comments now."), Assert.Single(_asked));
+        Assert.Equal(["Be brief"], (await _axioms.ListAsync(_project, Token)).Value);
+        Assert.Equal(1, _kept);
+    }
+
+    [Fact]
+    public async Task KeepsAnAxiomTheUserHoldsOn()
+    {
+        await new AddAxiomOp(_axioms).ExecuteAsync(new AddAxiom(_project, "Be brief"), Token);
+
+        var said = await new ProposeAxiomRemovalOp(_axioms, Answering(false), () => _kept++)
+            .ExecuteAsync(new ProposeAxiomRemoval(_project, "Be brief", "It slows answers down."), Token);
+
+        Assert.Equal("The user declined; the axiom stays.", said.Value);
+        Assert.Equal(["Be brief"], (await _axioms.ListAsync(_project, Token)).Value);
+        Assert.Equal(0, _kept);
+    }
+
+    [Fact]
+    public async Task AsksNothingForAnAxiomTheProjectDoesNotHold()
+    {
+        var said = await new ProposeAxiomRemovalOp(_axioms, Answering(true))
+            .ExecuteAsync(new ProposeAxiomRemoval(_project, "Be brief", "Gone."), Token);
+
+        Assert.Equal("axiom.missing", said.Error.Code);
+        Assert.Empty(_asked);
     }
 }

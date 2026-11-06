@@ -33,6 +33,7 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
         " Crafter also keeps this project's axioms, the rules you follow in every chat, and its summary: what the project is, its stack, its layout and the commands it runs with. "
             + "When the user corrects you or settles how something must always be done here, propose it as an axiom with propose-axiom, short and in the imperative, like \"Never add comments\". "
             + "Don't propose what is already an axiom, nor what only holds for the task at hand. "
+            + "When an axiom no longer holds, because the user said otherwise or the project moved on, propose dropping it with propose-axiom-removal and say why. "
             + "When you learn something lasting about the project that the summary lacks or gets wrong, propose the whole new summary with propose-summary. "
             + "The user approves or declines each proposal in the chat.";
 
@@ -44,7 +45,9 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             .. reads,
             .. kept is null ? writes : writes.Select(Operation (write) => new Keeping(write, kept)),
             .. retitle is null ? [] : (Operation[])[Operation.From(new RenameChatOp(retitle))],
-            .. ask is null ? [] : (Operation[])[Operation.From(new ProposeAxiomOp(axioms, ask, kept)), Operation.From(new ProposeSummaryOp(summaries, ask, kept))],
+            .. ask is null
+                ? []
+                : (Operation[])[Operation.From(new ProposeAxiomOp(axioms, ask, kept)), Operation.From(new ProposeAxiomRemovalOp(axioms, ask, kept)), Operation.From(new ProposeSummaryOp(summaries, ask, kept))],
         ];
         var instructions = Instructions + (retitle is null ? string.Empty : Naming) + (ask is null ? string.Empty : Proposing);
 
