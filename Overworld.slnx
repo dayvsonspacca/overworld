@@ -8,6 +8,7 @@
   <Folder Name="/src/">
     <Project Path="src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <Project Path="src/Overworld.Chest/Overworld.Chest.csproj" />
+    <Project Path="src/Overworld.Allay/Overworld.Allay.csproj" />
     <Project Path="src/Overworld.Cli/Overworld.Cli.csproj" />
     <Project Path="src/Overworld.Mcp/Overworld.Mcp.csproj" />
     <Project Path="src/Overworld.Redstone/Overworld.Redstone.csproj" />
@@ -19,6 +20,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Overworld.Bedrock.Tests/Overworld.Bedrock.Tests.csproj" />
     <Project Path="tests/Overworld.Chest.Tests/Overworld.Chest.Tests.csproj" />
+    <Project Path="tests/Overworld.Allay.Tests/Overworld.Allay.Tests.csproj" />
     <Project Path="tests/Overworld.Cli.Tests/Overworld.Cli.Tests.csproj" />
     <Project Path="tests/Overworld.Mcp.Tests/Overworld.Mcp.Tests.csproj" />
     <Project Path="tests/Overworld.Redstone.Tests/Overworld.Redstone.Tests.csproj" />
