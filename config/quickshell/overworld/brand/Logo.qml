@@ -5,7 +5,7 @@ Image {
 
     width: size
     height: size
-    source: Qt.resolvedUrl("amethyst.png")
+    source: Qt.resolvedUrl("grass.png")
     smooth: false
     mipmap: false
 }
