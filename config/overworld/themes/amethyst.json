@@ -18,6 +18,7 @@
     "onAccent": "#FFFFFF",
     "selected": "#332944",
     "danger": "#E5806F",
+    "added": "#8CC08C",
     "scrim": "#9E0B0A0E",
     "hoverTint": "#0FFFFFFF",
     "edge": "#12FFFFFF",
