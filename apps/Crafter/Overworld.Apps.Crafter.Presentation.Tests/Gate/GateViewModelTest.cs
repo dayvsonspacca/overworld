@@ -86,6 +86,7 @@ public sealed class GateViewModelTest : IDisposable
         Assert.True(_gate.IsShut);
         Assert.False(_gate.NobodyHired);
         Assert.Equal("Agent claude-code", _gate.Agent);
+        Assert.Equal("#5FD3F3", _gate.Color);
         Assert.Equal("Signed out · Sign in from a terminal.", _gate.Trouble);
         Assert.Equal("Your agent can't work yet", _gate.Heading);
     }

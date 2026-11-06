@@ -22,6 +22,9 @@ public sealed partial class GateViewModel(
     public partial string? Agent { get; private set; }
 
     [ObservableProperty]
+    public partial string? Color { get; private set; }
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Failed))]
     public partial string? Trouble { get; private set; }
 
@@ -61,7 +64,7 @@ public sealed partial class GateViewModel(
 
             if (!listed.IsSuccess)
             {
-                Shut(nobodyHired: true, agent: null, trouble: listed.Error.Message);
+                Shut(nobodyHired: true, stuck: null, trouble: listed.Error.Message);
 
                 return;
             }
@@ -87,7 +90,7 @@ public sealed partial class GateViewModel(
                 }
             }
 
-            Shut(nobodyHired: stuck is null, stuck?.Name, trouble);
+            Shut(nobodyHired: stuck is null, stuck, trouble);
         }
         finally
         {
@@ -98,9 +101,9 @@ public sealed partial class GateViewModel(
     [RelayCommand]
     private void OpenAllay() => Problem = openAllay() ? null : "Allay isn't installed here; install it with just seed, then try again.";
 
-    private void Shut(bool nobodyHired, string? agent, string? trouble)
+    private void Shut(bool nobodyHired, AgentCard? stuck, string? trouble)
     {
-        (NobodyHired, Agent, Trouble) = (nobodyHired, agent, trouble);
+        (NobodyHired, Agent, Color, Trouble) = (nobodyHired, stuck?.Name, stuck?.Color, trouble);
         IsShut = true;
     }
 }

@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <AvaloniaResource Include="../icon.png" Link="icon.png" />
-    <AvaloniaResource Include="../../Allay/icon.png" Link="Gate/allay.png" />
   </ItemGroup>
 
   <ItemGroup>
