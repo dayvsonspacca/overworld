@@ -33,26 +33,40 @@ var chats = new ChatStore(Path.Combine(data, "chats"));
 var staff = new StaffFile(allay);
 using var tools = new McpHttpHost(app.Name);
 var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
-var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), new Toolbox(tools, todos, axioms, summaries), chats);
+var editProject = Operation.From(new EditProjectOp(shelf, settings));
+var listTodos = Operation.From(new ListTodosOp(todos));
+var addTodo = Operation.From(new AddTodoOp(todos));
+var completeTodo = Operation.From(new CompleteTodoOp(todos));
+var removeTodo = Operation.From(new RemoveTodoOp(todos));
+var giveSkill = Operation.From(new GiveSkillOp(skills));
+var showLibrary = Operation.From(new ShowLibraryOp(library));
+var saveSkill = Operation.From(new SaveSkillOp(library));
+var toolbox = new Toolbox(
+    tools,
+    [listTodos, showLibrary, Operation.From(new ListChatsOp(chats)), Operation.From(new ReadChatOp(chats))],
+    [addTodo, completeTodo, removeTodo, editProject, giveSkill, saveSkill],
+    axioms,
+    summaries);
+var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), toolbox, chats);
 
 var abilities = new Abilities
 {
     ListProjects = Operation.From(new ListProjectsOp(shelf, settings)),
     AddProject = Operation.From(new AddProjectOp(shelf, settings)),
-    EditProject = Operation.From(new EditProjectOp(shelf, settings)),
+    EditProject = editProject,
     RemoveProject = Operation.From(new RemoveProjectOp(shelf, settings)),
-    ListTodos = Operation.From(new ListTodosOp(todos)),
-    AddTodo = Operation.From(new AddTodoOp(todos)),
-    CompleteTodo = Operation.From(new CompleteTodoOp(todos)),
-    RemoveTodo = Operation.From(new RemoveTodoOp(todos)),
+    ListTodos = listTodos,
+    AddTodo = addTodo,
+    CompleteTodo = completeTodo,
+    RemoveTodo = removeTodo,
     ListAxioms = Operation.From(new ListAxiomsOp(axioms)),
     AddAxiom = Operation.From(new AddAxiomOp(axioms)),
     RemoveAxiom = Operation.From(new RemoveAxiomOp(axioms)),
     ShowSummary = Operation.From(new ShowSummaryOp(shelf, summaries)),
     WriteSummary = Operation.From(new WriteSummaryOp(shelf, summaries)),
     ListProjectSkills = Operation.From(new ListProjectSkillsOp(skills)),
-    GiveSkill = Operation.From(new GiveSkillOp(skills)),
-    ShowLibrary = Operation.From(new ShowLibraryOp(library)),
+    GiveSkill = giveSkill,
+    ShowLibrary = showLibrary,
     LinkLibrary = Operation.From(new LinkLibraryOp(library)),
     SyncLibrary = Operation.From(new SyncLibraryOp(library)),
     SetDefaultSkill = Operation.From(new SetDefaultSkillOp(library)),
@@ -83,7 +97,7 @@ return await AppHost.RunAsync(
         abilities.ShowLibrary,
         abilities.LinkLibrary,
         abilities.SyncLibrary,
-        Operation.From(new SaveSkillOp(library)),
+        saveSkill,
         abilities.SetDefaultSkill,
         abilities.ListProjectSkills,
         abilities.GiveSkill,

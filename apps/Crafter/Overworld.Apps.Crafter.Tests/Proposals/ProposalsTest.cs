@@ -102,7 +102,7 @@ public sealed class ProposalsTest : IDisposable
     {
         using var host = new McpHttpHost("crafter");
         host.Start();
-        var toolbox = new Toolbox(host, new TodoList(_shelf), _axioms, _summaries);
+        var toolbox = new Toolbox(host, [], [], _axioms, _summaries);
 
         var plain = toolbox.Admit(_project);
         var asking = toolbox.Admit(_project, Answering(true));

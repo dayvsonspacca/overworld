@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Overworld.Allay.Briefs;
 using Overworld.Apps.Crafter.Axioms;
+using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Projects;
@@ -10,6 +11,7 @@ using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
 using Overworld.Apps.Crafter.Tests.Library;
+using Overworld.Bedrock.Operations;
 using Overworld.Mcp;
 
 namespace Overworld.Apps.Crafter.Tests.Sessions;
@@ -75,7 +77,7 @@ public sealed class SessionsTest : IDisposable
         using var host = new McpHttpHost("crafter");
         host.Start();
         var todos = new TodoList(_shelf);
-        var server = new Toolbox(host, todos, new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Admit(_overworld);
+        var server = new Toolbox(host, [Operation.From(new ListTodosOp(todos))], [Operation.From(new AddTodoOp(todos)), Operation.From(new CompleteTodoOp(todos)), Operation.From(new RemoveTodoOp(todos))], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Admit(_overworld);
 
         var listed = await PostAsync(server, """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""");
         await PostAsync(server, """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add-todo","arguments":{"folder":"/elsewhere","text":"Modal"}}}""");
@@ -87,12 +89,35 @@ public sealed class SessionsTest : IDisposable
     }
 
     [Fact]
+    public async Task TellsWhatAToolChangedAndLetsAChatBeRenamed()
+    {
+        await _shelf.AddAsync(_overworld, Token);
+        using var host = new McpHttpHost("crafter");
+        host.Start();
+        var todos = new TodoList(_shelf);
+        var kept = 0;
+        ChatTitle? title = null;
+        var toolbox = new Toolbox(host, [Operation.From(new ListTodosOp(todos))], [Operation.From(new AddTodoOp(todos))], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
+        var plain = toolbox.Admit(_overworld);
+        var server = toolbox.Admit(_overworld, kept: () => kept++, retitle: given => title = given);
+
+        await PostAsync(server, """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list-todos","arguments":{}}}""");
+        await PostAsync(server, """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add-todo","arguments":{"text":"Pictures"}}}""");
+        await PostAsync(server, """{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"rename-chat","arguments":{"title":"Pictures"}}}""");
+
+        Assert.DoesNotContain("rename-chat", plain.FreeTools);
+        Assert.Contains("rename-chat", server.FreeTools);
+        Assert.Equal(1, kept);
+        Assert.Equal(ChatTitle.Of("Pictures"), title);
+    }
+
+    [Fact]
     public async Task ForgetsASessionItReleased()
     {
         await _shelf.AddAsync(_overworld, Token);
         using var host = new McpHttpHost("crafter");
         host.Start();
-        var toolbox = new Toolbox(host, new TodoList(_shelf), new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
+        var toolbox = new Toolbox(host, [], [], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
         var server = toolbox.Admit(_overworld);
 
         toolbox.Release(server);

@@ -26,7 +26,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         {
             if (folder == project.Folder)
             {
-                OnUi(() => _ = Aside.LoadAsync(CancellationToken.None));
+                OnUi(() => _ = RefreshAsync(CancellationToken.None));
             }
         };
     }
@@ -119,6 +119,23 @@ public sealed partial class ProjectViewModel : ObservableObject
     }
 
     public void Renamed(Project project) => Project = project;
+
+    private async Task RefreshAsync(CancellationToken cancellationToken)
+    {
+        var projects = await _abilities.ListProjects.ExecuteAsync(new ListProjects(), cancellationToken);
+
+        if (projects.IsSuccess && projects.Value.FirstOrDefault(each => each.Folder == Project.Folder) is { } current)
+        {
+            Project = current;
+        }
+
+        await Aside.LoadAsync(cancellationToken);
+
+        if (ShowsOverview)
+        {
+            await Overview.LoadAsync(cancellationToken);
+        }
+    }
 
     public async Task OpenOverviewAsync(CancellationToken cancellationToken)
     {

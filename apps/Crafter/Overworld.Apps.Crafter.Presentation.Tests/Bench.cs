@@ -37,7 +37,7 @@ public sealed class Bench : IDisposable
         Agent = new ScriptedAgent(Session);
         Crew = new Crew([Agent], new StaffFile(PathTo("allay")));
         Summaries = new SummaryStore();
-        Workshop = new Workshop(Crew, new ProjectBrief(Summaries, book, skills), new Toolbox(_host, todos, book, Summaries), Chats);
+        Workshop = new Workshop(Crew, new ProjectBrief(Summaries, book, skills), new Toolbox(_host, [], [], book, Summaries), Chats);
         AddProject = Operation.From(new AddProjectOp(shelf, settings));
         var preferences = new PreferencesStore(data, _root);
         var library = new SkillLibrary(preferences, new Mirror(PathTo("data", "library")));

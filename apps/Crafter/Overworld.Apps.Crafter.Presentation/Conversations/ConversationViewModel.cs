@@ -284,6 +284,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         _chat = opened.Value;
         _chat.Conversation.Woke += (_, moments) => OnUi(() => _ = WokenAsync(moments));
         _chat.Session.JobsChanged += (_, jobs) => OnUi(() => Rejob(jobs));
+        _chat.Retitled += (_, _) => OnUi(() => Title = _chat.Title.Text);
         Rejob(_chat.Session.Jobs);
 
         return true;

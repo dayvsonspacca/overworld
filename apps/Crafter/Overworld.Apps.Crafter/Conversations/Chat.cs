@@ -6,6 +6,8 @@ namespace Overworld.Apps.Crafter.Conversations;
 
 public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation conversation)
 {
+    public event EventHandler? Retitled;
+
     public ChatId Id { get; } = id;
 
     public AgentId Agent { get; } = agent;
@@ -26,6 +28,12 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
         }
 
         return Conversation.AskAsync(prompt, setup, cancellationToken);
+    }
+
+    public void Rename(ChatTitle title)
+    {
+        Title = title;
+        Retitled?.Invoke(this, EventArgs.Empty);
     }
 
     public ChatRecord Record() => new(Id, Agent, Title, Session.Id, [.. Turns]);

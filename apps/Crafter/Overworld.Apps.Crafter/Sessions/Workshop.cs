@@ -62,7 +62,8 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
             return agent.Error;
         }
 
-        var tools = toolbox.Admit(folder, ask, () => _ = KeptAsync(folder));
+        Chat? chat = null;
+        var tools = toolbox.Admit(folder, ask, () => _ = KeptAsync(folder), title => chat?.Rename(title));
         var brief = await briefs.OfAsync(folder, [tools], cancellationToken);
 
         if (!brief.IsSuccess)
@@ -72,7 +73,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
             return brief.Error;
         }
 
-        var chat = new Chat(record.Id, record.Agent, record.Title, new Conversation(agent.Value.Begin(brief.Value, record.SessionId), record.Turns));
+        chat = new Chat(record.Id, record.Agent, record.Title, new Conversation(agent.Value.Begin(brief.Value, record.SessionId), record.Turns));
         _open[record.Id] = new Open(folder, chat, tools);
 
         return chat;

@@ -26,6 +26,21 @@ public sealed class ChatTest
     }
 
     [Fact]
+    public async Task TakesANewTitleAndSaysSo()
+    {
+        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession([new Finished()]), []));
+        var told = 0;
+        chat.Retitled += (_, _) => told++;
+
+        await chat.AskAsync(Ask("quero imagens no crafter"), Setup.Default, Token).ToListAsync(Token);
+        chat.Rename(ChatTitle.Of("Pictures in the conversation"));
+
+        Assert.Equal("Pictures in the conversation", chat.Title.Text);
+        Assert.Equal("Pictures in the conversation", chat.Record().Title.Text);
+        Assert.Equal(1, told);
+    }
+
+    [Fact]
     public async Task KeepsTheTitleOfARestoredChat()
     {
         Turn[] history = [Ask("oi"), new Reply([new Speech("Olá")], new Finished())];

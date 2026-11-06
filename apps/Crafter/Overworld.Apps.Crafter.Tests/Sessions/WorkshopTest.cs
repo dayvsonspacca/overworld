@@ -47,7 +47,7 @@ public sealed class WorkshopTest : IDisposable
         _axioms = new AxiomBook(shelf, new SettingsStore());
         var skills = new ProjectSkills(shelf, new SkillLibrary(new PreferencesStore(_folder.PathTo("data"), "/home/someone"), new Mirror(_folder.PathTo("data", "library"))));
         _store = new ChatStore(_folder.PathTo("chats"));
-        _workshop = new Workshop(_crew, new ProjectBrief(_summaries, _axioms, skills), new Toolbox(_host, new TodoList(shelf), _axioms, _summaries), _store);
+        _workshop = new Workshop(_crew, new ProjectBrief(_summaries, _axioms, skills), new Toolbox(_host, [], [], _axioms, _summaries), _store);
         shelf.AddAsync(_project, CancellationToken.None).GetAwaiter().GetResult();
     }
 
