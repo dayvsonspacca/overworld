@@ -1,19 +1,55 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using Overworld.Allay.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
-public sealed class Timeline(Action<string, Decision>? decide = null)
+public sealed class Timeline
 {
+    public const int Page = 15;
+
     private readonly Dictionary<string, ActEntry> _acts = [];
 
     private readonly Dictionary<string, RequestEntry> _requests = [];
 
-    private readonly Action<string, Decision> _decide = decide ?? ((_, _) => { });
+    private readonly Action<string, Decision> _decide;
 
     private PlanEntry? _plan;
 
+    public Timeline(Action<string, Decision>? decide = null)
+    {
+        _decide = decide ?? ((_, _) => { });
+        Entries.CollectionChanged += Follow;
+    }
+
     public ObservableCollection<Entry> Entries { get; } = [];
+
+    public ObservableCollection<Entry> Shown { get; } = [];
+
+    public bool HasEarlier => Shown.Count < Entries.Count;
+
+    public void ShowLatest()
+    {
+        Shown.Clear();
+
+        foreach (var entry in Entries.TakeLast(Page))
+        {
+            Shown.Add(entry);
+        }
+    }
+
+    public int ShowEarlier()
+    {
+        var hidden = Entries.Count - Shown.Count;
+        var more = Math.Min(Page, hidden);
+
+        for (var at = hidden - 1; at >= hidden - more; at--)
+        {
+            Shown.Insert(0, Entries[at]);
+        }
+
+        return more;
+    }
 
     public void Add(Turn turn)
     {
@@ -83,6 +119,28 @@ public sealed class Timeline(Action<string, Decision>? decide = null)
             case Outcome outcome:
                 Entries.Add(new OutcomeEntry(outcome));
                 break;
+        }
+    }
+
+    private void Follow(object? sender, NotifyCollectionChangedEventArgs change)
+    {
+        if (change is { Action: NotifyCollectionChangedAction.Add, NewItems: { } added, NewStartingIndex: var at })
+        {
+            var hidden = Entries.Count - added.Count - Shown.Count;
+
+            foreach (Entry entry in added)
+            {
+                if (at >= hidden)
+                {
+                    Shown.Insert(at - hidden, entry);
+                }
+
+                at++;
+            }
+        }
+        else
+        {
+            ShowLatest();
         }
     }
 

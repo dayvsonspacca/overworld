@@ -9,6 +9,44 @@ public sealed class TimelineTest
     private readonly Timeline _timeline = new();
 
     [Fact]
+    public void ShowsTheLatestEntriesAndBringsBackEarlierOnesAPageAtATime()
+    {
+        for (var at = 0; at < (Timeline.Page * 2) + 3; at++)
+        {
+            _timeline.Add(new Act($"{at}", ActKind.Command, $"step {at}"));
+        }
+
+        _timeline.ShowLatest();
+
+        Assert.Equal(_timeline.Entries.TakeLast(Timeline.Page), _timeline.Shown);
+        Assert.True(_timeline.HasEarlier);
+
+        Assert.Equal(Timeline.Page, _timeline.ShowEarlier());
+        Assert.Equal(_timeline.Entries.TakeLast(Timeline.Page * 2), _timeline.Shown);
+
+        Assert.Equal(3, _timeline.ShowEarlier());
+        Assert.Equal(_timeline.Entries, _timeline.Shown);
+        Assert.False(_timeline.HasEarlier);
+        Assert.Equal(0, _timeline.ShowEarlier());
+    }
+
+    [Fact]
+    public void ShowsWhatArrivesWhileOnlyTheLatestAreShown()
+    {
+        for (var at = 0; at < Timeline.Page + 5; at++)
+        {
+            _timeline.Add(new Act($"{at}", ActKind.Command, $"step {at}"));
+        }
+
+        _timeline.ShowLatest();
+        _timeline.Add(new Speech("Done."));
+
+        Assert.Equal(Timeline.Page + 1, _timeline.Shown.Count);
+        Assert.IsType<SpeechEntry>(_timeline.Shown[^1]);
+        Assert.Equal(_timeline.Entries.TakeLast(Timeline.Page + 1), _timeline.Shown);
+    }
+
+    [Fact]
     public void JoinsWhatFlowsInPiecesAndSplitsWhenTheKindChanges()
     {
         _timeline.Add(new Thought("Look"));

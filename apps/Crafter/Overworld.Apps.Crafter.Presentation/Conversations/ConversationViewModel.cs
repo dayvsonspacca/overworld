@@ -60,6 +60,8 @@ public sealed partial class ConversationViewModel : ObservableObject
         {
             Timeline.Add(turn);
         }
+
+        Timeline.ShowLatest();
     }
 
     public event EventHandler? Answered;

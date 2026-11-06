@@ -617,7 +617,7 @@
     </Border>
 
     <text:TextPage Name="Page">
-      <ItemsControl ItemsSource="{Binding Timeline.Entries}" MaxWidth="760" Margin="24,20,24,12" />
+      <ItemsControl ItemsSource="{Binding Timeline.Shown}" MaxWidth="760" Margin="24,20,24,12" />
     </text:TextPage>
   </DockPanel>
 

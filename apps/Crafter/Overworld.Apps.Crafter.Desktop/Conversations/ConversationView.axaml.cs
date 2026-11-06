@@ -17,7 +17,13 @@ public sealed partial class ConversationView : UserControl
 {
     private const double NearTheEnd = 48;
 
+    private const double NearTheTop = 400;
+
     private ConversationViewModel? _shown;
+
+    private bool _settled;
+
+    private bool _filling;
 
     public ConversationView()
     {
@@ -31,6 +37,7 @@ public sealed partial class ConversationView : UserControl
         AddHandler(DragDrop.DragOverEvent, Hover);
         AddHandler(DragDrop.DragLeaveEvent, (_, _) => DropZone.IsVisible = false);
         AddHandler(DragDrop.DropEvent, Drop);
+        Page.ScrollChanged += Scrolled;
     }
 
     public void FocusComposer() => Dispatcher.UIThread.Post(() => Composer.Focus(), DispatcherPriority.Background);
@@ -46,12 +53,20 @@ public sealed partial class ConversationView : UserControl
         }
 
         _shown = DataContext as ConversationViewModel;
+        _settled = false;
 
         if (_shown is not null)
         {
             _shown.Timeline.Entries.CollectionChanged += Grew;
-            Dispatcher.UIThread.Post(Page.ScrollToEnd, DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(Settle, DispatcherPriority.Background);
         }
+    }
+
+    private void Settle()
+    {
+        Page.ScrollToEnd();
+        _settled = true;
+        Scrolled(null, null);
     }
 
     private void Typed(object? sender, KeyEventArgs e)
@@ -230,6 +245,31 @@ public sealed partial class ConversationView : UserControl
         }
 
         menu.ShowAt(ModelChip);
+    }
+
+    private void Scrolled(object? sender, ScrollChangedEventArgs? e)
+    {
+        if (!_settled || _filling)
+        {
+            return;
+        }
+
+        _filling = true;
+
+        try
+        {
+            while (_shown is { Timeline.HasEarlier: true } shown && Page.Offset.Y <= NearTheTop)
+            {
+                var below = Page.Extent.Height - Page.Offset.Y;
+                shown.Timeline.ShowEarlier();
+                Page.UpdateLayout();
+                Page.Offset = Page.Offset.WithY(Page.Extent.Height - below);
+            }
+        }
+        finally
+        {
+            _filling = false;
+        }
     }
 
     private void Grew(object? sender, NotifyCollectionChangedEventArgs e)
