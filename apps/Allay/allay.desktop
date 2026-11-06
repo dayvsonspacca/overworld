@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Allay
+Comment=Hire the agents Overworld's apps work with
+Exec="@APPS@/allay/allay"
+Path=@APPS@/allay
+Icon=@APPS@/allay/@ICON@
+StartupWMClass=allay
+Categories=Development;
+Terminal=false

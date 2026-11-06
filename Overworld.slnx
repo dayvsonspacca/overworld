@@ -33,6 +33,11 @@
     <Project Path="tests/Overworld.Seed.Tests/Overworld.Seed.Tests.csproj" />
   </Folder>
   <Folder Name="/apps/" />
+  <Folder Name="/apps/Allay/">
+    <Project Path="apps/Allay/Overworld.Apps.Allay.Desktop/Overworld.Apps.Allay.Desktop.csproj" />
+    <Project Path="apps/Allay/Overworld.Apps.Allay.Presentation/Overworld.Apps.Allay.Presentation.csproj" />
+    <Project Path="apps/Allay/Overworld.Apps.Allay.Presentation.Tests/Overworld.Apps.Allay.Presentation.Tests.csproj" />
+  </Folder>
   <Folder Name="/apps/Crafter/">
     <Project Path="apps/Crafter/Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
     <Project Path="apps/Crafter/Overworld.Apps.Crafter.Tests/Overworld.Apps.Crafter.Tests.csproj" />

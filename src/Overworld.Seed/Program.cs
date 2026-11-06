@@ -36,6 +36,9 @@ IReadOnlyList<IStep> Plan(Install install) =>
     new PublishStep(root.PathTo("apps", "Crafter", "Overworld.Apps.Crafter.Desktop"), Path.Combine(apps, "crafter")),
     new DesktopEntryStep("crafter", root.PathTo("apps", "Crafter"), apps, Path.Combine(share, "applications")),
     new LinkStep(Path.Combine(apps, "crafter", "crafter"), Path.Combine(bin, "overworld:crafter")),
+    new PublishStep(root.PathTo("apps", "Allay", "Overworld.Apps.Allay.Desktop"), Path.Combine(apps, "allay")),
+    new DesktopEntryStep("allay", root.PathTo("apps", "Allay"), apps, Path.Combine(share, "applications")),
+    new LinkStep(Path.Combine(apps, "allay", "allay"), Path.Combine(bin, "overworld:allay")),
 ];
 
 return await AppHost.RunAsync(app.Command, [Operation.From(new InstallOp(Plan))], args);
