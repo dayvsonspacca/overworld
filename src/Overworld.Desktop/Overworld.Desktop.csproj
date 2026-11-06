@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="../../apps/Allay/icon.png" Link="Agents/allay.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="Overworld.Desktop.Tests" />
   </ItemGroup>
 
