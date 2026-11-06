@@ -134,6 +134,8 @@
     <Style Selector="TextBox.composer">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
+      <!-- Even transparent and borderless, a rounded border leaves a speck in each corner. -->
+      <Setter Property="CornerRadius" Value="0" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="MinHeight" Value="40" />
       <Setter Property="MaxHeight" Value="220" />
