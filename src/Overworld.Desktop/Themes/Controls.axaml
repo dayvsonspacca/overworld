@@ -198,15 +198,52 @@
     <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
   </Style>
 
-  <!-- The box inside a TextField: it keeps the background and border the TextField gives it in every state. -->
-  <Style Selector="TextBox.field /template/ Border#PART_BorderElement, TextBox.field:pointerover /template/ Border#PART_BorderElement, TextBox.field:focus /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{Binding $parent[TextBox].Background}" />
-    <Setter Property="BorderBrush" Value="{Binding $parent[TextBox].BorderBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
+  <!-- Text boxes take their colours from Fluent.axaml; here, their size, the focus glow and the red border of an invalid value. -->
+  <Style Selector="TextBox">
+    <Setter Property="MinHeight" Value="{StaticResource ControlLarge}" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextBrush}" />
   </Style>
-  <Style Selector="TextBox.field:focus /template/ Border#PART_BorderElement">
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
     <Setter Property="BoxShadow" Value="{DynamicResource FocusGlow}" />
+  </Style>
+  <Style Selector="TextBox.invalid /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+  </Style>
+  <Style Selector="TextBox:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
+  <!-- Combo boxes: the same box as a TextBox, with the list of choices on the raised colour. -->
+  <Style Selector="ComboBox">
+    <Setter Property="MinHeight" Value="{StaticResource ControlLarge}" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBox:focus-visible /template/ Border#Background, ComboBox:dropdownopen /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource FocusGlow}" />
+  </Style>
+  <Style Selector="ComboBox:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+  <Style Selector="ComboBox /template/ Border#PopupBorder">
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+    <Setter Property="Padding" Value="4" />
+  </Style>
+  <Style Selector="ComboBoxItem">
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+    <Setter Property="MinHeight" Value="0" />
   </Style>
 
   <!-- Lists select in the theme's colours, not Fluent's blue. -->

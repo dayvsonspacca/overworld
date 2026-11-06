@@ -12,7 +12,7 @@
                      FontSize="{StaticResource FontSizeCallout}"
                      FontWeight="SemiBold" />
           <TextBox Name="PART_Input"
-                   Classes="field"
+                   Classes.invalid="{TemplateBinding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                    Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                    PlaceholderText="{TemplateBinding Placeholder}"
                    IsEnabled="{TemplateBinding IsEnabled}" />
@@ -32,33 +32,13 @@
       </ControlTemplate>
     </Setter>
 
-    <Style Selector="^ /template/ TextBox#PART_Input">
-      <Setter Property="MinHeight" Value="{StaticResource ControlLarge}" />
-      <Setter Property="Padding" Value="10,0" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
-      <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-      <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
-      <Setter Property="SelectionBrush" Value="{DynamicResource TextSelectionBrush}" />
-      <Setter Property="PlaceholderForeground" Value="{DynamicResource SubtleBrush}" />
-      <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
-    </Style>
-    <Style Selector="^:focus-within /template/ TextBox#PART_Input">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    </Style>
-
     <Style Selector="^:invalid /template/ TextBlock#PART_Hint">
       <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="^:invalid /template/ TextBlock#PART_Error">
       <Setter Property="IsVisible" Value="True" />
     </Style>
-    <Style Selector="^:invalid /template/ TextBox#PART_Input">
-      <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
-    </Style>
-
-    <Style Selector="^:disabled">
+    <Style Selector="^:disabled /template/ TextBlock">
       <Setter Property="Opacity" Value="0.5" />
     </Style>
   </ControlTheme>
