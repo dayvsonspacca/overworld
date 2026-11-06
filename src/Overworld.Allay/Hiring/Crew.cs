@@ -1,4 +1,5 @@
 using Overworld.Allay.Agents;
+using Overworld.Allay.Metering;
 using Overworld.Allay.Settings;
 using Overworld.Bedrock.Results;
 
@@ -59,6 +60,20 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
         var agent = Find(id);
 
         return agent.IsSuccess ? await agent.Value.CheckAsync(cancellationToken) : agent.Error;
+    }
+
+    public async Task<Result<Usage>> UsageAsync(string id, CancellationToken cancellationToken)
+    {
+        var agent = Find(id);
+
+        if (!agent.IsSuccess)
+        {
+            return agent.Error;
+        }
+
+        return agent.Value is IMetered metered
+            ? await metered.UsageAsync(cancellationToken)
+            : new Error("agent.unmetered", $"{agent.Value.Name} doesn't tell its usage.");
     }
 
     public async Task<Result<AgentCard>> HireAsync(string id, bool hired, CancellationToken cancellationToken)
@@ -174,7 +189,9 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
             agent.Id.Value,
             agent.Name,
             agent.Summary,
+            agent.Color,
             (staff.Hired ?? []).Contains(agent.Id.Value),
+            agent is IMetered,
             SetupOf(agent, staff),
             await agent.ModelsAsync(cancellationToken));
 }

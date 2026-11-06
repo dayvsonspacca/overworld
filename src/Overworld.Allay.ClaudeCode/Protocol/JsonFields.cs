@@ -9,6 +9,11 @@ internal static class JsonFields
             ? value.GetString()
             : null;
 
+    public static decimal? Number(JsonElement element, string property) =>
+        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Number
+            ? value.GetDecimal()
+            : null;
+
     public static bool Flag(JsonElement element, string property) =>
         element.ValueKind == JsonValueKind.Object && element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.True;
 }

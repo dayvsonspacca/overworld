@@ -12,6 +12,8 @@ public sealed class ScriptedAgent(ScriptedSession session) : IAgent
 
     public string Summary => "Answers from a script.";
 
+    public string Color => "#5FD3F3";
+
     public IReadOnlyList<string> InstructionFiles => [];
 
     public Task<IReadOnlyList<ModelOption>> ModelsAsync(CancellationToken cancellationToken) =>

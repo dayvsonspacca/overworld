@@ -55,7 +55,7 @@ public sealed class AgentsViewModelTest : IDisposable
     public void ShowsAnAgentAsCheckingUntilItIsChecked()
     {
         var agent = new AgentViewModel(
-            new AgentCard("codex", "Codex", "Writes code.", false, Setup.Default, []),
+            new AgentCard("codex", "Codex", "Writes code.", "#5FD3F3", false, false, Setup.Default, []),
             Operation.From(new CheckAgentOp(_crew)),
             Operation.From(new HireAgentOp(_crew, _beacon)),
             Operation.From(new ConfigureAgentOp(_crew, _beacon)));

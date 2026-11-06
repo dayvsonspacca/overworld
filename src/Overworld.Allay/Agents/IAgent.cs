@@ -11,6 +11,8 @@ public interface IAgent
 
     string Summary { get; }
 
+    string Color { get; }
+
     IReadOnlyList<string> InstructionFiles { get; }
 
     Task<IReadOnlyList<ModelOption>> ModelsAsync(CancellationToken cancellationToken);

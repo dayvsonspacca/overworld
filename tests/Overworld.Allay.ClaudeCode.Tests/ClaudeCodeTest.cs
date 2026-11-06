@@ -2,6 +2,7 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Briefs;
 using Overworld.Allay.ClaudeCode.Tests.Cli;
 using Overworld.Allay.Conversations;
+using Overworld.Allay.Metering;
 using Overworld.Allay.Settings;
 
 namespace Overworld.Allay.ClaudeCode.Tests;
@@ -122,5 +123,32 @@ public sealed class ClaudeCodeTest
 
         Assert.Contains(new Speech(claude.Folder), moments);
         Assert.Equal("s-1", session.Id);
+    }
+
+    [Fact]
+    public async Task ReadsItsUsageWithoutKeepingASession()
+    {
+        using var claude = new FakeClaude(
+            FakeClaude.SavesArguments + "\n"
+            + """echo '{"usage_report":{"rate_limits":{"limits":[{"kind":"session","group":"session","percent":12,"resets_at":null,"severity":"normal"}]}}}'""");
+
+        var usage = await Agent(claude).UsageAsync(Token);
+
+        Assert.Equal(new Usage([new Limit("Current session", 12)]), usage.Value);
+        Assert.Equal(["-p", "/usage", "--no-session-persistence", "--output-format", "stream-json", "--verbose"], claude.Arguments);
+    }
+
+    [Theory]
+    [InlineData("echo 'not signed in' >&2; exit 1", "Claude Code couldn't tell its usage: not signed in")]
+    [InlineData("exit 3", "Claude Code couldn't tell its usage: `claude -p /usage` exited with code 3.")]
+    [InlineData("echo '{}'", "Claude Code couldn't tell its usage: `claude -p /usage` did not report it.")]
+    public async Task SaysWhyItCannotTellItsUsage(string script, string message)
+    {
+        using var claude = new FakeClaude(script);
+
+        var usage = await Agent(claude).UsageAsync(Token);
+
+        Assert.Equal("agent.usage_unknown", usage.Error.Code);
+        Assert.Equal(message, usage.Error.Message);
     }
 }

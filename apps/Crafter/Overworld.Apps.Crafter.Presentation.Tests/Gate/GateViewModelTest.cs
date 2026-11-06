@@ -17,6 +17,8 @@ public sealed class GateViewModelTest : IDisposable
 
         public string Summary => "Works.";
 
+        public string Color => "#5FD3F3";
+
         public IReadOnlyList<string> InstructionFiles => [];
 
         public Readiness Readiness { get; set; } = readiness;

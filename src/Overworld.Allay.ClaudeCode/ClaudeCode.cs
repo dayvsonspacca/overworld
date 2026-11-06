@@ -6,7 +6,9 @@ using Overworld.Allay.ClaudeCode.Cli;
 using Overworld.Allay.ClaudeCode.History;
 using Overworld.Allay.ClaudeCode.Protocol;
 using Overworld.Allay.Conversations;
+using Overworld.Allay.Metering;
 using Overworld.Allay.Settings;
+using Overworld.Bedrock.Results;
 using static Overworld.Allay.ClaudeCode.Protocol.JsonFields;
 
 namespace Overworld.Allay.ClaudeCode;
@@ -15,7 +17,7 @@ namespace Overworld.Allay.ClaudeCode;
     "Design",
     "CA1001",
     Justification = "The learning gate never hands out its wait handle, so it holds nothing that needs disposing.")]
-public sealed class ClaudeCode(string shelves, string executable = "claude", string? home = null) : IAgent, IKeepsHistory
+public sealed class ClaudeCode(string shelves, string executable = "claude", string? home = null) : IAgent, IKeepsHistory, IMetered
 {
     public const string Install = "curl -fsSL https://claude.ai/install.sh | bash";
 
@@ -36,6 +38,8 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
     public string Name => "Claude Code";
 
     public string Summary => "Anthropic's coding agent";
+
+    public string Color => "#D97757";
 
     public IReadOnlyList<string> InstructionFiles { get; } = ["CLAUDE.md", Path.Combine(".claude", "CLAUDE.md")];
 
@@ -82,6 +86,23 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
 
     public Task<IReadOnlyList<Turn>> ReplayAsync(string folder, string session, CancellationToken cancellationToken) =>
         _history.ReplayAsync(folder, session, cancellationToken);
+
+    public async Task<Result<Usage>> UsageAsync(CancellationToken cancellationToken)
+    {
+        var answer = await AskAsync(["-p", "/usage", "--no-session-persistence", "--output-format", "stream-json", "--verbose"], cancellationToken);
+
+        if (answer is null)
+        {
+            return Unmeasured("`claude` did not start.");
+        }
+
+        if (answer.Code != 0)
+        {
+            return Unmeasured(Said(answer, $"`claude -p /usage` exited with code {answer.Code}."));
+        }
+
+        return UsageReport.Read(answer.Output) is { } usage ? usage : Unmeasured("`claude -p /usage` did not report it.");
+    }
 
     private async Task<Capabilities> CapabilitiesAsync(CancellationToken cancellationToken)
     {
@@ -204,6 +225,8 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
             return null;
         }
     }
+
+    private static Error Unmeasured(string why) => new("agent.usage_unknown", $"Claude Code couldn't tell its usage: {why}");
 
     private static string Said(Answer answer, string otherwise) =>
         answer.Complaints.Trim() is { Length: > 0 } complaint ? complaint : otherwise;

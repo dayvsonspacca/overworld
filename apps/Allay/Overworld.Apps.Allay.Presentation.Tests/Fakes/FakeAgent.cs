@@ -12,6 +12,8 @@ public sealed class FakeAgent(string id, string name, Readiness readiness) : IAg
 
     public string Summary => $"{name} does what it is told.";
 
+    public string Color => "#5FD3F3";
+
     public IReadOnlyList<string> InstructionFiles => [];
 
     public Readiness Readiness { get; set; } = readiness;

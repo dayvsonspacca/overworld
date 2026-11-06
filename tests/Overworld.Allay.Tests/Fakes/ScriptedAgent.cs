@@ -12,6 +12,8 @@ public sealed class ScriptedAgent(string id, Readiness? readiness = null, IReadO
 
     public string Summary => "Does what it is told.";
 
+    public string Color => "#5FD3F3";
+
     public IReadOnlyList<string> InstructionFiles => ["AGENT.md"];
 
     public Task<IReadOnlyList<ModelOption>> ModelsAsync(CancellationToken cancellationToken) =>
