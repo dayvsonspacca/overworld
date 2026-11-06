@@ -1,5 +1,6 @@
 using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Metering;
 using Overworld.Allay.Settings;
 using Overworld.Apps.Allay.Presentation.Tests.Fakes;
 using Overworld.Beacon;
@@ -12,7 +13,7 @@ public sealed class AgentsViewModelTest : IDisposable
     private static readonly Blocked SignedOut = new("Signed out", "Sign in from a terminal.", "claude auth login");
 
     private readonly string _folder = Directory.CreateTempSubdirectory("allay-").FullName;
-    private readonly FakeAgent _claude = new("claude-code", "Claude Code", new Ready("Ready", "Version 2"));
+    private readonly MeteredAgent _claude = new("claude-code", "Claude Code", new Ready("Ready", "Version 2"));
     private readonly FakeAgent _codex = new("codex", "Codex", SignedOut);
     private readonly BeaconClient _beacon = new(new Daemon());
     private readonly Crew _crew;
@@ -25,8 +26,12 @@ public sealed class AgentsViewModelTest : IDisposable
             Operation.From(new ListAgentsOp(_crew)),
             Operation.From(new CheckAgentOp(_crew)),
             Operation.From(new HireAgentOp(_crew, _beacon)),
-            Operation.From(new ConfigureAgentOp(_crew, _beacon)));
+            Operation.From(new ConfigureAgentOp(_crew, _beacon)),
+            Operation.From(new MeasureAgentOp(_crew)),
+            Clock);
     }
+
+    private static readonly Clock Clock = new(new DateTimeOffset(2026, 11, 6, 17, 56, 0, TimeSpan.Zero));
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -48,7 +53,7 @@ public sealed class AgentsViewModelTest : IDisposable
         Assert.Equal("Not hired · Ready", Claude.Standing);
         Assert.True(Codex.IsBlocked);
         Assert.Equal("claude auth login", Codex.Remedy);
-        Assert.Equal("CC", Claude.Initials);
+        Assert.Equal("#D97757", Claude.Color);
     }
 
     [Fact]
@@ -58,7 +63,9 @@ public sealed class AgentsViewModelTest : IDisposable
             new AgentCard("codex", "Codex", "Writes code.", "#5FD3F3", false, false, Setup.Default, []),
             Operation.From(new CheckAgentOp(_crew)),
             Operation.From(new HireAgentOp(_crew, _beacon)),
-            Operation.From(new ConfigureAgentOp(_crew, _beacon)));
+            Operation.From(new ConfigureAgentOp(_crew, _beacon)),
+            Operation.From(new MeasureAgentOp(_crew)),
+            Clock);
 
         Assert.True(agent.IsChecking);
         Assert.Equal("Checking…", agent.State);
@@ -165,6 +172,99 @@ public sealed class AgentsViewModelTest : IDisposable
         await _agents.LoadAsync(Token);
 
         Assert.Equal("codex", _agents.Selected?.Id);
+    }
+
+    [Fact]
+    public async Task ShowsTheUsageOfAReadyAgentThatTellsIt()
+    {
+        _claude.Usage = new Usage(
+        [
+            new Limit("Current session", 94, new DateTimeOffset(2026, 11, 6, 18, 34, 0, TimeSpan.Zero), Close: true),
+            new Limit("This week · all models", 50, new DateTimeOffset(2026, 11, 7, 9, 59, 0, TimeSpan.Zero)),
+            new Limit("This week · Fable", 0),
+        ]);
+
+        await _agents.LoadAsync(Token);
+
+        Assert.True(Claude.ShowsUsage);
+        Assert.Equal(
+            [
+                new LimitRow("Current session", 94, "Resets in 38 min", true),
+                new LimitRow("This week · all models", 50, "Resets tomorrow at 9:59 AM", false),
+                new LimitRow("This week · Fable", 0, null, false),
+            ],
+            Claude.Usage!.Limits);
+        Assert.Equal("94%", Claude.Usage.Limits[0].Used);
+        Assert.Equal("Checked at 5:56 PM", Claude.Usage.Checked);
+        Assert.False(Claude.Usage.IsBare);
+    }
+
+    [Theory]
+    [InlineData(2026, 11, 6, 21, 49, "Resets today at 9:49 PM")]
+    [InlineData(2026, 11, 10, 7, 0, "Resets Tue at 7:00 AM")]
+    [InlineData(2026, 11, 20, 7, 0, "Resets Nov 20 at 7:00 AM")]
+    public async Task SaysWhenALimitResets(int year, int month, int day, int hour, int minute, string resets)
+    {
+        _claude.Usage = new Usage([new Limit("Current session", 10, new DateTimeOffset(year, month, day, hour, minute, 0, TimeSpan.Zero))]);
+
+        await _agents.LoadAsync(Token);
+
+        Assert.Equal(resets, Claude.Usage!.Limits[0].Resets);
+    }
+
+    [Fact]
+    public async Task ShowsWhatAnAgentSpentAgainstItsCap()
+    {
+        _claude.Usage = new Usage([], new Spending("Extra usage this month", 12.40m, "USD", 50m));
+
+        await _agents.LoadAsync(Token);
+
+        Assert.Equal(new SpendingRow("Extra usage this month", "$12.40", "of $50.00", 24.8), Claude.Usage!.Spending);
+    }
+
+    [Fact]
+    public async Task ShowsWhatAnAgentSpentWithoutACap()
+    {
+        _claude.Usage = new Usage([], new Spending("Spent this month", 3.21m, "BRL"));
+
+        await _agents.LoadAsync(Token);
+
+        Assert.Equal(new SpendingRow("Spent this month", "3.21 BRL", null, null), Claude.Usage!.Spending);
+    }
+
+    [Fact]
+    public async Task SaysWhyItCouldNotTellTheUsage()
+    {
+        _claude.Usage = new Bedrock.Results.Error("agent.usage_unknown", "Claude Code couldn't tell its usage: it timed out.");
+
+        await _agents.LoadAsync(Token);
+
+        Assert.Equal("Claude Code couldn't tell its usage: it timed out.", Claude.Usage!.Problem);
+        Assert.Empty(Claude.Usage.Limits);
+        Assert.Null(Claude.Usage.Checked);
+        Assert.False(Claude.Usage.IsBare);
+    }
+
+    [Fact]
+    public async Task SaysWhenAnAgentReportsNoUsage()
+    {
+        await _agents.LoadAsync(Token);
+
+        Assert.True(Claude.Usage!.IsBare);
+    }
+
+    [Fact]
+    public async Task ShowsNoUsageForAnAgentThatDoesNotTellItOrIsNotReady()
+    {
+        await _agents.LoadAsync(Token);
+
+        Assert.Null(Codex.Usage);
+        Assert.False(Codex.ShowsUsage);
+
+        _claude.Readiness = SignedOut;
+        await Claude.CheckCommand.ExecuteAsync(null);
+
+        Assert.False(Claude.ShowsUsage);
     }
 
     private static async Task WaitUntilIdle(AgentViewModel agent)

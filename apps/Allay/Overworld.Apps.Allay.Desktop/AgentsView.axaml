@@ -1,21 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:desktop="using:Overworld.Desktop"
+             xmlns:agents="using:Overworld.Desktop.Agents"
              xmlns:presentation="using:Overworld.Apps.Allay.Presentation"
              xmlns:settings="using:Overworld.Allay.Settings"
              x:Class="Overworld.Apps.Allay.Desktop.AgentsView"
              x:DataType="presentation:AgentsViewModel">
   <UserControl.Styles>
-    <Style Selector="Border.avatar">
-      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
-      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
-    </Style>
-    <Style Selector="Border.avatar TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentLightBrush}" />
-    </Style>
     <Style Selector="Ellipse.dot">
       <Setter Property="Width" Value="7" />
       <Setter Property="Height" Value="7" />
@@ -72,6 +63,25 @@
       <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
       <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
     </Style>
+    <Style Selector="ProgressBar.meter">
+      <Setter Property="Height" Value="6" />
+      <Setter Property="MinHeight" Value="6" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Minimum" Value="0" />
+      <Setter Property="Maximum" Value="100" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusPill}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="ProgressBar.meter.close">
+      <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <Style Selector="TextBlock.used">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.used.close">
+      <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
     <Style Selector="Border.card">
       <Setter Property="Padding" Value="16" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
@@ -102,9 +112,7 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="presentation:AgentViewModel">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                  <Border Classes="avatar" Width="28" Height="28">
-                    <TextBlock Text="{Binding Initials}" FontSize="{StaticResource FontSizeFootnote}" />
-                  </Border>
+                  <agents:AllayIcon Color="{Binding Color}" Width="28" Height="28" />
                   <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
                     <TextBlock Text="{Binding Standing}" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource SubtleBrush}" TextTrimming="CharacterEllipsis" />
@@ -129,9 +137,7 @@
           <StackPanel x:DataType="presentation:AgentViewModel" MaxWidth="640" Margin="32,24" Spacing="22" HorizontalAlignment="Left">
             <!-- Who the agent is, and hiring it or letting it go. -->
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Classes="avatar" Width="48" Height="48" CornerRadius="{StaticResource RadiusContainer}">
-                <TextBlock Text="{Binding Initials}" FontSize="{StaticResource FontSizeContent}" />
-              </Border>
+              <agents:AllayIcon Color="{Binding Color}" Width="48" Height="48" />
               <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeTitle1}" FontWeight="SemiBold" />
                 <TextBlock Classes="hint" Text="{Binding Summary}" />
@@ -165,6 +171,55 @@
                   <SelectableTextBlock Text="{Binding Remedy}" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeCallout}" TextWrapping="Wrap" />
                 </Border>
                 <Button Classes="ghost" Content="Check again" Command="{Binding CheckCommand}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </Border>
+
+            <!-- How much of its limits it has used, and what it has spent. -->
+            <Border Classes="card" IsVisible="{Binding ShowsUsage}">
+              <StackPanel DataContext="{Binding Usage}" x:DataType="presentation:UsageViewModel" Spacing="14">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                  <TextBlock Classes="section" Text="USAGE" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Classes="hint" Text="{Binding Checked}" IsVisible="{Binding !IsMeasuring}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Classes="hint" Text="Checking…" IsVisible="{Binding IsMeasuring}" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Classes="icon" Command="{Binding MeasureCommand}" ToolTip.Tip="Check the usage again">
+                    <Path Data="M12.5,8 A4.5,4.5 0 1 1 11,4.6 M11.5,2 V5 H8.5" />
+                  </Button>
+                </Grid>
+
+                <ItemsControl ItemsSource="{Binding Limits}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="14" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="presentation:LimitRow">
+                      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                        <TextBlock Classes="label" Text="{Binding Name}" />
+                        <TextBlock Grid.Column="1" Classes="used" Classes.close="{Binding Close}" Text="{Binding Used}" />
+                        <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Classes="meter" Classes.close="{Binding Close}" Value="{Binding Fill}" />
+                        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding Resets}"
+                                   IsVisible="{Binding Resets, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource SubtleBrush}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Grid DataContext="{Binding Spending}" x:DataType="presentation:SpendingRow"
+                      IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                  <TextBlock Classes="label" Text="{Binding Name}" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <TextBlock Classes="used" Text="{Binding Spent}" />
+                    <TextBlock Text="{Binding Cap}" Foreground="{DynamicResource SubtleBrush}" />
+                  </StackPanel>
+                  <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Classes="meter" Value="{Binding Fill}"
+                               IsVisible="{Binding Fill, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </Grid>
+
+                <TextBlock Classes="hint" Text="{Binding Problem}" IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Classes="hint" Text="It reports no limits and nothing spent." IsVisible="{Binding IsBare}" />
               </StackPanel>
             </Border>
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Metering;
 using Overworld.Allay.Settings;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
@@ -23,9 +24,12 @@ public sealed partial class AgentViewModel : ObservableObject
         AgentCard card,
         Operation<CheckAgent, Readiness> check,
         Operation<HireAgent, AgentCard> hire,
-        Operation<ConfigureAgent, AgentCard> configure)
+        Operation<ConfigureAgent, AgentCard> configure,
+        Operation<MeasureAgent, Usage> measure,
+        TimeProvider clock)
     {
         (_card, _check, _hire, _configure) = (card, check, hire, configure);
+        Usage = card.Metered ? new UsageViewModel(card.Id, measure, clock) : null;
         Show(card);
     }
 
@@ -35,7 +39,11 @@ public sealed partial class AgentViewModel : ObservableObject
 
     public string Summary => _card.Summary;
 
-    public string Initials => string.Concat(Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(word => char.ToUpperInvariant(word[0])));
+    public string Color => _card.Color;
+
+    public UsageViewModel? Usage { get; }
+
+    public bool ShowsUsage => IsReady && Usage is not null;
 
     public ObservableCollection<ModelOption> Models { get; } = [];
 
@@ -45,7 +53,7 @@ public sealed partial class AgentViewModel : ObservableObject
     public partial bool IsHired { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsChecking), nameof(IsReady), nameof(IsBlocked), nameof(State), nameof(Detail), nameof(Remedy), nameof(Standing))]
+    [NotifyPropertyChangedFor(nameof(IsChecking), nameof(IsReady), nameof(IsBlocked), nameof(ShowsUsage), nameof(State), nameof(Detail), nameof(Remedy), nameof(Standing))]
     [NotifyCanExecuteChangedFor(nameof(HireCommand))]
     public partial Readiness? Readiness { get; private set; }
 
@@ -102,6 +110,11 @@ public sealed partial class AgentViewModel : ObservableObject
         Readiness = null;
         var checkedOut = await _check.ExecuteAsync(new CheckAgent(Id), cancellationToken);
         Readiness = checkedOut.IsSuccess ? checkedOut.Value : new Blocked("Not checked", checkedOut.Error.Message);
+
+        if (ShowsUsage)
+        {
+            await Usage!.MeasureAsync(cancellationToken);
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanHire))]

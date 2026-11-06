@@ -1,5 +1,6 @@
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Metering;
 using Overworld.Apps.Allay.Desktop;
 using Overworld.Apps.Allay.Presentation;
 using Overworld.Beacon;
@@ -19,14 +20,15 @@ var list = Operation.From(new ListAgentsOp(crew));
 var check = Operation.From(new CheckAgentOp(crew));
 var hire = Operation.From(new HireAgentOp(crew, beacon));
 var configure = Operation.From(new ConfigureAgentOp(crew, beacon));
+var measure = Operation.From(new MeasureAgentOp(crew));
 
 return await AppHost.RunAsync(
     app.Command,
-    [list, check, hire, configure],
+    [list, check, hire, configure, measure],
     args,
     withoutArgs: () => Task.FromResult(DesktopHost.Run(app, frame =>
     {
-        var agents = new AgentsViewModel(list, check, hire, configure);
+        var agents = new AgentsViewModel(list, check, hire, configure, measure, TimeProvider.System);
         Shortcuts.Register(frame, agents);
         _ = agents.LoadAsync(CancellationToken.None);
 

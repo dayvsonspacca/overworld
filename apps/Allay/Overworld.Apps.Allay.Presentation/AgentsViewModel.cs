@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Metering;
 using Overworld.Bedrock.Operations;
 
 namespace Overworld.Apps.Allay.Presentation;
@@ -12,7 +13,9 @@ public sealed partial class AgentsViewModel(
     Operation<ListAgents, IReadOnlyList<AgentCard>> list,
     Operation<CheckAgent, Readiness> check,
     Operation<HireAgent, AgentCard> hire,
-    Operation<ConfigureAgent, AgentCard> configure) : ObservableObject
+    Operation<ConfigureAgent, AgentCard> configure,
+    Operation<MeasureAgent, Usage> measure,
+    TimeProvider clock) : ObservableObject
 {
     public ObservableCollection<AgentViewModel> Agents { get; } = [];
 
@@ -41,7 +44,7 @@ public sealed partial class AgentsViewModel(
 
         foreach (var card in listed.Value)
         {
-            var agent = new AgentViewModel(card, check, hire, configure);
+            var agent = new AgentViewModel(card, check, hire, configure, measure, clock);
             agent.PropertyChanged += Follow;
             Agents.Add(agent);
         }
