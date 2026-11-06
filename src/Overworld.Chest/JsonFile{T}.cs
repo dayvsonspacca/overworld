@@ -9,7 +9,7 @@ namespace Overworld.Chest;
     "Design",
     "CA1001",
     Justification = "The gate never hands out its wait handle, so it holds nothing that needs disposing.")]
-public sealed class JsonFile<T>(string path, Func<T> empty)
+public sealed class JsonFile<T>(string path, Func<T> empty, Func<T, bool>? isEmpty = null)
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -76,6 +76,13 @@ public sealed class JsonFile<T>(string path, Func<T> empty)
 
     private async Task WriteUnguardedAsync(T value, CancellationToken cancellationToken)
     {
+        if (isEmpty?.Invoke(value) == true)
+        {
+            File.Delete(path);
+
+            return;
+        }
+
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
 
         var temporary = path + ".tmp";

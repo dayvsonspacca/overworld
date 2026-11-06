@@ -138,4 +138,27 @@ public sealed class JsonFileTest : IDisposable
         Assert.Equal("file.unreadable", pins.Error.Code);
         Assert.StartsWith(path, pins.Error.Message);
     }
+
+    [Fact]
+    public async Task TakesTheFileAwayWhenWhatItHoldsIsEmpty()
+    {
+        var path = PathTo("pins.json");
+        var file = new JsonFile<List<Pin>>(path, () => [], pins => pins.Count == 0);
+        await file.WriteAsync([new Pin("dye")], TestContext.Current.CancellationToken);
+
+        await file.UpdateAsync(_ => Result.Success<List<Pin>>([]), TestContext.Current.CancellationToken);
+
+        Assert.False(File.Exists(path));
+        Assert.Empty((await file.ReadAsync(TestContext.Current.CancellationToken)).Value);
+    }
+
+    [Fact]
+    public async Task WritesNoFileForAnEmptyValue()
+    {
+        var path = PathTo("pins.json");
+
+        await new JsonFile<List<Pin>>(path, () => [], pins => pins.Count == 0).WriteAsync([], TestContext.Current.CancellationToken);
+
+        Assert.False(File.Exists(path));
+    }
 }
