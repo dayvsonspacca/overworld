@@ -231,9 +231,6 @@
       <Panel IsVisible="{Binding Project.Chat, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
         <conversations:ConversationView Name="Conversation" DataContext="{Binding Project.Chat.Conversation, FallbackValue={x:Null}}" />
       </Panel>
-      <Panel IsVisible="{Binding Project.ShowsOverview, FallbackValue=False}" Background="{DynamicResource BackgroundBrush}">
-        <pages:OverviewView DataContext="{Binding Project.Overview, FallbackValue={x:Null}}" />
-      </Panel>
       <StackPanel IsVisible="{Binding Project.Chat, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=True}"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center"
@@ -241,6 +238,9 @@
         <TextBlock Text="No chat open." HorizontalAlignment="Center" Foreground="{DynamicResource TextSoftBrush}" />
         <TextBlock Text="Ctrl+T starts a new one." HorizontalAlignment="Center" FontSize="{StaticResource FontSizeCallout}" Foreground="{DynamicResource SubtleBrush}" />
       </StackPanel>
+      <Panel IsVisible="{Binding Project.ShowsOverview, FallbackValue=False}" Background="{DynamicResource BackgroundBrush}">
+        <pages:OverviewView DataContext="{Binding Project.Overview, FallbackValue={x:Null}}" />
+      </Panel>
       <TextBlock Text="{Binding Project.Problem, FallbackValue={x:Null}}"
                  IsVisible="{Binding Project.Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}"
                  Margin="24"
