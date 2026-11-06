@@ -34,6 +34,9 @@
   <Folder Name="/apps/Crafter/">
     <Project Path="apps/Crafter/Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
     <Project Path="apps/Crafter/Overworld.Apps.Crafter.Tests/Overworld.Apps.Crafter.Tests.csproj" />
+    <Project Path="apps/Crafter/Overworld.Apps.Crafter.Presentation/Overworld.Apps.Crafter.Presentation.csproj" />
+    <Project Path="apps/Crafter/Overworld.Apps.Crafter.Desktop/Overworld.Apps.Crafter.Desktop.csproj" />
+    <Project Path="apps/Crafter/Overworld.Apps.Crafter.Presentation.Tests/Overworld.Apps.Crafter.Presentation.Tests.csproj" />
   </Folder>
   <Folder Name="/apps/Dye/">
     <Project Path="apps/Dye/Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />

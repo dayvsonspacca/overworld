@@ -1,0 +1,186 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:aside="using:Overworld.Apps.Crafter.Desktop.Aside"
+             xmlns:chats="using:Overworld.Apps.Crafter.Presentation.Chats"
+             xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
+             xmlns:projects="using:Overworld.Apps.Crafter.Presentation.Projects"
+             xmlns:workbench="using:Overworld.Apps.Crafter.Presentation.Workbench"
+             x:Class="Overworld.Apps.Crafter.Desktop.Workbench.WorkbenchView"
+             x:DataType="workbench:WorkbenchViewModel">
+  <UserControl.Styles>
+    <!-- A project on the rail: its icon or initial on a rounded tile, the current one marked at the edge. -->
+    <Style Selector="Button.project">
+      <Setter Property="Width" Value="34" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Button.project:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button.project.current /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentLightBrush}" />
+    </Style>
+
+    <!-- A chat's state: working pulses in the accent, unread is lit, idle is only a ring. -->
+    <Style Selector="Ellipse.state">
+      <Setter Property="Width" Value="7" />
+      <Setter Property="Height" Value="7" />
+      <Setter Property="Stroke" Value="{DynamicResource FaintBrush}" />
+      <Setter Property="StrokeThickness" Value="1" />
+    </Style>
+    <Style Selector="Ellipse.state.unread">
+      <Setter Property="Fill" Value="{DynamicResource AccentLightBrush}" />
+      <Setter Property="StrokeThickness" Value="0" />
+    </Style>
+    <Style Selector="Ellipse.state.working">
+      <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="StrokeThickness" Value="0" />
+      <Style.Animations>
+        <Animation Duration="0:0:1.6" IterationCount="INFINITE">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.35" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <Style Selector="ListBox.chats ListBoxItem">
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="Margin" Value="6,1" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+    <!-- The rail: every project, one click away. -->
+    <Border Width="56"
+            Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource DividerBrush}"
+            BorderThickness="0,0,1,0">
+      <ScrollViewer VerticalScrollBarVisibility="Hidden">
+        <ItemsControl ItemsSource="{Binding Projects}" Margin="0,10">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="projects:ProjectViewModel">
+              <Panel>
+                <Border Width="4"
+                        Height="20"
+                        HorizontalAlignment="Left"
+                        CornerRadius="0,3,3,0"
+                        Background="{DynamicResource AccentLightBrush}"
+                        IsVisible="{Binding IsCurrent}" />
+                <Button Classes="project"
+                        Classes.current="{Binding IsCurrent}"
+                        HorizontalAlignment="Center"
+                        ToolTip.Tip="{Binding Name}"
+                        Command="{Binding $parent[ItemsControl].((workbench:WorkbenchViewModel)DataContext).OpenCommand}"
+                        CommandParameter="{Binding}">
+                  <Panel>
+                    <TextBlock Text="{Binding Letter}"
+                               IsVisible="{Binding !HasIcon}"
+                               FontFamily="{DynamicResource MonoFont}"
+                               FontSize="{StaticResource FontSizeBody}"
+                               FontWeight="SemiBold" />
+                    <Image Source="{Binding IconFile, Converter={x:Static imaging:FileImage.Instance}}"
+                           IsVisible="{Binding HasIcon}"
+                           Width="32"
+                           Height="32"
+                           RenderOptions.BitmapInterpolationMode="None" />
+                  </Panel>
+                </Button>
+              </Panel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+
+    <!-- The project's chats, searchable, newest first. -->
+    <Border Grid.Column="1"
+            Width="260"
+            IsVisible="{Binding ShowsList}"
+            Background="{DynamicResource RaisedBrush}"
+            BorderBrush="{DynamicResource DividerBrush}"
+            BorderThickness="0,0,1,0">
+      <DockPanel DataContext="{Binding Project}" x:DataType="projects:ProjectViewModel">
+        <Border DockPanel.Dock="Top"
+                Height="{StaticResource HeaderHeight}"
+                Padding="14,0"
+                BorderBrush="{DynamicResource DividerBrush}"
+                BorderThickness="0,0,0,1">
+          <TextBlock Text="{Binding Name}"
+                     VerticalAlignment="Center"
+                     FontWeight="SemiBold"
+                     TextTrimming="CharacterEllipsis" />
+        </Border>
+        <TextBox Name="Search"
+                 DockPanel.Dock="Top"
+                 Margin="10"
+                 PlaceholderText="Search chats"
+                 Text="{Binding Query}" />
+        <Panel>
+          <ListBox Classes="chats"
+                   ItemsSource="{Binding Chats}"
+                   SelectedItem="{Binding Chat}"
+                   Background="Transparent">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="chats:ChatSummaryViewModel">
+                <StackPanel Spacing="2">
+                  <DockPanel>
+                    <Ellipse Classes="state"
+                             Classes.working="{Binding IsWorking}"
+                             Classes.unread="{Binding IsUnread}"
+                             Margin="0,0,8,0"
+                             VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                  </DockPanel>
+                  <TextBlock Text="{Binding LastLine}"
+                             IsVisible="{Binding LastLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                             Margin="15,0,0,0"
+                             FontSize="{StaticResource FontSizeCallout}"
+                             Foreground="{DynamicResource SubtleBrush}"
+                             TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Text="No chats yet."
+                     IsVisible="{Binding !HasChats}"
+                     Margin="16,4"
+                     Foreground="{DynamicResource SubtleBrush}" />
+          <TextBlock Text="No chat has those words."
+                     IsVisible="{Binding FindsNothing}"
+                     Margin="16,4"
+                     Foreground="{DynamicResource SubtleBrush}" />
+        </Panel>
+      </DockPanel>
+    </Border>
+
+    <!-- The conversation comes here next. -->
+    <Panel Grid.Column="2" Background="{DynamicResource BackgroundBrush}">
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource DangerBrush}" />
+    </Panel>
+
+    <!-- The project's todos, skills and axioms. -->
+    <Panel Grid.Column="3" Width="280" IsVisible="{Binding ShowsAside}">
+      <aside:AsideView DataContext="{Binding Project.Aside, FallbackValue={x:Null}}" />
+    </Panel>
+  </Grid>
+</UserControl>
