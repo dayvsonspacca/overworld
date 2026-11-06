@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Crafter
+Comment=Your agents craft the code. You bring the recipe.
+Exec="@APPS@/crafter/crafter"
+Path=@APPS@/crafter
+Icon=@APPS@/crafter/@ICON@
+StartupWMClass=crafter
+Categories=Development;
+Terminal=false

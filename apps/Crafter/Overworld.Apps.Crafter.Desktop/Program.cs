@@ -3,6 +3,7 @@ using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Desktop.Workbench;
+using Overworld.Apps.Crafter.Imports;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
@@ -25,9 +26,12 @@ var shelf = new Shelf(data);
 var settings = new SettingsStore();
 var todos = new TodoList(shelf);
 var axioms = new AxiomBook(shelf, settings);
-var library = new SkillLibrary(new PreferencesStore(data, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)), new Mirror(Path.Combine(data, "library")));
+var summaries = new SummaryStore();
+var preferences = new PreferencesStore(data, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+var library = new SkillLibrary(preferences, new Mirror(Path.Combine(data, "library")));
 var skills = new ProjectSkills(shelf, library);
 var chats = new ChatStore(Path.Combine(data, "chats"));
+var staff = new StaffFile(allay);
 
 var listProjects = Operation.From(new ListProjectsOp(shelf, settings));
 var listTodos = Operation.From(new ListTodosOp(todos));
@@ -43,22 +47,35 @@ return await AppHost.RunAsync(
     app.Command,
     [
         listProjects,
+        Operation.From(new AddProjectOp(shelf, settings)),
+        Operation.From(new EditProjectOp(shelf, settings)),
+        Operation.From(new RemoveProjectOp(shelf, settings)),
+        listAxioms,
+        addAxiom,
+        removeAxiom,
+        Operation.From(new ShowSummaryOp(shelf, summaries)),
+        Operation.From(new WriteSummaryOp(shelf, summaries)),
         listTodos,
         addTodo,
         completeTodo,
         removeTodo,
-        listAxioms,
-        addAxiom,
-        removeAxiom,
+        Operation.From(new ShowPreferencesOp(preferences)),
+        Operation.From(new SetProjectsRootOp(preferences)),
+        Operation.From(new ShowLibraryOp(library)),
+        Operation.From(new LinkLibraryOp(library)),
+        Operation.From(new SyncLibraryOp(library)),
+        Operation.From(new SaveSkillOp(library)),
+        Operation.From(new SetDefaultSkillOp(library)),
         listSkills,
+        Operation.From(new GiveSkillOp(skills)),
+        Operation.From(new ImportOldCrafterOp(OldCrafter.Here(), data, staff)),
     ],
     args,
     withoutArgs: () =>
     {
         using var tools = new McpHttpHost(app.Name);
         tools.Start();
-        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
-        var summaries = new SummaryStore();
+        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
         var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), new Toolbox(tools, todos, axioms, summaries), chats);
         var abilities = new Abilities(listProjects, listTodos, addTodo, completeTodo, removeTodo, listAxioms, addAxiom, removeAxiom, listSkills, chats, workshop);
 
