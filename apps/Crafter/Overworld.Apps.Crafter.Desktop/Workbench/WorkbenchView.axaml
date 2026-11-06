@@ -109,7 +109,7 @@
       <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
       <Setter Property="ClipToBounds" Value="True" />
     </Style>
-    <Style Selector="ListBox.chats Border.swipe-bin > Border.tint">
+    <Style Selector="ListBox.chats Border.swipe-bin Border.tint">
       <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
       <Setter Property="Opacity" Value="0.14" />
     </Style>
@@ -127,7 +127,7 @@
       <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
       <Setter Property="BorderThickness" Value="1" />
     </Style>
-    <Style Selector="ListBox.chats ListBoxItem.armed Border.swipe-bin > Border.tint">
+    <Style Selector="ListBox.chats ListBoxItem.armed Border.swipe-bin Border.tint">
       <Setter Property="Opacity" Value="1" />
     </Style>
     <Style Selector="ListBox.chats ListBoxItem.armed Border.swipe-bin StackPanel">
