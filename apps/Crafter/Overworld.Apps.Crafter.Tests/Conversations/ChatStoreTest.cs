@@ -146,6 +146,19 @@ public sealed class ChatStoreTest : IDisposable
     }
 
     [Fact]
+    public async Task ReadsBackAPromptThatOnlyCarriedAPicture()
+    {
+        var store = new ChatStore(_folder.Path);
+        var chat = new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Look"), null, [new Prompt(string.Empty, [new Picture("image/png", [1, 2, 3])], []), new Reply([new Speech("I see")], new Finished())]);
+        await store.SaveAsync(Project, [chat], Token);
+
+        var read = await new ChatStore(_folder.Path).LoadAsync(Project, Token);
+
+        Assert.True(read.IsSuccess);
+        Assert.Equal([Ask(string.Empty), new Reply([new Speech("I see")], new Finished())], Assert.Single(read.Value).Turns);
+    }
+
+    [Fact]
     public async Task ReadsAnUnknownEndingAsAFailure()
     {
         var file = await SavedFileAsync();

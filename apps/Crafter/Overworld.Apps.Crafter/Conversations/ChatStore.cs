@@ -104,9 +104,7 @@ public sealed class ChatStore(string directory)
     {
         if (entry.Kind == "asked")
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(entry.Text);
-
-            return new Prompt(entry.Text, [], []);
+            return new Prompt(entry.Text ?? string.Empty, [], []);
         }
 
         IReadOnlyList<Moment> moments = entry.Steps is { Count: > 0 } steps
