@@ -3,6 +3,7 @@
                     xmlns:desktop="using:Overworld.Desktop">
   <!-- A dialog over the app's screen: the scrim behind it, a header with the title and a close button, the app's content below. -->
   <ControlTheme x:Key="{x:Type desktop:Modal}" TargetType="desktop:Modal">
+    <Setter Property="Padding" Value="20,16" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -42,7 +43,8 @@
                 </Grid>
               </Border>
               <ContentPresenter Content="{TemplateBinding Content}"
-                                ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Padding="{TemplateBinding Padding}" />
             </DockPanel>
           </Border>
         </Panel>
