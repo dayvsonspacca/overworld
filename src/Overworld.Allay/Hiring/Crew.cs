@@ -8,6 +8,8 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
 {
     public const string DefaultModel = "default";
 
+    public const string Signal = "agents";
+
     public IReadOnlyList<IAgent> Roster => roster;
 
     public async Task<Result<IReadOnlyList<AgentCard>>> CardsAsync(CancellationToken cancellationToken)

@@ -3,6 +3,7 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
 using Overworld.Allay.Tests.Fakes;
+using Overworld.Beacon;
 using Overworld.Bedrock.Json;
 
 namespace Overworld.Allay.Tests.Hiring;
@@ -12,9 +13,15 @@ public sealed class CrewTest : IDisposable
     private readonly string _folder = Directory.CreateTempSubdirectory("allay-").FullName;
     private readonly ScriptedAgent _claude = new("claude-code");
     private readonly ScriptedAgent _codex = new("codex", new Blocked("Signed out", "Codex is not signed in.", "codex login"), models: []);
+    private readonly Daemon _daemon = new();
+    private readonly BeaconClient _beacon;
     private readonly Crew _crew;
 
-    public CrewTest() => _crew = new Crew([_claude, _codex], new StaffFile(_folder));
+    public CrewTest()
+    {
+        _beacon = new BeaconClient(_daemon);
+        _crew = new Crew([_claude, _codex], new StaffFile(_folder));
+    }
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -23,7 +30,7 @@ public sealed class CrewTest : IDisposable
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
     private Task<Bedrock.Results.Result<AgentCard>> ConfigureAsync(string agent, Mode? mode = null, string? model = null, Effort? effort = null) =>
-        new ConfigureAgentOp(_crew).ExecuteAsync(new ConfigureAgent(agent, mode, model, effort), Token);
+        new ConfigureAgentOp(_crew, _beacon).ExecuteAsync(new ConfigureAgent(agent, mode, model, effort), Token);
 
     [Fact]
     public async Task ListsEveryAgentUnhiredInAutoModeAtFirst()
@@ -40,17 +47,17 @@ public sealed class CrewTest : IDisposable
     [Fact]
     public async Task HiresAnAgentAndLetsItGo()
     {
-        Assert.True((await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code"), Token)).Value.Hired);
+        Assert.True((await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("claude-code"), Token)).Value.Hired);
         Assert.Equal([_claude], (await _crew.HiredAsync(Token)).Value);
 
-        Assert.False((await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code", Hired: false), Token)).Value.Hired);
+        Assert.False((await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("claude-code", Hired: false), Token)).Value.Hired);
         Assert.Empty((await _crew.HiredAsync(Token)).Value);
     }
 
     [Fact]
     public async Task HiresOnlyAnAgentThatIsReady()
     {
-        var hired = await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("codex"), Token);
+        var hired = await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("codex"), Token);
 
         Assert.Equal("agent.not_ready", hired.Error.Code);
         Assert.Equal("Agent codex can only be hired once it is ready; it is signed out: Codex is not signed in. Run `codex login`.", hired.Error.Message);
@@ -63,6 +70,25 @@ public sealed class CrewTest : IDisposable
         await File.WriteAllTextAsync(AgentsFile, """{ "hired": ["codex"] }""", Token);
 
         Assert.False((await _crew.HireAsync("codex", false, Token)).Value.Hired);
+    }
+
+    [Fact]
+    public async Task SignalsTheAppsWhenAnAgentIsHiredLetGoOrSetUp()
+    {
+        await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("claude-code"), Token);
+        await ConfigureAsync("claude-code", mode: Mode.Plan);
+        await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("claude-code", Hired: false), Token);
+
+        Assert.Equal([Crew.Signal, Crew.Signal, Crew.Signal], _daemon.Signals);
+    }
+
+    [Fact]
+    public async Task SignalsNothingWhenNothingChanged()
+    {
+        await new HireAgentOp(_crew, _beacon).ExecuteAsync(new HireAgent("codex"), Token);
+        await ConfigureAsync("claude-code", model: "huge");
+
+        Assert.Empty(_daemon.Signals);
     }
 
     [Fact]

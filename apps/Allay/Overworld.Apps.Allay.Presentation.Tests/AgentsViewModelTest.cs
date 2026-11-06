@@ -2,6 +2,7 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
 using Overworld.Apps.Allay.Presentation.Tests.Fakes;
+using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 
 namespace Overworld.Apps.Allay.Presentation.Tests;
@@ -13,6 +14,7 @@ public sealed class AgentsViewModelTest : IDisposable
     private readonly string _folder = Directory.CreateTempSubdirectory("allay-").FullName;
     private readonly FakeAgent _claude = new("claude-code", "Claude Code", new Ready("Ready", "Version 2"));
     private readonly FakeAgent _codex = new("codex", "Codex", SignedOut);
+    private readonly BeaconClient _beacon = new(new Daemon());
     private readonly Crew _crew;
     private readonly AgentsViewModel _agents;
 
@@ -22,8 +24,8 @@ public sealed class AgentsViewModelTest : IDisposable
         _agents = new AgentsViewModel(
             Operation.From(new ListAgentsOp(_crew)),
             Operation.From(new CheckAgentOp(_crew)),
-            Operation.From(new HireAgentOp(_crew)),
-            Operation.From(new ConfigureAgentOp(_crew)));
+            Operation.From(new HireAgentOp(_crew, _beacon)),
+            Operation.From(new ConfigureAgentOp(_crew, _beacon)));
     }
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
@@ -55,8 +57,8 @@ public sealed class AgentsViewModelTest : IDisposable
         var agent = new AgentViewModel(
             new AgentCard("codex", "Codex", "Writes code.", false, Setup.Default, []),
             Operation.From(new CheckAgentOp(_crew)),
-            Operation.From(new HireAgentOp(_crew)),
-            Operation.From(new ConfigureAgentOp(_crew)));
+            Operation.From(new HireAgentOp(_crew, _beacon)),
+            Operation.From(new ConfigureAgentOp(_crew, _beacon)));
 
         Assert.True(agent.IsChecking);
         Assert.Equal("Checking…", agent.State);
