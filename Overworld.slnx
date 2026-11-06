@@ -27,6 +27,10 @@
     <Project Path="tests/Overworld.Seed.Tests/Overworld.Seed.Tests.csproj" />
   </Folder>
   <Folder Name="/apps/" />
+  <Folder Name="/apps/Crafter/">
+    <Project Path="apps/Crafter/Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
+    <Project Path="apps/Crafter/Overworld.Apps.Crafter.Tests/Overworld.Apps.Crafter.Tests.csproj" />
+  </Folder>
   <Folder Name="/apps/Dye/">
     <Project Path="apps/Dye/Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Desktop/Overworld.Apps.Dye.Desktop.csproj" />

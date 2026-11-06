@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
+  </ItemGroup>
+</Project>
