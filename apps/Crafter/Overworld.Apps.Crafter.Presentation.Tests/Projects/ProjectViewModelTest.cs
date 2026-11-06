@@ -82,6 +82,25 @@ public sealed class ProjectViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task ShowsANewIconKeptWhereTheOldOneWas()
+    {
+        var folder = await _bench.ProjectAsync("alpha");
+        var first = _bench.PathTo("first.png");
+        var second = _bench.PathTo("second.png");
+        await File.WriteAllTextAsync(first, "first", Bench.Cancellation);
+        await File.WriteAllTextAsync(second, "second", Bench.Cancellation);
+        var given = await _bench.Abilities.EditProject.ExecuteAsync(new EditProject(folder, Icon: first), Bench.Cancellation);
+        var project = new ProjectViewModel(given.Value, _bench.Abilities);
+        var shown = new List<string?>();
+        project.PropertyChanged += (_, changed) => shown.Add(changed.PropertyName);
+
+        project.Edited((await _bench.Abilities.EditProject.ExecuteAsync(new EditProject(folder, Icon: second), Bench.Cancellation)).Value);
+
+        Assert.Equal(given.Value, project.Project);
+        Assert.Contains(nameof(ProjectViewModel.IconFile), shown);
+    }
+
+    [Fact]
     public async Task OpensANewChatAtTheTopAndReusesItWhileEmpty()
     {
         await _bench.HireAsync();

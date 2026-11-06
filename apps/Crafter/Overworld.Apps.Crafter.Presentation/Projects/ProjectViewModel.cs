@@ -127,7 +127,11 @@ public sealed partial class ProjectViewModel : ObservableObject
         Chat = chat;
     }
 
-    public void Renamed(Project project) => Project = project;
+    public void Edited(Project project)
+    {
+        Project = project;
+        OnPropertyChanged(nameof(IconFile));
+    }
 
     [RelayCommand]
     private void AskToRemoveChat(ChatSummaryViewModel chat) => Removing = chat;
@@ -188,7 +192,7 @@ public sealed partial class ProjectViewModel : ObservableObject
 
         if (projects.IsSuccess && projects.Value.FirstOrDefault(each => each.Folder == Project.Folder) is { } current)
         {
-            Project = current;
+            Edited(current);
         }
 
         await Aside.LoadAsync(cancellationToken);

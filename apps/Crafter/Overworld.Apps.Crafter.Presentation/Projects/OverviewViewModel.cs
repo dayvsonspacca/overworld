@@ -152,7 +152,7 @@ public sealed partial class OverviewViewModel(ProjectViewModel project, Abilitie
         }
 
         Problem = null;
-        project.Renamed(edited.Value);
+        project.Edited(edited.Value);
         OnPropertyChanged(nameof(Place));
 
         return true;
