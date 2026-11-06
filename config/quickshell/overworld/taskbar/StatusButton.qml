@@ -47,6 +47,26 @@ Rectangle {
             color: Theme.text
         }
 
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 4
+            visible: Battery.available
+
+            BatteryIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                level: Battery.level
+                charging: Battery.charging
+                low: Battery.low
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: Battery.percent
+                color: Battery.low ? Theme.danger : Theme.text
+                font.pixelSize: Theme.fontCallout
+            }
+        }
+
         Glyph {
             anchors.verticalCenter: parent.verticalCenter
             path: Glyphs.bell

@@ -53,6 +53,11 @@ Column {
         }
     }
 
+    BatteryCard {
+        width: parent.width
+        visible: Battery.available
+    }
+
     Column {
         width: parent.width
         spacing: 4

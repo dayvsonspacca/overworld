@@ -25,6 +25,8 @@ Singleton {
     readonly property string logout: "M6 2.5H3.5v11H6 M10 5l3 3-3 3 M13 8H6.5"
     readonly property string sleep: "M13 9.5A5.5 5.5 0 1 1 6.5 3a4.3 4.3 0 0 0 6.5 6.5z"
     readonly property string restart: "M13 8a5 5 0 1 1-1.5-3.6 M13 2.5v3h-3"
+    readonly property string battery: "M1.5 5h11.5v6H1.5z M14.5 7v2"
+    readonly property string charging: "M1.5 5h11.5v6H1.5z M14.5 7v2 M8 5.8L6 8.3h2.5L6.6 10.4"
     readonly property string power: "M8 2v6 M4.5 4.5a5 5 0 1 0 7 0"
     readonly property string plus: "M8 3v10 M3 8h10"
     readonly property string close: "M4 4l8 8 M12 4l-8 8"
