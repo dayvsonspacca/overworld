@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Overworld.Bedrock.Results;
@@ -31,6 +32,7 @@ public static class BedrockJson
             RespectNullableAnnotations = true,
             RespectRequiredConstructorParameters = true,
             WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
         options.MakeReadOnly(populateMissingResolver: true);

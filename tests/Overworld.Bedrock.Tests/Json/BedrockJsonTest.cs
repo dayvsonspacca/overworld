@@ -47,4 +47,12 @@ public sealed class BedrockJsonTest
     {
         Assert.True(BedrockJson.Options.IsReadOnly);
     }
+
+    [Fact]
+    public void WritesTextAsPeopleTypedIt()
+    {
+        var json = JsonSerializer.Serialize(new Paint("Name it overworld:<app> & keep \"ação\"", []), BedrockJson.Options);
+
+        Assert.Contains("Name it overworld:<app> & keep \\\"ação\\\"", json);
+    }
 }
