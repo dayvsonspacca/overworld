@@ -2,13 +2,11 @@ namespace Overworld.Redstone;
 
 public static class SocketPath
 {
-    private const string FileName = "overworld.sock";
-
-    public static string Resolve()
+    public static string Resolve(string name = "overworld")
     {
         var runtime = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
         var directory = Path.IsPathRooted(runtime) ? runtime : Path.GetTempPath();
 
-        return Path.Combine(directory, FileName);
+        return Path.Combine(directory, $"{name}.sock");
     }
 }

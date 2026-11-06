@@ -31,4 +31,13 @@ Scope {
             root.load();
         }
     }
+
+    Connections {
+        target: Beacon
+
+        function onLit(name: string): void {
+            if (name === "pins")
+                root.load();
+        }
+    }
 }

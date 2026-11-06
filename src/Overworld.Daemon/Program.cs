@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
+using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Daemon.Lifetime;
@@ -23,12 +24,12 @@ internal static class Program
 
         return AppHost.RunAsync(
             Command,
-            [.. Operations().Select(operation => new RemoteOperation(operation, client))],
+            [.. Operations(new Beam()).Select(operation => new RemoteOperation(operation, client))],
             args,
             withoutArgs: RunDaemonAsync);
     }
 
-    private static Operation[] Operations()
+    private static Operation[] Operations(Beam beam)
     {
         var pins = DataDirectory.For("pins");
         var places = new PinPlaces(new Dictionary<string, PinStore>
@@ -43,9 +44,10 @@ internal static class Program
         return
         [
             Operation.From(new PingOp()),
+            Operation.From(new LightBeaconOp(beam)),
             Operation.From(new ListPinsOp(places)),
-            Operation.From(new AddPinOp(places)),
-            Operation.From(new RemovePinOp(places)),
+            Operation.From(new AddPinOp(places, beam)),
+            Operation.From(new RemovePinOp(places, beam)),
             Operation.From(new ListAgentsOp(crew)),
             Operation.From(new CheckAgentOp(crew)),
             Operation.From(new HireAgentOp(crew)),
@@ -57,11 +59,17 @@ internal static class Program
     {
         using var logging = LoggerFactory.Create(builder => builder.AddOverworldConsole());
         using var shutdown = new ShutdownSignal();
+        var beam = new Beam();
 
         using var server = new RedstoneServer(
             SocketPath.Resolve(),
-            new Dispatcher(Operations(), logging.CreateLogger<Dispatcher>()),
+            new Dispatcher(Operations(beam), logging.CreateLogger<Dispatcher>()),
             logging.CreateLogger<RedstoneServer>());
+
+        using var beacon = new BeaconServer(
+            SocketPath.Resolve(BeaconServer.SocketName),
+            beam,
+            logging.CreateLogger<BeaconServer>());
 
         var supervisor = new QuickshellSupervisor(
             new SystemProcessLauncher(),
@@ -72,6 +80,7 @@ internal static class Program
         var daemon = new OverworldDaemon(
             new ShellLocator(),
             server,
+            beacon,
             supervisor,
             logging.CreateLogger<OverworldDaemon>());
 

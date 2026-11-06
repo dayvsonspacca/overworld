@@ -13,6 +13,7 @@
     <Project Path="src/Overworld.Cli/Overworld.Cli.csproj" />
     <Project Path="src/Overworld.Mcp/Overworld.Mcp.csproj" />
     <Project Path="src/Overworld.Redstone/Overworld.Redstone.csproj" />
+    <Project Path="src/Overworld.Beacon/Overworld.Beacon.csproj" />
     <Project Path="src/Overworld.Desktop/Overworld.Desktop.csproj" />
     <Project Path="src/Overworld.Hosting/Overworld.Hosting.csproj" />
     <Project Path="src/Overworld.Daemon/Overworld.Daemon.csproj" />
@@ -26,6 +27,7 @@
     <Project Path="tests/Overworld.Cli.Tests/Overworld.Cli.Tests.csproj" />
     <Project Path="tests/Overworld.Mcp.Tests/Overworld.Mcp.Tests.csproj" />
     <Project Path="tests/Overworld.Redstone.Tests/Overworld.Redstone.Tests.csproj" />
+    <Project Path="tests/Overworld.Beacon.Tests/Overworld.Beacon.Tests.csproj" />
     <Project Path="tests/Overworld.Desktop.Tests/Overworld.Desktop.Tests.csproj" />
     <Project Path="tests/Overworld.Daemon.Tests/Overworld.Daemon.Tests.csproj" />
     <Project Path="tests/Overworld.Seed.Tests/Overworld.Seed.Tests.csproj" />

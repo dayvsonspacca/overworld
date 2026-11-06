@@ -1,10 +1,11 @@
+using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Daemon.Pins;
 
 [Operation("pins-add", "Pins an app to the end of the menu or the taskbar, and lists that place's pins.")]
-internal sealed class AddPinOp(PinPlaces places) : IOperation<AddPin, IReadOnlyList<string>>
+internal sealed class AddPinOp(PinPlaces places, Beam beam) : IOperation<AddPin, IReadOnlyList<string>>
 {
     public async Task<Result<IReadOnlyList<string>>> ExecuteAsync(AddPin input, CancellationToken cancellationToken)
     {
@@ -16,6 +17,10 @@ internal sealed class AddPinOp(PinPlaces places) : IOperation<AddPin, IReadOnlyL
         if (!store.IsSuccess)
             return store.Error;
 
-        return await store.Value.AddAsync(app, cancellationToken);
+        var pins = await store.Value.AddAsync(app, cancellationToken);
+        if (pins.IsSuccess)
+            beam.Light("pins");
+
+        return pins;
     }
 }

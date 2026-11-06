@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Overworld.Beacon;
 using Overworld.Daemon.Lifetime;
 using Overworld.Daemon.Shell;
 using Overworld.Daemon.Spawner;
@@ -9,6 +10,7 @@ namespace Overworld.Daemon;
 internal sealed partial class OverworldDaemon(
     IShellLocator locator,
     RedstoneServer server,
+    BeaconServer beacon,
     QuickshellSupervisor supervisor,
     ILogger<OverworldDaemon> logger)
 {
@@ -37,9 +39,11 @@ internal sealed partial class OverworldDaemon(
     {
         var shell = locator.Find();
         server.Start();
+        beacon.Start();
 
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(token);
         var serving = server.RunAsync(stop.Token);
+        var shining = beacon.RunAsync(stop.Token);
 
         try
         {
@@ -48,7 +52,7 @@ internal sealed partial class OverworldDaemon(
         finally
         {
             await stop.CancelAsync();
-            await serving;
+            await Task.WhenAll(serving, shining);
         }
     }
 

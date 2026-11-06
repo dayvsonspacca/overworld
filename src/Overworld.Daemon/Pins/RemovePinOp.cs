@@ -1,10 +1,11 @@
+using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Daemon.Pins;
 
 [Operation("pins-remove", "Unpins an app from the menu or the taskbar, and lists that place's pins.")]
-internal sealed class RemovePinOp(PinPlaces places) : IOperation<RemovePin, IReadOnlyList<string>>
+internal sealed class RemovePinOp(PinPlaces places, Beam beam) : IOperation<RemovePin, IReadOnlyList<string>>
 {
     public async Task<Result<IReadOnlyList<string>>> ExecuteAsync(RemovePin input, CancellationToken cancellationToken)
     {
@@ -16,6 +17,10 @@ internal sealed class RemovePinOp(PinPlaces places) : IOperation<RemovePin, IRea
         if (!store.IsSuccess)
             return store.Error;
 
-        return await store.Value.RemoveAsync(app, cancellationToken);
+        var pins = await store.Value.RemoveAsync(app, cancellationToken);
+        if (pins.IsSuccess)
+            beam.Light("pins");
+
+        return pins;
     }
 }
