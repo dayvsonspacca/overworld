@@ -145,4 +145,41 @@ public sealed class CliHostTest : IDisposable
         Assert.Equal(0, code);
         Assert.Equal("\"Relayed Steve\"", _output.ToString().Trim());
     }
+
+    [Operation("wave-back", "Waves back at whoever waved.")]
+    private sealed class WaveBackOp : IOperation<Nothing, string>
+    {
+        public Task<Result<string>> ExecuteAsync(Nothing input, CancellationToken cancellationToken) =>
+            Task.FromResult<Result<string>>("\\o");
+    }
+
+    private Task<int> RunWaveBack(params string[] args) =>
+        new CliHost("overworld:test", [Operation.From(new WaveBackOp())])
+            .RunAsync(args, _output, _errors, TestContext.Current.CancellationToken);
+
+    [Theory]
+    [InlineData("wave", "back")]
+    [InlineData("wave-back")]
+    public async Task RunsAnOperationByItsWords(params string[] args)
+    {
+        Assert.Equal(0, await RunWaveBack(args));
+        Assert.Equal("\"\\\\o\"", _output.ToString().Trim());
+    }
+
+    [Fact]
+    public async Task SpeaksOperationsInWords()
+    {
+        Assert.Equal(0, await RunWaveBack("--help"));
+        Assert.Contains("wave back  Waves back at whoever waved.", _output.ToString());
+
+        Assert.Equal(0, await RunWaveBack("wave", "back", "--help"));
+        Assert.Contains("Usage: overworld:test wave back", _output.ToString());
+    }
+
+    [Fact]
+    public async Task NamesAllTheWordsOfAnUnknownOperation()
+    {
+        Assert.Equal(2, await RunWaveBack("wave", "forth"));
+        Assert.StartsWith("cli.unknown_operation: There is no operation 'wave forth'.", _errors.ToString());
+    }
 }

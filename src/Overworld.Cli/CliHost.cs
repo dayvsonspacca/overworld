@@ -34,16 +34,18 @@ public sealed class CliHost
             return Succeeded;
         }
 
-        if (_catalog.Find(args[0]) is not { } operation)
+        var words = args.TakeWhile(arg => !arg.StartsWith("--", StringComparison.Ordinal)).ToList();
+
+        if (Find(words) is not ({ } operation, var taken))
         {
             WriteError(errors, new Error(
                 "cli.unknown_operation",
-                $"There is no operation '{args[0]}'. Run {_command} --help to see them."));
+                $"There is no operation '{(words is [] ? args[0] : string.Join(' ', words))}'. Run {_command} --help to see them."));
 
             return Misused;
         }
 
-        var options = args.Skip(1).ToList();
+        var options = args.Skip(taken).ToList();
 
         if (options.Contains("--help"))
         {
@@ -57,7 +59,7 @@ public sealed class CliHost
         if (!json.IsSuccess)
         {
             WriteError(errors, json.Error);
-            errors.WriteLine($"Run {_command} {operation.Name} --help to see its options.");
+            errors.WriteLine($"Run {_command} {Spoken(operation.Name)} --help to see its options.");
 
             return Misused;
         }
@@ -82,7 +84,7 @@ public sealed class CliHost
         output.WriteLine();
         output.WriteLine("Operations:");
 
-        WriteColumns(output, _catalog.All.Select(operation => (operation.Name, operation.Description)));
+        WriteColumns(output, _catalog.All.Select(operation => (Spoken(operation.Name), operation.Description)));
 
         output.WriteLine();
         output.WriteLine($"Run {_command} <operation> --help to see its options.");
@@ -92,7 +94,7 @@ public sealed class CliHost
     {
         var properties = operation.InputType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-        output.WriteLine($"Usage: {_command} {operation.Name}{(properties.Length == 0 ? "" : " [options]")}");
+        output.WriteLine($"Usage: {_command} {Spoken(operation.Name)}{(properties.Length == 0 ? "" : " [options]")}");
         output.WriteLine();
         output.WriteLine(operation.Description);
 
@@ -110,6 +112,21 @@ public sealed class CliHost
                 (CommandLine.IsRequired(property) ? "Required. " : "")
                     + property.GetCustomAttribute<DescriptionAttribute>()?.Description)));
     }
+
+    private (Operation Operation, int Words)? Find(List<string> words)
+    {
+        for (var count = words.Count; count > 0; count--)
+        {
+            if (_catalog.Find(string.Join('-', words.Take(count))) is { } operation)
+            {
+                return (operation, count);
+            }
+        }
+
+        return null;
+    }
+
+    private static string Spoken(string name) => name.Replace('-', ' ');
 
     private static void WriteColumns(TextWriter output, IEnumerable<(string Left, string Right)> rows)
     {
