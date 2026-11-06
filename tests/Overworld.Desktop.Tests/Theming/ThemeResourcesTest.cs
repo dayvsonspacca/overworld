@@ -29,46 +29,61 @@ public sealed class ThemeResourcesTest : IDisposable
     [Fact]
     public void GivesEachColorAColorAndABrush()
     {
-        var theme = Read(Theme);
+        TestApp.Run(() =>
+        {
+            var theme = Read(Theme);
 
-        Assert.Equal(Color.Parse("#B7B5B2"), theme["TextSoftColor"]);
-        Assert.Equal(Color.Parse("#9E0B0A0E"), ((SolidColorBrush)theme["ScrimBrush"]!).Color);
+            Assert.Equal(Color.Parse("#B7B5B2"), theme["TextSoftColor"]);
+            Assert.Equal(Color.Parse("#9E0B0A0E"), ((SolidColorBrush)theme["ScrimBrush"]!).Color);
+        });
     }
 
     [Fact]
     public void GivesTheFontSizesRadiiAndSpace()
     {
-        var theme = Read(Theme);
+        TestApp.Run(() =>
+        {
+            var theme = Read(Theme);
 
-        Assert.Equal(13.0, theme["FontSizeBody"]);
-        Assert.Equal(26.0, theme["FontSizeLargeTitle"]);
-        Assert.Equal(new CornerRadius(6), theme["RadiusControl"]);
-        Assert.Equal(16.0, theme["Space4"]);
-        Assert.Equal(["JetBrains Mono", "monospace"], ((FontFamily)theme["MonoFont"]!).FamilyNames);
+            Assert.Equal(13.0, theme["FontSizeBody"]);
+            Assert.Equal(26.0, theme["FontSizeLargeTitle"]);
+            Assert.Equal(new CornerRadius(6), theme["RadiusControl"]);
+            Assert.Equal(16.0, theme["Space4"]);
+            Assert.Equal(["JetBrains Mono", "monospace"], ((FontFamily)theme["MonoFont"]!).FamilyNames);
+        });
     }
 
     [Fact]
     public void GlowsFocusInTheThemesAccent()
     {
-        var glow = ((BoxShadows)Read(Theme)["FocusGlow"]!)[0];
+        TestApp.Run(() =>
+        {
+            var glow = ((BoxShadows)Read(Theme)["FocusGlow"]!)[0];
 
-        Assert.Equal(Color.FromArgb(0x38, 0x8E, 0x62, 0xD1), glow.Color);
-        Assert.Equal(3, glow.Spread);
+            Assert.Equal(Color.FromArgb(0x38, 0x8E, 0x62, 0xD1), glow.Color);
+            Assert.Equal(3, glow.Spread);
+        });
     }
 
     [Fact]
     public void TellsToRunSeedWhenNoThemeIsInstalled()
     {
-        var thrown = Assert.Throws<FileNotFoundException>(() => new ThemeResources(_path));
+        TestApp.Run(() =>
+        {
+            var thrown = Assert.Throws<FileNotFoundException>(() => new ThemeResources(_path));
 
-        Assert.Contains("just seed", thrown.Message);
+            Assert.Contains("just seed", thrown.Message);
+        });
     }
 
     [Fact]
     public void NamesTheSectionAThemeIsMissing()
     {
-        var thrown = Assert.Throws<InvalidDataException>(() => Read("""{ "colors": {} }"""));
+        TestApp.Run(() =>
+        {
+            var thrown = Assert.Throws<InvalidDataException>(() => Read("""{ "colors": {} }"""));
 
-        Assert.Contains("'font'", thrown.Message);
+            Assert.Contains("'font'", thrown.Message);
+        });
     }
 }

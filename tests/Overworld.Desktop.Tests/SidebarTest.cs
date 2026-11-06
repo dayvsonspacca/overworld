@@ -25,72 +25,90 @@ public sealed class SidebarTest
     [Fact]
     public void StacksSectionsAtTheHeightTheyNeed()
     {
-        var palettes = Section(100);
-        var form = Section(200);
+        TestApp.Run(() =>
+        {
+            var palettes = Section(100);
+            var form = Section(200);
 
-        Laid(new Size(260, 600), palettes, form);
+            Laid(new Size(260, 600), palettes, form);
 
-        Assert.Equal(new Rect(0, 0, 260, 100), palettes.Bounds);
-        Assert.Equal(new Rect(0, 100, 260, 200), form.Bounds);
+            Assert.Equal(new Rect(0, 0, 260, 100), palettes.Bounds);
+            Assert.Equal(new Rect(0, 100, 260, 200), form.Bounds);
+        });
     }
 
     [Fact]
     public void GivesTheFillingSectionTheHeightThatIsLeft()
     {
-        var palettes = Section(100, fill: true);
-        var form = Section(200);
+        TestApp.Run(() =>
+        {
+            var palettes = Section(100, fill: true);
+            var form = Section(200);
 
-        Laid(new Size(260, 600), palettes, form);
+            Laid(new Size(260, 600), palettes, form);
 
-        Assert.Equal(new Rect(0, 0, 260, 400), palettes.Bounds);
-        Assert.Equal(new Rect(0, 400, 260, 200), form.Bounds);
+            Assert.Equal(new Rect(0, 0, 260, 400), palettes.Bounds);
+            Assert.Equal(new Rect(0, 400, 260, 200), form.Bounds);
+        });
     }
 
     [Fact]
     public void LetsOnlyTheFirstFillingSectionFill()
     {
-        var first = Section(100, fill: true);
-        var second = Section(100, fill: true);
+        TestApp.Run(() =>
+        {
+            var first = Section(100, fill: true);
+            var second = Section(100, fill: true);
 
-        Laid(new Size(260, 600), first, second);
+            Laid(new Size(260, 600), first, second);
 
-        Assert.Equal(500, first.Bounds.Height);
-        Assert.Equal(100, second.Bounds.Height);
+            Assert.Equal(500, first.Bounds.Height);
+            Assert.Equal(100, second.Bounds.Height);
+        });
     }
 
     [Fact]
     public void LeavesNoNegativeHeightWhenTheWindowIsTooShort()
     {
-        var palettes = Section(0, fill: true);
-        var form = Section(200);
+        TestApp.Run(() =>
+        {
+            var palettes = Section(0, fill: true);
+            var form = Section(200);
 
-        Laid(new Size(260, 150), palettes, form);
+            Laid(new Size(260, 150), palettes, form);
 
-        Assert.Equal(0, palettes.Bounds.Height);
+            Assert.Equal(0, palettes.Bounds.Height);
+        });
     }
 
     [Fact]
     public void SkipsAHiddenFillingSection()
     {
-        var palettes = Section(100, fill: true);
-        palettes.IsVisible = false;
-        var form = Section(200);
+        TestApp.Run(() =>
+        {
+            var palettes = Section(100, fill: true);
+            palettes.IsVisible = false;
+            var form = Section(200);
 
-        Laid(new Size(260, 600), palettes, form);
+            Laid(new Size(260, 600), palettes, form);
 
-        Assert.Equal(new Rect(0, 0, 260, 200), form.Bounds);
+            Assert.Equal(new Rect(0, 0, 260, 200), form.Bounds);
+        });
     }
 
     [Fact]
     public void AdoptsItsSectionsAsChildren()
     {
-        var section = Section(100);
-        var sidebar = Laid(new Size(260, 600), section);
+        TestApp.Run(() =>
+        {
+            var section = Section(100);
+            var sidebar = Laid(new Size(260, 600), section);
 
-        Assert.Same(sidebar, section.Parent);
+            Assert.Same(sidebar, section.Parent);
 
-        sidebar.Children.Remove(section);
+            sidebar.Children.Remove(section);
 
-        Assert.Null(section.Parent);
+            Assert.Null(section.Parent);
+        });
     }
 }

@@ -10,56 +10,71 @@ public sealed class ModalTest
     [Fact]
     public void AsksToBeDismissedOnEscape()
     {
-        var modal = new Modal();
-        var dismissed = 0;
-        modal.Dismissed += (_, _) => dismissed++;
+        TestApp.Run(() =>
+        {
+            var modal = new Modal();
+            var dismissed = 0;
+            modal.Dismissed += (_, _) => dismissed++;
 
-        modal.RaiseEvent(Pressed(Key.Escape));
+            modal.RaiseEvent(Pressed(Key.Escape));
 
-        Assert.Equal(1, dismissed);
+            Assert.Equal(1, dismissed);
+        });
     }
 
     [Fact]
     public void TakesTheEscapeItAnswers()
     {
-        var modal = new Modal();
-        var escape = Pressed(Key.Escape);
+        TestApp.Run(() =>
+        {
+            var modal = new Modal();
+            var escape = Pressed(Key.Escape);
 
-        modal.RaiseEvent(escape);
+            modal.RaiseEvent(escape);
 
-        Assert.True(escape.Handled);
+            Assert.True(escape.Handled);
+        });
     }
 
     [Fact]
     public void IgnoresOtherKeys()
     {
-        var modal = new Modal();
-        var dismissed = 0;
-        modal.Dismissed += (_, _) => dismissed++;
+        TestApp.Run(() =>
+        {
+            var modal = new Modal();
+            var dismissed = 0;
+            modal.Dismissed += (_, _) => dismissed++;
 
-        modal.RaiseEvent(Pressed(Key.Enter));
+            modal.RaiseEvent(Pressed(Key.Enter));
 
-        Assert.Equal(0, dismissed);
+            Assert.Equal(0, dismissed);
+        });
     }
 
     [Fact]
     public void IgnoresClicksOnButtonsOfItsContent()
     {
-        var button = new Avalonia.Controls.Button { Name = "PART_Close" };
-        var modal = new Modal { Content = button };
-        var dismissed = 0;
-        modal.Dismissed += (_, _) => dismissed++;
+        TestApp.Run(() =>
+        {
+            var button = new Avalonia.Controls.Button { Name = "PART_Close" };
+            var modal = new Modal { Content = button };
+            var dismissed = 0;
+            modal.Dismissed += (_, _) => dismissed++;
 
-        button.RaiseEvent(new RoutedEventArgs(Avalonia.Controls.Button.ClickEvent));
+            button.RaiseEvent(new RoutedEventArgs(Avalonia.Controls.Button.ClickEvent));
 
-        Assert.Equal(0, dismissed);
+            Assert.Equal(0, dismissed);
+        });
     }
 
     [Fact]
     public void MarksItselfCompact()
     {
-        var modal = new Modal { IsCompact = true };
+        TestApp.Run(() =>
+        {
+            var modal = new Modal { IsCompact = true };
 
-        Assert.Contains(":compact", modal.Classes);
+            Assert.Contains(":compact", modal.Classes);
+        });
     }
 }
