@@ -25,7 +25,7 @@ public sealed class ScriptedSession(params IReadOnlyList<Moment>[] replies) : IS
 
     public async IAsyncEnumerable<Moment> ReplyAsync(
         Prompt prompt,
-        Configuration configuration,
+        Setup setup,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         Heard.Add(prompt);

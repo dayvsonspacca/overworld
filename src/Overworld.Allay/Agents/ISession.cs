@@ -15,7 +15,7 @@ public interface ISession
 
     event EventHandler<IAsyncEnumerable<Moment>>? Woke;
 
-    IAsyncEnumerable<Moment> ReplyAsync(Prompt prompt, Configuration configuration, CancellationToken cancellationToken);
+    IAsyncEnumerable<Moment> ReplyAsync(Prompt prompt, Setup setup, CancellationToken cancellationToken);
 
     void Rebrief(Brief brief);
 

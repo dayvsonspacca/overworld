@@ -29,7 +29,7 @@ public sealed class RecordingTest
             new ScriptedSession([new Speech("Run"), new Speech("ning."), new Act("a-1", ActKind.Command, "dotnet test"), new ActResult("a-1", true, "Passed"), new Speech("Done."), new Finished()]),
             []);
 
-        var heard = await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(6, heard.Count);
         Assert.Equal(
@@ -57,7 +57,7 @@ public sealed class RecordingTest
             ]),
             []);
 
-        await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(
             new Reply([new Thought("Look first."), new Speech("Ok."), new Plan([new PlanStep("Run", StepState.Done)])], new Finished()),
@@ -78,7 +78,7 @@ public sealed class RecordingTest
             ]),
             []);
 
-        var heard = await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(5, heard.Count);
         Assert.Equal(new Reply([new Speech("Skipped.")], new Finished()), conversation.Turns[^1]);
@@ -92,7 +92,7 @@ public sealed class RecordingTest
             new ScriptedSession([new Act("a-1", ActKind.Read, "big.log"), new ActResult("a-1", true, output), new Finished()]),
             []);
 
-        var heard = await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(output, Assert.IsType<ActResult>(heard[1]).Output);
         var kept = Assert.IsType<ActResult>(Assert.IsType<Reply>(conversation.Turns[^1]).Moments[1]);
@@ -104,7 +104,7 @@ public sealed class RecordingTest
     {
         var conversation = new Conversation(new ScriptedSession([new Speech("Half")]), []);
 
-        var heard = await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.IsType<Failed>(heard[^1]);
         Assert.Equal(new Reply([new Speech("Half")], new Failed("The agent went silent before finishing its reply.")), conversation.Turns[^1]);
@@ -115,7 +115,7 @@ public sealed class RecordingTest
     {
         var conversation = new Conversation(new ScriptedSession([new Finished(), new Speech("Late")]), []);
 
-        var heard = await HeardAsync(conversation.AskAsync(Ask, Configuration.Empty, Token));
+        var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal([new Finished()], heard);
     }

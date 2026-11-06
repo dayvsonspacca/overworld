@@ -13,9 +13,9 @@ public interface IAgent
 
     IReadOnlyList<string> InstructionFiles { get; }
 
-    IReadOnlyList<Setting> Settings(Configuration configuration);
+    Task<IReadOnlyList<ModelOption>> ModelsAsync(CancellationToken cancellationToken);
 
-    Task<Readiness> CheckAsync(Configuration configuration, CancellationToken cancellationToken);
+    Task<Readiness> CheckAsync(CancellationToken cancellationToken);
 
     ISession Begin(Brief brief, string? resume = null);
 }

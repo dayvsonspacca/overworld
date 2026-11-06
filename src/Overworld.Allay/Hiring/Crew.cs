@@ -6,13 +6,27 @@ namespace Overworld.Allay.Hiring;
 
 public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
 {
+    public const string DefaultModel = "default";
+
     public IReadOnlyList<IAgent> Roster => roster;
 
     public async Task<Result<IReadOnlyList<AgentCard>>> CardsAsync(CancellationToken cancellationToken)
     {
         var read = await staff.ReadAsync(cancellationToken);
 
-        return read.IsSuccess ? Result.Success<IReadOnlyList<AgentCard>>([.. roster.Select(agent => CardOf(agent, read.Value))]) : read.Error;
+        if (!read.IsSuccess)
+        {
+            return read.Error;
+        }
+
+        List<AgentCard> cards = [];
+
+        foreach (var agent in roster)
+        {
+            cards.Add(await CardOfAsync(agent, read.Value, cancellationToken));
+        }
+
+        return Result.Success<IReadOnlyList<AgentCard>>(cards);
     }
 
     public async Task<Result<IReadOnlyList<IAgent>>> HiredAsync(CancellationToken cancellationToken)
@@ -24,7 +38,7 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
             : read.Error;
     }
 
-    public async Task<Result<Configuration>> ConfigurationOfAsync(string id, CancellationToken cancellationToken)
+    public async Task<Result<Setup>> SetupOfAsync(string id, CancellationToken cancellationToken)
     {
         var agent = Find(id);
 
@@ -35,14 +49,14 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
 
         var read = await staff.ReadAsync(cancellationToken);
 
-        return read.IsSuccess ? ConfigurationOf(agent.Value, read.Value) : read.Error;
+        return read.IsSuccess ? SetupOf(agent.Value, read.Value) : read.Error;
     }
 
     public async Task<Result<Readiness>> CheckAsync(string id, CancellationToken cancellationToken)
     {
-        var configuration = await ConfigurationOfAsync(id, cancellationToken);
+        var agent = Find(id);
 
-        return configuration.IsSuccess ? await Find(id).Value.CheckAsync(configuration.Value, cancellationToken) : configuration.Error;
+        return agent.IsSuccess ? await agent.Value.CheckAsync(cancellationToken) : agent.Error;
     }
 
     public async Task<Result<AgentCard>> HireAsync(string id, bool hired, CancellationToken cancellationToken)
@@ -70,10 +84,10 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
             },
             cancellationToken);
 
-        return written.IsSuccess ? CardOf(agent.Value, written.Value) : written.Error;
+        return written.IsSuccess ? await CardOfAsync(agent.Value, written.Value, cancellationToken) : written.Error;
     }
 
-    public async Task<Result<AgentCard>> ConfigureAsync(string id, string key, string? value, CancellationToken cancellationToken)
+    public async Task<Result<AgentCard>> SetUpAsync(string id, Mode? mode, string? model, Effort? effort, CancellationToken cancellationToken)
     {
         var agent = Find(id);
 
@@ -82,48 +96,52 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
             return agent.Error;
         }
 
-        var wanted = value?.Trim() is { Length: > 0 } trimmed ? trimmed : null;
+        var chosen = model?.Trim() is { Length: > 0 } trimmed ? trimmed : null;
+
+        if (chosen is not null && chosen != DefaultModel)
+        {
+            var offered = await agent.Value.ModelsAsync(cancellationToken);
+
+            if (offered.Count > 0 && !offered.Any(option => option.Id == chosen))
+            {
+                return new Error(
+                    "agent.model_unknown",
+                    $"{agent.Value.Name} offers no model '{chosen}'; it offers {string.Join(", ", offered.Select(option => option.Id))}, or {DefaultModel}.");
+            }
+        }
 
         var written = await staff.UpdateAsync(
             saved =>
             {
-                var current = ConfigurationOf(agent.Value, saved);
-
-                if (agent.Value.Settings(current).FirstOrDefault(setting => setting.Key == key) is not { } setting)
+                var current = SetupOf(agent.Value, saved);
+                var changed = current with
                 {
-                    return new Error("agent.setting_unknown", $"{agent.Value.Name} has no setting '{key}'.");
-                }
+                    Mode = mode ?? current.Mode,
+                    Model = chosen is null ? current.Model : chosen == DefaultModel ? null : chosen,
+                    Effort = effort ?? current.Effort,
+                };
 
-                if (setting is Choice choice && !choice.Alternatives.Any(alternative => alternative.Value == wanted))
-                {
-                    return new Error(
-                        "agent.value_unknown",
-                        $"'{value}' is not one of {setting.Title}'s values: {string.Join(", ", choice.Alternatives.Select(alternative => alternative.Value ?? "(default)"))}.");
-                }
-
-                var changed = current.With(key, wanted);
-
-                if (changed.Equals(current))
+                if (changed == current)
                 {
                     return saved;
                 }
 
-                var configurations = new Dictionary<string, IReadOnlyDictionary<string, string>>(saved.Configurations ?? new Dictionary<string, IReadOnlyDictionary<string, string>>());
+                var setups = new Dictionary<string, Setup>(saved.Setups ?? new Dictionary<string, Setup>());
 
-                if (changed.Values.Count > 0)
+                if (changed == Setup.Default)
                 {
-                    configurations[agent.Value.Id.Value] = changed.Values;
+                    setups.Remove(agent.Value.Id.Value);
                 }
                 else
                 {
-                    configurations.Remove(agent.Value.Id.Value);
+                    setups[agent.Value.Id.Value] = changed;
                 }
 
-                return saved with { Configurations = configurations.Count > 0 ? configurations : null };
+                return saved with { Setups = setups.Count > 0 ? setups : null };
             },
             cancellationToken);
 
-        return written.IsSuccess ? CardOf(agent.Value, written.Value) : written.Error;
+        return written.IsSuccess ? await CardOfAsync(agent.Value, written.Value, cancellationToken) : written.Error;
     }
 
     public Result<IAgent> Find(string id) =>
@@ -135,19 +153,15 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
                     ? $"There is no agent '{id}'; Overworld knows no agents yet."
                     : $"There is no agent '{id}'; it is one of {string.Join(", ", roster.Select(each => each.Id.Value))}.");
 
-    private static Configuration ConfigurationOf(IAgent agent, Staff staff) =>
-        staff.Configurations?.GetValueOrDefault(agent.Id.Value) is { } values ? new Configuration(values) : Configuration.Empty;
+    private static Setup SetupOf(IAgent agent, Staff staff) =>
+        staff.Setups?.GetValueOrDefault(agent.Id.Value) ?? Setup.Default;
 
-    private static AgentCard CardOf(IAgent agent, Staff staff)
-    {
-        var configuration = ConfigurationOf(agent, staff);
-
-        return new AgentCard(
+    private static async Task<AgentCard> CardOfAsync(IAgent agent, Staff staff, CancellationToken cancellationToken) =>
+        new(
             agent.Id.Value,
             agent.Name,
             agent.Summary,
             (staff.Hired ?? []).Contains(agent.Id.Value),
-            agent.Settings(configuration),
-            configuration.Values);
-    }
+            SetupOf(agent, staff),
+            await agent.ModelsAsync(cancellationToken));
 }

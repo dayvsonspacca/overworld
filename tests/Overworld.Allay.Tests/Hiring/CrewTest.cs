@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Overworld.Allay.Agents;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Settings;
 using Overworld.Allay.Tests.Fakes;
 using Overworld.Bedrock.Json;
 
@@ -10,7 +11,7 @@ public sealed class CrewTest : IDisposable
 {
     private readonly string _folder = Directory.CreateTempSubdirectory("allay-").FullName;
     private readonly ScriptedAgent _claude = new("claude-code");
-    private readonly ScriptedAgent _codex = new("codex", new Blocked("Signed out", "Codex is not signed in.", "codex login"));
+    private readonly ScriptedAgent _codex = new("codex", new Blocked("Signed out", "Codex is not signed in.", "codex login"), models: []);
     private readonly Crew _crew;
 
     public CrewTest() => _crew = new Crew([_claude, _codex], new StaffFile(_folder));
@@ -21,72 +22,66 @@ public sealed class CrewTest : IDisposable
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
+    private Task<Bedrock.Results.Result<AgentCard>> ConfigureAsync(string agent, Mode? mode = null, string? model = null, Effort? effort = null) =>
+        new ConfigureAgentOp(_crew).ExecuteAsync(new ConfigureAgent(agent, mode, model, effort), Token);
+
     [Fact]
-    public async Task ListsEveryAgentUnhiredAtFirst()
+    public async Task ListsEveryAgentUnhiredInAutoModeAtFirst()
     {
         var cards = (await new ListAgentsOp(_crew).ExecuteAsync(new ListAgents(), Token)).Value;
 
         Assert.Equal(["claude-code", "codex"], cards.Select(card => card.Id));
         Assert.All(cards, card => Assert.False(card.Hired));
-        Assert.Equal(["model", "executable"], cards[0].Settings.Select(setting => setting.Key));
+        Assert.All(cards, card => Assert.Equal(new Setup(Mode.Auto, null, Effort.Default), card.Setup));
+        Assert.Equal(["big", "small"], cards[0].Models.Select(model => model.Id));
         Assert.False(File.Exists(AgentsFile));
     }
 
     [Fact]
     public async Task HiresAnAgentAndLetsItGo()
     {
-        var hired = await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code"), Token);
-
-        Assert.True(hired.Value.Hired);
+        Assert.True((await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code"), Token)).Value.Hired);
         Assert.Equal([_claude], (await _crew.HiredAsync(Token)).Value);
 
-        var gone = await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code", Hired: false), Token);
-
-        Assert.False(gone.Value.Hired);
+        Assert.False((await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("claude-code", Hired: false), Token)).Value.Hired);
         Assert.Empty((await _crew.HiredAsync(Token)).Value);
     }
 
     [Fact]
-    public async Task ConfiguresAnAgentForEveryApp()
+    public async Task SetsUpAnAgentForEveryAppChangingOnlyWhatIsGiven()
     {
-        var configured = await new ConfigureAgentOp(_crew).ExecuteAsync(new ConfigureAgent("claude-code", "model", "big"), Token);
+        await ConfigureAsync("claude-code", mode: Mode.Plan, model: "big");
 
-        Assert.Equal("big", configured.Value.Configuration["model"]);
-        Assert.Equal("big", (await new Crew([_claude], new StaffFile(_folder)).ConfigurationOfAsync("claude-code", Token)).Value["model"]);
+        var configured = await ConfigureAsync("claude-code", effort: Effort.Max);
+
+        Assert.Equal(new Setup(Mode.Plan, "big", Effort.Max), configured.Value.Setup);
+        Assert.Equal(new Setup(Mode.Plan, "big", Effort.Max), (await new Crew([_claude], new StaffFile(_folder)).SetupOfAsync("claude-code", Token)).Value);
     }
 
     [Fact]
-    public async Task PutsASettingBackToItsDefault()
+    public async Task GoesBackToTheAgentsOwnModel()
     {
-        await _crew.ConfigureAsync("claude-code", "model", "big", Token);
+        await ConfigureAsync("claude-code", model: "big");
 
-        var configured = await _crew.ConfigureAsync("claude-code", "model", null, Token);
+        var configured = await ConfigureAsync("claude-code", model: Crew.DefaultModel);
 
-        Assert.Empty(configured.Value.Configuration);
-        Assert.DoesNotContain("configurations", await File.ReadAllTextAsync(AgentsFile, Token));
+        Assert.Null(configured.Value.Setup.Model);
+        Assert.DoesNotContain("setups", await File.ReadAllTextAsync(AgentsFile, Token));
     }
 
     [Fact]
-    public async Task TakesAnyValueForAnEntry()
+    public async Task RefusesAModelTheAgentDoesNotOffer()
     {
-        var configured = await _crew.ConfigureAsync("claude-code", "executable", "/opt/claude", Token);
+        var configured = await ConfigureAsync("claude-code", model: "huge");
 
-        Assert.Equal("/opt/claude", configured.Value.Configuration["executable"]);
+        Assert.Equal("agent.model_unknown", configured.Error.Code);
+        Assert.Contains("big, small, or default", configured.Error.Message);
     }
 
     [Fact]
-    public async Task RefusesAValueAChoiceDoesNotOffer()
+    public async Task TakesAnyModelFromAnAgentThatListsNone()
     {
-        var configured = await _crew.ConfigureAsync("claude-code", "model", "huge", Token);
-
-        Assert.Equal("agent.value_unknown", configured.Error.Code);
-        Assert.Contains("(default), big, small", configured.Error.Message);
-    }
-
-    [Fact]
-    public async Task RefusesASettingTheAgentLacks()
-    {
-        Assert.Equal("agent.setting_unknown", (await _crew.ConfigureAsync("claude-code", "colour", "red", Token)).Error.Code);
+        Assert.Equal("gpt-6", (await ConfigureAsync("codex", model: "gpt-6")).Value.Setup.Model);
     }
 
     [Fact]
@@ -98,40 +93,38 @@ public sealed class CrewTest : IDisposable
     }
 
     [Fact]
-    public async Task ChecksAnAgentWithItsConfiguration()
+    public async Task ChecksAnAgent()
     {
-        await _crew.ConfigureAsync("codex", "model", "small", Token);
-
         var readiness = await new CheckAgentOp(_crew).ExecuteAsync(new CheckAgent("codex"), Token);
 
         Assert.Equal(new Blocked("Signed out", "Codex is not signed in.", "codex login"), readiness.Value);
-        Assert.Equal("small", _codex.CheckedWith!["model"]);
     }
 
     [Fact]
-    public async Task ReadsWhoIsHiredAndHowEachIsSet()
+    public async Task ReadsModesAndEffortsWhateverTheirCase()
     {
         await File.WriteAllTextAsync(
             AgentsFile,
-            """{ "hired": ["claude-code"], "configurations": { "claude-code": { "tools": "auto" } } }""",
+            """{ "hired": ["claude-code"], "setups": { "claude-code": { "mode": "edits", "effort": "MAX" } } }""",
             Token);
 
         var card = (await _crew.CardsAsync(Token)).Value[0];
 
         Assert.True(card.Hired);
-        Assert.Equal("auto", card.Configuration["tools"]);
+        Assert.Equal(new Setup(Mode.Edits, null, Effort.Max), card.Setup);
     }
 
     [Fact]
-    public void WritesCardsAndReadinessWithTheirKinds()
+    public void WritesReadinessWithItsKind()
     {
-        var json = JsonSerializer.Serialize<Readiness>(new Blocked("Signed out", "Not signed in."), BedrockJson.Options);
-        var card = JsonSerializer.Serialize(
-            new AgentCard("claude-code", "Claude Code", "Agent", true, _claude.Settings(Overworld.Allay.Settings.Configuration.Empty), new Dictionary<string, string>()),
-            BedrockJson.Options);
+        Assert.Contains("\"type\": \"blocked\"", JsonSerializer.Serialize<Readiness>(new Blocked("Signed out", "Not signed in."), BedrockJson.Options));
+    }
 
-        Assert.Contains("\"type\": \"blocked\"", json);
-        Assert.Contains("\"type\": \"choice\"", card);
-        Assert.Contains("\"type\": \"entry\"", card);
+    [Fact]
+    public void ReadsTheModeAndEffortTheCommandLineTypes()
+    {
+        var input = BedrockJson.ReadInput(System.Text.Json.Nodes.JsonNode.Parse("""{ "agent": "claude-code", "mode": "plan", "effort": "max" }"""), typeof(ConfigureAgent));
+
+        Assert.Equal(new ConfigureAgent("claude-code", Mode.Plan, null, Effort.Max), input.Value);
     }
 }

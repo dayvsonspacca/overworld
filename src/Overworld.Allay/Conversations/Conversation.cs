@@ -24,11 +24,11 @@ public sealed class Conversation
 
     public IReadOnlyList<Turn> Turns => _turns;
 
-    public IAsyncEnumerable<Moment> AskAsync(Prompt prompt, Configuration configuration, CancellationToken cancellationToken)
+    public IAsyncEnumerable<Moment> AskAsync(Prompt prompt, Setup setup, CancellationToken cancellationToken)
     {
         _turns.Add(prompt);
 
-        return Recorded(Session.ReplyAsync(prompt, configuration, cancellationToken), cancellationToken);
+        return Recorded(Session.ReplyAsync(prompt, setup, cancellationToken), cancellationToken);
     }
 
     private async IAsyncEnumerable<Moment> Recorded(

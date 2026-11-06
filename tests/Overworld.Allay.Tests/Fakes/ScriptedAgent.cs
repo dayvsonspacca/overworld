@@ -4,7 +4,7 @@ using Overworld.Allay.Settings;
 
 namespace Overworld.Allay.Tests.Fakes;
 
-public sealed class ScriptedAgent(string id, Readiness? readiness = null) : IAgent
+public sealed class ScriptedAgent(string id, Readiness? readiness = null, IReadOnlyList<ModelOption>? models = null) : IAgent
 {
     public AgentId Id { get; } = new(id);
 
@@ -14,20 +14,11 @@ public sealed class ScriptedAgent(string id, Readiness? readiness = null) : IAge
 
     public IReadOnlyList<string> InstructionFiles => ["AGENT.md"];
 
-    public Configuration? CheckedWith { get; private set; }
+    public Task<IReadOnlyList<ModelOption>> ModelsAsync(CancellationToken cancellationToken) =>
+        Task.FromResult(models ?? [new ModelOption("big", "Big"), new ModelOption("small", "Small")]);
 
-    public IReadOnlyList<Setting> Settings(Configuration configuration) =>
-    [
-        new Choice("model", "Model", "The model that answers.", [new(null, "Default"), new("big", "Big"), new("small", "Small")]),
-        new Entry("executable", "Executable", "The command that starts it.", id),
-    ];
-
-    public Task<Readiness> CheckAsync(Configuration configuration, CancellationToken cancellationToken)
-    {
-        CheckedWith = configuration;
-
-        return Task.FromResult(readiness ?? new Ready("Ready", "Version 1"));
-    }
+    public Task<Readiness> CheckAsync(CancellationToken cancellationToken) =>
+        Task.FromResult(readiness ?? new Ready("Ready", "Version 1"));
 
     public ISession Begin(Brief brief, string? resume = null) => new ScriptedSession();
 }
