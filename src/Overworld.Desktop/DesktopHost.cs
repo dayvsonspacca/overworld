@@ -13,6 +13,8 @@ namespace Overworld.Desktop;
 
 public static class DesktopHost
 {
+    private const string InputMethod = "AVALONIA_IM_MODULE";
+
     private static readonly KeyGesture Palette = new(Key.P, KeyModifiers.Control | KeyModifiers.Shift);
 
     private static readonly KeyGesture Shortcuts = new(Key.OemQuestion, KeyModifiers.Control);
@@ -20,11 +22,20 @@ public static class DesktopHost
     public static int Run(AppIdentity app, Func<Control> content, string[] args) =>
         Run(app, _ => content(), args);
 
-    public static int Run(AppIdentity app, Func<Frame, Control> content, string[] args) =>
-        AppBuilder
+    public static int Run(AppIdentity app, Func<Frame, Control> content, string[] args)
+    {
+        // Avalonia's IBus integration drops dead keys, so á, é, õ and ê never arrive; without
+        // it the keyboard layout composes them. An input method chosen on purpose still wins.
+        if (Environment.GetEnvironmentVariable(InputMethod) is null)
+        {
+            Environment.SetEnvironmentVariable(InputMethod, "none");
+        }
+
+        return AppBuilder
             .Configure(() => new OverworldApplication(() => Window(app, content)))
             .UsePlatformDetect()
             .StartWithClassicDesktopLifetime(args);
+    }
 
     internal static Window Window(AppIdentity app, Func<Frame, Control> content)
     {
