@@ -4,6 +4,7 @@ using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
 using Overworld.Apps.Crafter.Conversations;
+using Overworld.Apps.Crafter.Proposals;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Sessions;
@@ -11,6 +12,8 @@ namespace Overworld.Apps.Crafter.Sessions;
 public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, ChatStore store)
 {
     private readonly ConcurrentDictionary<ChatId, Open> _open = new();
+
+    public event EventHandler<string>? Changed;
 
     public async Task<Result<ChatRecord>> FreshAsync(CancellationToken cancellationToken)
     {
@@ -42,7 +45,10 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
             : setup.Error;
     }
 
-    public async Task<Result<Chat>> OpenAsync(string folder, ChatRecord record, CancellationToken cancellationToken)
+    public async Task<Result<Chat>> OpenAsync(string folder, ChatRecord record, CancellationToken cancellationToken) =>
+        await OpenAsync(folder, record, null, cancellationToken);
+
+    public async Task<Result<Chat>> OpenAsync(string folder, ChatRecord record, Asker? ask, CancellationToken cancellationToken)
     {
         if (_open.TryGetValue(record.Id, out var open))
         {
@@ -56,7 +62,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
             return agent.Error;
         }
 
-        var tools = toolbox.Admit(folder);
+        var tools = toolbox.Admit(folder, ask, () => _ = KeptAsync(folder));
         var brief = await briefs.OfAsync(folder, [tools], cancellationToken);
 
         if (!brief.IsSuccess)
@@ -103,6 +109,12 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
         {
             Close(chat);
         }
+    }
+
+    private async Task KeptAsync(string folder)
+    {
+        await RebriefAsync(folder, CancellationToken.None);
+        Changed?.Invoke(this, folder);
     }
 
     private sealed record Open(string Folder, Chat Chat, ToolServer Tools);

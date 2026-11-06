@@ -75,7 +75,7 @@ public sealed class SessionsTest : IDisposable
         using var host = new McpHttpHost("crafter");
         host.Start();
         var todos = new TodoList(_shelf);
-        var server = new Toolbox(host, todos).Admit(_overworld);
+        var server = new Toolbox(host, todos, new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Admit(_overworld);
 
         var listed = await PostAsync(server, """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""");
         await PostAsync(server, """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add-todo","arguments":{"folder":"/elsewhere","text":"Modal"}}}""");
@@ -92,7 +92,7 @@ public sealed class SessionsTest : IDisposable
         await _shelf.AddAsync(_overworld, Token);
         using var host = new McpHttpHost("crafter");
         host.Start();
-        var toolbox = new Toolbox(host, new TodoList(_shelf));
+        var toolbox = new Toolbox(host, new TodoList(_shelf), new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
         var server = toolbox.Admit(_overworld);
 
         toolbox.Release(server);
