@@ -1,16 +1,27 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Projects;
 
 namespace Overworld.Apps.Crafter.Presentation.Projects;
 
-public sealed partial class ProjectViewModel(Project project, Abilities abilities) : ObservableObject
+public sealed partial class ProjectViewModel : ObservableObject
 {
+    private readonly Abilities _abilities;
+
     private readonly List<ChatSummaryViewModel> _chats = [];
 
-    public Project Project { get; } = project;
+    public ProjectViewModel(Project project, Abilities abilities)
+    {
+        _abilities = abilities;
+        Project = project;
+        Aside = new AsideViewModel(project.Folder, abilities);
+        Aside.Axioms.Changed += (_, _) => _ = abilities.Workshop.RebriefAsync(project.Folder, CancellationToken.None);
+    }
+
+    public Project Project { get; }
 
     public string Name => Project.Name;
 
@@ -26,7 +37,7 @@ public sealed partial class ProjectViewModel(Project project, Abilities abilitie
 
     public bool FindsNothing => HasChats && Chats.Count == 0;
 
-    public AsideViewModel Aside { get; } = new(project.Folder, abilities);
+    public AsideViewModel Aside { get; }
 
     [ObservableProperty]
     public partial ChatSummaryViewModel? Chat { get; set; }
@@ -42,15 +53,18 @@ public sealed partial class ProjectViewModel(Project project, Abilities abilitie
 
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
-        var chats = await abilities.Chats.LoadAsync(Project.Folder, cancellationToken);
+        var chats = await _abilities.Chats.LoadAsync(Project.Folder, cancellationToken);
 
         if (chats.IsSuccess)
         {
             Problem = null;
+            var known = _chats.ToDictionary(chat => chat.Id);
+            var stored = chats.Value.Reverse().Select(record => known.GetValueOrDefault(record.Id) ?? Summary(record)).ToList();
+            var unsaved = _chats.Where(chat => !stored.Contains(chat)).ToList();
             _chats.Clear();
-            _chats.AddRange(chats.Value.Reverse().Select(chat => new ChatSummaryViewModel(chat)));
+            _chats.AddRange([.. unsaved, .. stored]);
             Filter();
-            Chat = Chats.FirstOrDefault(chat => chat.Record.Id == Chat?.Record.Id) ?? Chats.FirstOrDefault();
+            Chat = Chats.FirstOrDefault(chat => chat == Chat) ?? Chats.FirstOrDefault();
         }
         else
         {
@@ -58,6 +72,33 @@ public sealed partial class ProjectViewModel(Project project, Abilities abilitie
         }
 
         await Aside.LoadAsync(cancellationToken);
+    }
+
+    public async Task NewChatAsync(CancellationToken cancellationToken)
+    {
+        if (_chats.FirstOrDefault(chat => chat.IsFresh) is { } fresh)
+        {
+            Query = string.Empty;
+            Chat = fresh;
+
+            return;
+        }
+
+        var record = await _abilities.Workshop.FreshAsync(cancellationToken);
+
+        if (!record.IsSuccess)
+        {
+            Problem = record.Error.Message;
+
+            return;
+        }
+
+        Problem = null;
+        var chat = new ChatSummaryViewModel(record.Value, Project.Folder, _abilities.Workshop, fresh: true);
+        _chats.Insert(0, chat);
+        Query = string.Empty;
+        Filter();
+        Chat = chat;
     }
 
     public void Step(int by)
@@ -72,6 +113,29 @@ public sealed partial class ProjectViewModel(Project project, Abilities abilitie
     }
 
     partial void OnQueryChanged(string value) => Filter();
+
+    partial void OnChatChanged(ChatSummaryViewModel? oldValue, ChatSummaryViewModel? newValue)
+    {
+        if (oldValue is not null)
+        {
+            oldValue.IsOpen = false;
+        }
+
+        if (newValue is not null)
+        {
+            newValue.IsOpen = IsCurrent;
+        }
+    }
+
+    partial void OnIsCurrentChanged(bool value)
+    {
+        if (Chat is not null)
+        {
+            Chat.IsOpen = value;
+        }
+    }
+
+    private ChatSummaryViewModel Summary(ChatRecord record) => new(record, Project.Folder, _abilities.Workshop);
 
     private void Filter()
     {

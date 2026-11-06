@@ -1,3 +1,5 @@
+using Overworld.Allay.ClaudeCode;
+using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Desktop.Workbench;
@@ -6,54 +8,70 @@ using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
+using Overworld.Apps.Crafter.Sessions;
+using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
 using Overworld.Bedrock.Apps;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Desktop;
 using Overworld.Hosting;
+using Overworld.Mcp;
 
 var app = new AppIdentity("crafter");
 var data = DataDirectory.For(app.Name);
+var allay = DataDirectory.For("allay");
 var shelf = new Shelf(data);
 var settings = new SettingsStore();
 var todos = new TodoList(shelf);
 var axioms = new AxiomBook(shelf, settings);
 var library = new SkillLibrary(new PreferencesStore(data, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)), new Mirror(Path.Combine(data, "library")));
 var skills = new ProjectSkills(shelf, library);
+var chats = new ChatStore(Path.Combine(data, "chats"));
 
-var abilities = new Abilities(
-    Operation.From(new ListProjectsOp(shelf, settings)),
-    Operation.From(new ListTodosOp(todos)),
-    Operation.From(new AddTodoOp(todos)),
-    Operation.From(new CompleteTodoOp(todos)),
-    Operation.From(new RemoveTodoOp(todos)),
-    Operation.From(new ListAxiomsOp(axioms)),
-    Operation.From(new AddAxiomOp(axioms)),
-    Operation.From(new RemoveAxiomOp(axioms)),
-    Operation.From(new ListProjectSkillsOp(skills)),
-    new ChatStore(Path.Combine(data, "chats")));
+var listProjects = Operation.From(new ListProjectsOp(shelf, settings));
+var listTodos = Operation.From(new ListTodosOp(todos));
+var addTodo = Operation.From(new AddTodoOp(todos));
+var completeTodo = Operation.From(new CompleteTodoOp(todos));
+var removeTodo = Operation.From(new RemoveTodoOp(todos));
+var listAxioms = Operation.From(new ListAxiomsOp(axioms));
+var addAxiom = Operation.From(new AddAxiomOp(axioms));
+var removeAxiom = Operation.From(new RemoveAxiomOp(axioms));
+var listSkills = Operation.From(new ListProjectSkillsOp(skills));
 
 return await AppHost.RunAsync(
     app.Command,
     [
-        abilities.ListProjects,
-        abilities.ListTodos,
-        abilities.AddTodo,
-        abilities.CompleteTodo,
-        abilities.RemoveTodo,
-        abilities.ListAxioms,
-        abilities.AddAxiom,
-        abilities.RemoveAxiom,
-        abilities.ListProjectSkills,
+        listProjects,
+        listTodos,
+        addTodo,
+        completeTodo,
+        removeTodo,
+        listAxioms,
+        addAxiom,
+        removeAxiom,
+        listSkills,
     ],
     args,
-    withoutArgs: () => Task.FromResult(DesktopHost.Run(app, frame =>
+    withoutArgs: () =>
     {
-        var workbench = new WorkbenchViewModel(abilities);
-        var view = new WorkbenchView { DataContext = workbench };
-        Shortcuts.Register(frame, workbench, view);
-        _ = workbench.LoadAsync(CancellationToken.None);
+        using var tools = new McpHttpHost(app.Name);
+        tools.Start();
+        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
+        var workshop = new Workshop(crew, new ProjectBrief(new SummaryStore(), axioms, skills), new Toolbox(tools, todos), chats);
+        var abilities = new Abilities(listProjects, listTodos, addTodo, completeTodo, removeTodo, listAxioms, addAxiom, removeAxiom, listSkills, chats, workshop);
 
-        return view;
-    }, args)));
+        var code = DesktopHost.Run(app, frame =>
+        {
+            var workbench = new WorkbenchViewModel(abilities);
+            var view = new WorkbenchView { DataContext = workbench };
+            Shortcuts.Register(frame, workbench, view);
+            _ = workbench.LoadAsync(CancellationToken.None);
+
+            return view;
+        }, args);
+
+        workshop.CloseAll();
+
+        return Task.FromResult(code);
+    });

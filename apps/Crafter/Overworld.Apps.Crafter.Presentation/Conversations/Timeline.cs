@@ -3,9 +3,13 @@ using Overworld.Allay.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
-public sealed class Timeline
+public sealed class Timeline(Action<string, Decision>? decide = null)
 {
     private readonly Dictionary<string, ActEntry> _acts = [];
+
+    private readonly Dictionary<string, RequestEntry> _requests = [];
+
+    private readonly Action<string, Decision> _decide = decide ?? ((_, _) => { });
 
     private PlanEntry? _plan;
 
@@ -33,6 +37,7 @@ public sealed class Timeline
     {
         _plan = null;
         _acts.Clear();
+        _requests.Clear();
         Entries.Add(new PromptEntry(prompt));
     }
 
@@ -61,6 +66,15 @@ public sealed class Timeline
             case ActResult result when _acts.TryGetValue(result.Id, out var done):
                 done.Settle(result);
                 break;
+            case Permission permission:
+                Ask(new PermissionEntry(permission, _decide));
+                break;
+            case Questions questions:
+                Ask(new QuestionsEntry(questions, _decide));
+                break;
+            case Withdrawn withdrawn when _requests.TryGetValue(withdrawn.Id, out var request):
+                request.Withdraw();
+                break;
             case Notice notice:
                 Entries.Add(new NoticeEntry(notice));
                 break;
@@ -68,6 +82,12 @@ public sealed class Timeline
                 Entries.Add(new OutcomeEntry(outcome));
                 break;
         }
+    }
+
+    private void Ask(RequestEntry request)
+    {
+        _requests[request.Id] = request;
+        Entries.Add(request);
     }
 
     private void Flow<T>(string text, Func<string, T> start)

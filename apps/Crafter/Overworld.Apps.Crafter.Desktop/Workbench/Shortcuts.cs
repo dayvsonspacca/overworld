@@ -22,6 +22,9 @@ public static class Shortcuts
     {
         var book = frame.Commands;
 
+        book.Add("New chat", Chats, () => _ = NewChatAsync(workbench, view), "Ctrl+T");
+        book.Add("Write a message", Chats, view.FocusComposer, "Ctrl+L");
+        book.Add("Stop the agent", Chats, () => workbench.Project?.Chat?.Conversation.StopCommand.Execute(null));
         book.Add("Next chat", Chats, workbench.NextChat, "Ctrl+Tab");
         book.Add("Previous chat", Chats, workbench.PreviousChat, "Ctrl+Shift+Tab");
         book.Add("Search chats", Chats, view.FocusSearch, "Ctrl+F");
@@ -40,6 +43,12 @@ public static class Shortcuts
         frame.Bar.Bind(TitleBar.SubtitleProperty, new Binding(nameof(WorkbenchViewModel.Subtitle)));
         frame.Bar.Leading = Toggle("Show or hide the chats · Ctrl+B", "M2.5,3.5 H13.5 V12.5 H2.5 Z M6.5,3.5 V12.5", workbench.ToggleListCommand, nameof(WorkbenchViewModel.ShowsList));
         frame.Bar.Trailing = Toggle("Show or hide the aside · Ctrl+Alt+B", "M2.5,3.5 H13.5 V12.5 H2.5 Z M9.5,3.5 V12.5", workbench.ToggleAsideCommand, nameof(WorkbenchViewModel.ShowsAside));
+    }
+
+    private static async Task NewChatAsync(WorkbenchViewModel workbench, WorkbenchView view)
+    {
+        await workbench.NewChatAsync();
+        view.FocusComposer();
     }
 
     private static Button Toggle(string tip, string glyph, ICommand command, string shown)

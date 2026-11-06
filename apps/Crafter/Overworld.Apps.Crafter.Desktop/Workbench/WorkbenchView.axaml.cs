@@ -9,6 +9,8 @@ public sealed partial class WorkbenchView : UserControl
         InitializeComponent();
     }
 
+    public void FocusComposer() => Conversation.FocusComposer();
+
     public void FocusSearch()
     {
         Search.Focus();

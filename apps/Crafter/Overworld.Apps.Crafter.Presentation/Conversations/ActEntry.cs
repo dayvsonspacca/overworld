@@ -14,18 +14,7 @@ public sealed partial class ActEntry(Act act) : Entry
 
     public string Subject { get; } = act.Subject;
 
-    public string Glyph { get; } = act.Kind switch
-    {
-        ActKind.Command => "$",
-        ActKind.Read => "≡",
-        ActKind.Change => "✎",
-        ActKind.Create => "+",
-        ActKind.Search => "⌕",
-        ActKind.Browse => "◎",
-        ActKind.Delegate => "⇢",
-        ActKind.Tool => "⚙",
-        _ => "•",
-    };
+    public string Glyph { get; } = Glyphs.Of(act.Kind);
 
     public string? Added { get; } = act.Changes is { Added: > 0 } changes ? $"+{changes.Added}" : null;
 

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using Overworld.Apps.Crafter.Projects;
 
@@ -67,6 +68,9 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
     public void Open(ProjectViewModel project) => Project = project;
 
     [RelayCommand]
+    public Task NewChatAsync() => Project?.NewChatAsync(CancellationToken.None) ?? Task.CompletedTask;
+
+    [RelayCommand]
     public void NextChat() => Project?.Step(1);
 
     [RelayCommand]
@@ -90,16 +94,57 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
         {
             newValue.IsCurrent = true;
             newValue.PropertyChanged += ProjectChanged;
+            Watch(newValue.Chat);
             Opening = newValue.LoadAsync(CancellationToken.None);
         }
     }
+
+    private ChatSummaryViewModel? _watched;
 
     private void ProjectChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ProjectViewModel.Chat))
         {
-            OnPropertyChanged(nameof(Title));
-            OnPropertyChanged(nameof(Subtitle));
+            Watch(Project?.Chat);
+        }
+    }
+
+    private void Watch(ChatSummaryViewModel? chat)
+    {
+        if (_watched is not null)
+        {
+            _watched.PropertyChanged -= ChatChanged;
+        }
+
+        _watched = chat;
+
+        if (chat is not null)
+        {
+            chat.PropertyChanged += ChatChanged;
+        }
+
+        Retitle();
+    }
+
+    private void ChatChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChatSummaryViewModel.Title))
+        {
+            Retitle();
+        }
+    }
+
+    private void Retitle()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(Subtitle));
+    }
+
+    public void CloseAll()
+    {
+        foreach (var chat in Projects.SelectMany(project => project.Chats))
+        {
+            chat.Close();
         }
     }
 }

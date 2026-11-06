@@ -2,6 +2,7 @@ using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Projects;
+using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Todos;
 using Overworld.Bedrock.Operations;
 
@@ -17,4 +18,5 @@ public sealed record Abilities(
     Operation<AddAxiom, IReadOnlyList<string>> AddAxiom,
     Operation<RemoveAxiom, IReadOnlyList<string>> RemoveAxiom,
     Operation<ListProjectSkills, IReadOnlyList<Skill>> ListProjectSkills,
-    ChatStore Chats);
+    ChatStore Chats,
+    Workshop Workshop);
