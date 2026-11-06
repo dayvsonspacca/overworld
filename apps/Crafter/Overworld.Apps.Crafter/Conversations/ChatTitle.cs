@@ -1,3 +1,5 @@
+using Overworld.Allay.Conversations;
+
 namespace Overworld.Apps.Crafter.Conversations;
 
 public sealed record ChatTitle

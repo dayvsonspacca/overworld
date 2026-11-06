@@ -1,6 +1,6 @@
-using Overworld.Apps.Crafter.Agents;
+using Overworld.Allay.Agents;
+using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
-using Overworld.Apps.Crafter.Conversations.Replies;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
 
@@ -31,6 +31,8 @@ public sealed class ChatStoreTest : IDisposable
         Assert.Empty((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value);
     }
 
+    private static Prompt Ask(string text) => new(text, [], []);
+
     [Fact]
     public async Task LoadsWhatItSaved()
     {
@@ -38,29 +40,30 @@ public sealed class ChatStoreTest : IDisposable
         [
             new(ChatId.New(), Claude, ChatTitle.Of("Fix reconnect"), "s-1",
             [
-                new Asked(new Prompt("Fix it")),
-                new Answered("Done", new Finished()),
-                new Asked(new Prompt("More")),
-                new Answered("Half", new Stopped()),
-                new Asked(new Prompt("Long")),
-                new Answered("Cut", new CutShort()),
-                new Asked(new Prompt("Risky")),
-                new Answered(string.Empty, new Refused("cyber")),
-                new Asked(new Prompt("Broken")),
-                new Answered(string.Empty, new Failed("Not logged in")),
-                new Asked(new Prompt("Run the tests")),
-                new Answered("Running them.All green.", new Finished())
-                {
-                    Steps =
+                Ask("Fix it"),
+                new Reply([new Speech("Done")], new Finished()),
+                Ask("More"),
+                new Reply([new Speech("Half")], new Stopped()),
+                Ask("Long"),
+                new Reply([new Speech("Cut")], new CutShort()),
+                Ask("Risky"),
+                new Reply([], new Refused("cyber")),
+                Ask("Broken"),
+                new Reply([], new Failed("Not logged in")),
+                Ask("Run the tests"),
+                new Reply(
                     [
-                        new Wrote("Running them."),
-                        new Acting("t-1", new Tool(ToolKind.Shell, "Bash"), "dotnet test"),
-                        new Acted("t-1", Failed: false, Output: "Passed: 12"),
-                        new Acting("t-2", new Tool(ToolKind.Edit, "Edit"), "src/App.cs", new Changes(2, 1)),
-                        new Acted("t-2", Failed: true, Output: "no match"),
-                        new Wrote("All green."),
+                        new Thought("They live under tests/."),
+                        new Plan([new PlanStep("Run them", StepState.Doing), new PlanStep("Fix them", StepState.Pending)]),
+                        new Speech("Running them."),
+                        new Act("t-1", ActKind.Command, "dotnet test"),
+                        new ActResult("t-1", true, "Passed: 12"),
+                        new Act("t-2", ActKind.Change, "src/App.cs", new Changes(2, 1)),
+                        new ActResult("t-2", false, "no match"),
+                        new Act("t-3", ActKind.Tool, "crafter: add todo · Modal"),
+                        new Speech("All green."),
                     ],
-                },
+                    new Finished()),
             ]),
             new(ChatId.New(), Codex, ChatTitle.Untitled, null, []),
         ];
@@ -68,16 +71,45 @@ public sealed class ChatStoreTest : IDisposable
         await new ChatStore(_folder.Path).SaveAsync(Crafter, chats, Token);
         var loaded = (await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value;
 
-        Assert.Equal(chats.Length, loaded.Count);
+        Assert.Equal(chats, loaded);
+    }
 
-        for (var at = 0; at < chats.Length; at++)
-        {
-            Assert.Equal(chats[at].Id, loaded[at].Id);
-            Assert.Equal(chats[at].Agent, loaded[at].Agent);
-            Assert.Equal(chats[at].Title, loaded[at].Title);
-            Assert.Equal(chats[at].SessionId, loaded[at].SessionId);
-            Assert.Equal(chats[at].Turns, loaded[at].Turns);
-        }
+    [Fact]
+    public async Task WritesStepsCrafterCanStillRead()
+    {
+        await new ChatStore(_folder.Path).SaveAsync(
+            Crafter,
+            [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Run"), null, [Ask("Run"), new Reply([new Speech("Ok."), new Act("t-1", ActKind.Command, "dotnet test"), new ActResult("t-1", false, "1 failed")], new Finished())])],
+            Token);
+
+        var json = await File.ReadAllTextAsync(Directory.GetFiles(_folder.Path).Single(), Token);
+
+        Assert.Contains("\"kind\": \"asked\"", json);
+        Assert.Contains("\"text\": \"Ok.\"", json);
+        Assert.Contains("\"does\": \"shell\"", json);
+        Assert.Contains("\"tool\": \"Command\"", json);
+        Assert.Contains("\"failed\": true", json);
+    }
+
+    [Fact]
+    public async Task ReadsTheKindOfAnActCrafterSaved()
+    {
+        var file = await SavedFileAsync();
+        await File.WriteAllTextAsync(
+            file,
+            """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Old","turns":[{"kind":"answered","text":"","ending":"finished","steps":[{"kind":"acting","id":"t-1","tool":"Bash","does":"shell","summary":"ls"},{"kind":"acting","id":"t-2","tool":"crafter","does":"served","summary":"add todo · Modal"},{"kind":"acting","id":"t-3","tool":"Write","summary":"b.md"},{"kind":"acting","id":"t-4","tool":"Monitor","summary":""}]}]}]""",
+            Token);
+
+        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns));
+
+        Assert.Equal(
+            [
+                new Act("t-1", ActKind.Command, "ls"),
+                new Act("t-2", ActKind.Tool, "crafter: add todo · Modal"),
+                new Act("t-3", ActKind.Create, "b.md"),
+                new Act("t-4", ActKind.Other, "Monitor"),
+            ],
+            reply.Moments);
     }
 
     [Fact]
@@ -110,7 +142,7 @@ public sealed class ChatStoreTest : IDisposable
         var chat = Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value);
 
         Assert.Equal("s-1", chat.SessionId);
-        Assert.Equal([new Asked(new Prompt("Fix it")), new Answered("Done", new Finished())], chat.Turns);
+        Assert.Equal([Ask("Fix it"), new Reply([new Speech("Done")], new Finished())], chat.Turns);
     }
 
     [Fact]
@@ -124,7 +156,7 @@ public sealed class ChatStoreTest : IDisposable
 
         var turn = Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns);
 
-        Assert.Equal(new Answered("?", new Failed("The answer could not be read back.")), turn);
+        Assert.Equal(new Reply([new Speech("?")], new Failed("The answer could not be read back.")), turn);
     }
 
     [Fact]
@@ -136,9 +168,9 @@ public sealed class ChatStoreTest : IDisposable
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Old","sessionId":null,"turns":[{"kind":"answered","text":"","ending":"finished","detail":null,"steps":[{"kind":"acting","id":"t-1","tool":"Edit","summary":"a.cs","stat":"+2 −1"},{"kind":"acting","id":"t-2","tool":"Write","summary":"b.md","stat":"+3"}]}]}]""",
             Token);
 
-        var answered = Assert.IsType<Answered>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns));
+        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns));
 
-        Assert.Equal([new Acting("t-1", new Tool(ToolKind.Other, "Edit"), "a.cs", new Changes(2, 1)), new Acting("t-2", new Tool(ToolKind.Other, "Write"), "b.md", new Changes(3))], answered.Steps);
+        Assert.Equal([new Act("t-1", ActKind.Change, "a.cs", new Changes(2, 1)), new Act("t-2", ActKind.Create, "b.md", new Changes(3))], reply.Moments);
     }
 
     [Fact]

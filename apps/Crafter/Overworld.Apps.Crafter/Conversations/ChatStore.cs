@@ -2,9 +2,8 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using Overworld.Apps.Crafter.Agents;
-using Overworld.Apps.Crafter.Conversations.Replies;
+using Overworld.Allay.Agents;
+using Overworld.Allay.Conversations;
 using Overworld.Bedrock.Results;
 using Overworld.Chest;
 
@@ -12,6 +11,34 @@ namespace Overworld.Apps.Crafter.Conversations;
 
 public sealed class ChatStore(string directory)
 {
+    private static readonly IReadOnlyDictionary<ActKind, string> Does = new Dictionary<ActKind, string>
+    {
+        [ActKind.Command] = "shell",
+        [ActKind.Read] = "read",
+        [ActKind.Change] = "edit",
+        [ActKind.Create] = "write",
+        [ActKind.Search] = "search",
+        [ActKind.Browse] = "web",
+        [ActKind.Delegate] = "delegate",
+        [ActKind.Tool] = "served",
+    };
+
+    private static readonly IReadOnlyDictionary<string, ActKind> Tools = new Dictionary<string, ActKind>
+    {
+        ["Bash"] = ActKind.Command,
+        ["Read"] = ActKind.Read,
+        ["Edit"] = ActKind.Change,
+        ["MultiEdit"] = ActKind.Change,
+        ["NotebookEdit"] = ActKind.Change,
+        ["Write"] = ActKind.Create,
+        ["Grep"] = ActKind.Search,
+        ["Glob"] = ActKind.Search,
+        ["WebFetch"] = ActKind.Browse,
+        ["WebSearch"] = ActKind.Browse,
+        ["Task"] = ActKind.Delegate,
+        ["Agent"] = ActKind.Delegate,
+    };
+
     private readonly ConcurrentDictionary<string, JsonFile<IReadOnlyList<ChatEntry>>> _files = new();
 
     public async Task<Result<IReadOnlyList<ChatRecord>>> LoadAsync(string folder, CancellationToken cancellationToken)
@@ -50,33 +77,51 @@ public sealed class ChatStore(string directory)
         return $"{Path.GetFileName(folder)}-{hash}.json";
     }
 
-    private static ChatRecord Record(ChatEntry entry) =>
-        new(new ChatId(entry.Id), new AgentId(entry.Agent), ChatTitle.Of(entry.Title), entry.SessionId, [.. (entry.Turns ?? []).Select(Turn)]);
+    private static ChatRecord Record(ChatEntry entry)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(entry.Agent);
+
+        return new(new ChatId(entry.Id), new AgentId(entry.Agent), ChatTitle.Of(entry.Title), entry.SessionId, [.. (entry.Turns ?? []).Select(Turn)]);
+    }
 
     private static ChatEntry Entry(ChatRecord record) =>
-        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry)]);
+        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry).OfType<TurnEntry>()]);
 
-    private static Turn Turn(TurnEntry entry) => entry.Kind switch
+    private static Turn Turn(TurnEntry entry)
     {
-        "asked" => new Asked(new Prompt(entry.Text)),
-        _ => new Answered(entry.Text, Ending(entry)) { Steps = [.. (entry.Steps ?? []).Select(Step).OfType<Reply>()] },
-    };
+        if (entry.Kind == "asked")
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(entry.Text);
 
-    private static Reply? Step(StepEntry step) => step switch
+            return new Prompt(entry.Text, [], []);
+        }
+
+        IReadOnlyList<Moment> moments = entry.Steps is { Count: > 0 } steps
+            ? [.. steps.Select(Moment).OfType<Moment>()]
+            : entry.Text.Length > 0 ? [new Speech(entry.Text)] : [];
+
+        return new Reply(moments, Outcome(entry));
+    }
+
+    private static Moment? Moment(StepEntry step) => step switch
     {
-        { Kind: "wrote", Text: { } text } => new Wrote(text),
-        { Kind: "acting", Id: { } id, Tool: { } tool } => new Acting(id, new Tool(Enum.TryParse<ToolKind>(step.Does, ignoreCase: true, out var kind) ? kind : ToolKind.Other, tool), step.Summary ?? string.Empty, Changes(step)),
-        { Kind: "acted", Id: { } id } => new Acted(id, step.Failed ?? false, step.Text ?? string.Empty),
+        { Kind: "wrote", Text: { } text } => new Speech(text),
+        { Kind: "thought", Text: { } text } => new Thought(text),
+        { Kind: "plan", Plan: { } plan } => new Plan([.. plan.Select(item => new PlanStep(item.Text, Enum.TryParse<StepState>(item.State, ignoreCase: true, out var state) ? state : StepState.Pending))]),
+        { Kind: "acting", Id: { } id, Tool: { } tool } => Acting(id, tool, step),
+        { Kind: "acted", Id: { } id } => new ActResult(id, step.Failed != true, step.Text ?? string.Empty),
         _ => null,
     };
 
-    private static StepEntry? Entry(Reply step) => step switch
+    private static Act Acting(string id, string tool, StepEntry step)
     {
-        Wrote wrote => new StepEntry("wrote", Text: wrote.Fragment),
-        Acting acting => new StepEntry("acting", Id: acting.Id, Tool: acting.Tool.Name, Does: acting.Tool.Kind == ToolKind.Other ? null : JsonNamingPolicy.CamelCase.ConvertName(acting.Tool.Kind.ToString()), Summary: acting.Summary, Added: acting.Changes?.Added, Removed: acting.Changes?.Removed),
-        Acted acted => new StepEntry("acted", Id: acted.Id, Text: acted.Output, Failed: acted.Failed ? true : null),
-        _ => null,
-    };
+        var kind = step.Does is { } does
+            ? Does.FirstOrDefault(each => each.Value == does).Key
+            : Tools.GetValueOrDefault(tool, ActKind.Other);
+        var summary = step.Summary is { Length: > 0 } said ? said : tool;
+
+        return new Act(id, kind, kind == ActKind.Tool && step.Summary is { Length: > 0 } ? $"{tool}: {summary}" : summary, Changes(step));
+    }
 
     private static Changes? Changes(StepEntry step) => step switch
     {
@@ -86,7 +131,7 @@ public sealed class ChatStore(string directory)
         _ => null,
     };
 
-    private static Ending Ending(TurnEntry entry) => entry.Ending switch
+    private static Outcome Outcome(TurnEntry entry) => entry.Ending switch
     {
         "finished" => new Finished(),
         "stopped" => new Stopped(),
@@ -95,19 +140,38 @@ public sealed class ChatStore(string directory)
         _ => new Failed(entry.Detail ?? "The answer could not be read back."),
     };
 
-    private static TurnEntry Entry(Turn turn) => turn switch
+    private static TurnEntry? Entry(Turn turn) => turn switch
     {
-        Asked asked => new TurnEntry("asked", asked.Prompt.Text),
-        Answered answered => new TurnEntry(
+        Prompt prompt => new TurnEntry("asked", prompt.Text),
+        Reply reply => new TurnEntry(
             "answered",
-            answered.Text,
-            Name(answered.Ending),
-            Detail(answered.Ending),
-            answered.Steps.Count > 0 ? [.. answered.Steps.Select(Entry).OfType<StepEntry>()] : null),
-        _ => throw new ArgumentOutOfRangeException(nameof(turn), turn, "Only asked and answered turns are kept."),
+            string.Concat(reply.Moments.OfType<Speech>().Select(speech => speech.Text)),
+            Name(reply.Outcome),
+            Detail(reply.Outcome),
+            reply.Moments.Any(moment => moment is not Speech) ? [.. reply.Moments.Select(Step).OfType<StepEntry>()] : null),
+        _ => null,
     };
 
-    private static string Name(Ending ending) => ending switch
+    private static StepEntry? Step(Moment moment) => moment switch
+    {
+        Speech speech => new StepEntry("wrote", Text: speech.Text),
+        Thought thought => new StepEntry("thought", Text: thought.Text),
+        Plan plan => new StepEntry("plan", Plan: [.. plan.Steps.Select(step => new PlanItemEntry(step.Text, step.State.ToString().ToLowerInvariant()))]),
+        Act act => Acting(act),
+        ActResult result => new StepEntry("acted", Id: result.Id, Text: result.Output, Failed: result.Succeeded ? null : true),
+        _ => null,
+    };
+
+    private static StepEntry Acting(Act act)
+    {
+        var (tool, summary) = act.Kind == ActKind.Tool && act.Subject.Split(": ", 2) is [var server, var rest]
+            ? (server, rest)
+            : (act.Kind.ToString(), act.Subject);
+
+        return new StepEntry("acting", Id: act.Id, Tool: tool, Does: Does.GetValueOrDefault(act.Kind), Summary: summary, Added: act.Changes?.Added, Removed: act.Changes?.Removed);
+    }
+
+    private static string Name(Outcome outcome) => outcome switch
     {
         Finished => "finished",
         Stopped => "stopped",
@@ -116,7 +180,7 @@ public sealed class ChatStore(string directory)
         _ => "failed",
     };
 
-    private static string? Detail(Ending ending) => ending switch
+    private static string? Detail(Outcome outcome) => outcome switch
     {
         Refused refused => refused.Reason,
         Failed failed => failed.Reason,

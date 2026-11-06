@@ -1,8 +1,7 @@
-using Overworld.Apps.Crafter.Agents;
-using Overworld.Apps.Crafter.Agents.Options;
+using Overworld.Allay.Agents;
+using Overworld.Allay.Conversations;
+using Overworld.Allay.Settings;
 using Overworld.Apps.Crafter.Conversations;
-using Overworld.Apps.Crafter.Conversations.Decisions;
-using Overworld.Apps.Crafter.Conversations.Replies;
 using Overworld.Apps.Crafter.Tests.Fakes;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
@@ -11,15 +10,17 @@ public sealed class ChatTest
 {
     private static readonly AgentId Claude = new("claude-code");
 
-    private static CancellationToken Stop => TestContext.Current.CancellationToken;
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
+
+    private static Prompt Ask(string text) => new(text, [], []);
 
     [Fact]
     public async Task IsTitledByItsFirstPrompt()
     {
-        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession(new Finished())));
+        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession([new Finished()], [new Finished()]), []));
 
-        await chat.Ask(new Prompt("Cover Paces with tests"), Configuration.Empty, Stop).ToListAsync(Stop);
-        await chat.Ask(new Prompt("And the bot too"), Configuration.Empty, Stop).ToListAsync(Stop);
+        await chat.AskAsync(Ask("Cover Paces with tests"), Setup.Default, Token).ToListAsync(Token);
+        await chat.AskAsync(Ask("And the bot too"), Setup.Default, Token).ToListAsync(Token);
 
         Assert.Equal("Cover Paces with tests", chat.Title.Text);
     }
@@ -27,10 +28,10 @@ public sealed class ChatTest
     [Fact]
     public async Task KeepsTheTitleOfARestoredChat()
     {
-        var history = new Turn[] { new Asked(new Prompt("oi")), new Answered("Olá", new Finished()) };
-        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Of("Greetings"), new Conversation(new ScriptedSession(new Finished()), history));
+        Turn[] history = [Ask("oi"), new Reply([new Speech("Olá")], new Finished())];
+        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Of("Greetings"), new Conversation(new ScriptedSession([new Finished()]), history));
 
-        await chat.Ask(new Prompt("again"), Configuration.Empty, Stop).ToListAsync(Stop);
+        await chat.AskAsync(Ask("again"), Setup.Default, Token).ToListAsync(Token);
 
         Assert.Equal("Greetings", chat.Title.Text);
     }
@@ -39,28 +40,10 @@ public sealed class ChatTest
     public async Task RecordsWhatItNeedsToComeBack()
     {
         var id = ChatId.New();
-        var chat = new Chat(id, Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession(new Wrote("Olá"), new Finished()) { SessionId = "s-1" }));
+        var chat = new Chat(id, Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession([new Speech("Olá"), new Finished()]) { Id = "s-1" }, []));
 
-        await chat.Ask(new Prompt("oi"), Configuration.Empty, Stop).ToListAsync(Stop);
-        var record = chat.Record();
+        await chat.AskAsync(Ask("oi"), Setup.Default, Token).ToListAsync(Token);
 
-        Assert.Equal(id, record.Id);
-        Assert.Equal(Claude, record.Agent);
-        Assert.Equal(ChatTitle.Of("oi"), record.Title);
-        Assert.Equal("s-1", record.SessionId);
-        Assert.Equal("s-1", chat.SessionId);
-        Assert.Equal<Turn>([new Asked(new Prompt("oi")), new Answered("Olá", new Finished())], record.Turns);
-        Assert.Equal(record.Turns, chat.Turns);
-    }
-
-    [Fact]
-    public void PassesDecisionsToItsSession()
-    {
-        var session = new ScriptedSession();
-        var chat = new Chat(ChatId.New(), Claude, ChatTitle.Untitled, new Conversation(session));
-
-        chat.Decide("r-1", new AlwaysAllow());
-
-        Assert.Equal([("r-1", (Decision)new AlwaysAllow())], session.Decisions);
+        Assert.Equal(new ChatRecord(id, Claude, ChatTitle.Of("oi"), "s-1", [Ask("oi"), new Reply([new Speech("Olá")], new Finished())]), chat.Record());
     }
 }

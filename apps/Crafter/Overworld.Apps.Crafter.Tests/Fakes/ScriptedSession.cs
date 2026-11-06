@@ -1,78 +1,45 @@
 using System.Runtime.CompilerServices;
-using Overworld.Apps.Crafter.Agents;
-using Overworld.Apps.Crafter.Agents.Background;
-using Overworld.Apps.Crafter.Agents.Options;
-using Overworld.Apps.Crafter.Conversations;
-using Overworld.Apps.Crafter.Conversations.Decisions;
-using Overworld.Apps.Crafter.Conversations.Replies;
+using Overworld.Allay.Agents;
+using Overworld.Allay.Briefs;
+using Overworld.Allay.Conversations;
+using Overworld.Allay.Jobs;
+using Overworld.Allay.Settings;
 
 namespace Overworld.Apps.Crafter.Tests.Fakes;
 
-public sealed class ScriptedSession(params Reply[] replies) : IAgentSession, IWorksInBackground
+public sealed class ScriptedSession(params IReadOnlyList<Moment>[] replies) : ISession
 {
+    private int _next;
+
     public event EventHandler<IReadOnlyList<Job>>? JobsChanged;
 
-    public event EventHandler<IAsyncEnumerable<Reply>>? Woke;
+    public event EventHandler<IAsyncEnumerable<Moment>>? Woke;
 
-    public IReadOnlyList<Job> Jobs { get; private set; } = [];
+    public string? Id { get; set; }
 
-    public List<string> StoppedJobs { get; } = [];
+    public IReadOnlyList<Job> Jobs => [];
 
-    public bool IsDismissed { get; private set; }
-
-    public Dictionary<string, string> Printed { get; } = [];
-
-    public string? Output(string job) => Printed.GetValueOrDefault(job);
-
-    public void Stop(string job) => StoppedJobs.Add(job);
-
-    public void Dismiss() => IsDismissed = true;
-
-    public void Run(params Job[] jobs)
-    {
-        Jobs = jobs;
-        JobsChanged?.Invoke(this, jobs);
-    }
-
-    public void Wake(params Reply[] said) => Woke?.Invoke(this, said.ToAsyncEnumerable());
-
-    public List<Prompt> Heard { get; } = [];
-
-    public string? SessionId { get; set; }
-
-    public List<Configuration> Configurations { get; } = [];
+    public List<Brief> Briefs { get; } = [];
 
     public List<(string Request, Decision Decision)> Decisions { get; } = [];
 
-    public bool Hangs { get; init; }
-
-    public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
-
-    public async IAsyncEnumerable<Reply> Answer(Prompt prompt, Configuration configuration, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<Moment> ReplyAsync(Prompt prompt, Setup setup, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        Heard.Add(prompt);
-        Configurations.Add(configuration);
-
-        foreach (var reply in replies)
+        foreach (var moment in replies[_next++])
         {
             await Task.Yield();
 
-            yield return reply;
+            yield return moment;
         }
-
-        if (!Hangs)
-        {
-            yield break;
-        }
-
-        try
-        {
-            await Task.Delay(Timeout.Infinite, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-
-        yield return new Stopped();
     }
+
+    public void Rebrief(Brief brief) => Briefs.Add(brief);
+
+    public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
+
+    public string? Output(string job) => null;
+
+    public void Stop(string job) => JobsChanged?.Invoke(this, []);
+
+    public void End() => Woke?.Invoke(this, AsyncEnumerable.Empty<Moment>());
 }

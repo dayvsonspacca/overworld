@@ -1,8 +1,6 @@
-using Overworld.Apps.Crafter.Agents;
-using Overworld.Apps.Crafter.Agents.Background;
-using Overworld.Apps.Crafter.Agents.Options;
-using Overworld.Apps.Crafter.Conversations.Decisions;
-using Overworld.Apps.Crafter.Conversations.Replies;
+using Overworld.Allay.Agents;
+using Overworld.Allay.Conversations;
+using Overworld.Allay.Settings;
 
 namespace Overworld.Apps.Crafter.Conversations;
 
@@ -14,43 +12,21 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
 
     public ChatTitle Title { get; private set; } = title;
 
-    public IReadOnlyList<Turn> Turns => conversation.Turns;
+    public Conversation Conversation { get; } = conversation;
 
-    public string? SessionId => conversation.SessionId;
+    public ISession Session => Conversation.Session;
 
-    public event EventHandler<IReadOnlyList<Job>>? JobsChanged
+    public IReadOnlyList<Turn> Turns => Conversation.Turns;
+
+    public IAsyncEnumerable<Moment> AskAsync(Prompt prompt, Setup setup, CancellationToken cancellationToken)
     {
-        add => conversation.JobsChanged += value;
-        remove => conversation.JobsChanged -= value;
-    }
-
-    public event EventHandler<IAsyncEnumerable<Reply>>? Woke
-    {
-        add => conversation.Woke += value;
-        remove => conversation.Woke -= value;
-    }
-
-    public IReadOnlyList<Job> Jobs => conversation.Jobs;
-
-    public void Decide(string request, Decision decision) => conversation.Decide(request, decision);
-
-    public string? Output(string job) => conversation.Output(job);
-
-    public void Stop(string job) => conversation.Stop(job);
-
-    public void Dismiss() => conversation.Dismiss();
-
-    public bool Runs(IAgentSession session) => conversation.Runs(session);
-
-    public IAsyncEnumerable<Reply> Ask(Prompt prompt, Configuration preferred, CancellationToken cancellationToken = default)
-    {
-        if (conversation.Turns.Count == 0)
+        if (Conversation.Turns.Count == 0)
         {
             Title = ChatTitle.From(prompt);
         }
 
-        return conversation.Ask(prompt, preferred, cancellationToken);
+        return Conversation.AskAsync(prompt, setup, cancellationToken);
     }
 
-    public ChatRecord Record() => new(Id, Agent, Title, conversation.SessionId, [.. conversation.Turns]);
+    public ChatRecord Record() => new(Id, Agent, Title, Session.Id, [.. Turns]);
 }

@@ -1,3 +1,4 @@
+using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
@@ -13,13 +14,13 @@ public sealed class ChatTitleTest
     [Fact]
     public void TakesTheFirstLineOfThePrompt()
     {
-        Assert.Equal("Fix reconnect after TimedOut", ChatTitle.From(new Prompt("  Fix reconnect after TimedOut\nThe client hangs.")).Text);
+        Assert.Equal("Fix reconnect after TimedOut", ChatTitle.From(new Prompt("  Fix reconnect after TimedOut\nThe client hangs.", [], [])).Text);
     }
 
     [Fact]
     public void CutsALongPrompt()
     {
-        var title = ChatTitle.From(new Prompt("Investigate why the bookshelf forgets the projects after a restart"));
+        var title = ChatTitle.From(new Prompt("Investigate why the bookshelf forgets the projects after a restart", [], []));
 
         Assert.Equal("Investigate why the bookshelf forgets t…", title.Text);
         Assert.Equal(40, title.Text.Length);
