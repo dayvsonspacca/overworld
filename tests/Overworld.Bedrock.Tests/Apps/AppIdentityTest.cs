@@ -9,4 +9,10 @@ public sealed class AppIdentityTest
     {
         Assert.Equal("overworld:dye", new AppIdentity("dye").Command);
     }
+
+    [Fact]
+    public void IsTitledWithItsNameCapitalized()
+    {
+        Assert.Equal("Dye", new AppIdentity("dye").Title);
+    }
 }
