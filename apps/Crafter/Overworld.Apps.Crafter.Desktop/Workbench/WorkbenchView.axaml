@@ -237,7 +237,7 @@
             Background="{DynamicResource RaisedBrush}"
             BorderBrush="{DynamicResource DividerBrush}"
             BorderThickness="0,0,1,0">
-      <DockPanel DataContext="{Binding Project}" x:DataType="projects:ProjectViewModel">
+      <DockPanel DataContext="{Binding Project}" x:DataType="projects:ProjectViewModel" IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
         <Border DockPanel.Dock="Top"
                 Height="{StaticResource HeaderHeight}"
                 Padding="6,0"
@@ -349,7 +349,7 @@
     <!-- The project's todos, skills and axioms. -->
     <Panel Grid.Column="3" Classes="aside-room">
       <Panel Width="280" IsVisible="{Binding ShowsAside}">
-        <aside:AsideView DataContext="{Binding Project.Aside, FallbackValue={x:Null}}" />
+        <aside:AsideView DataContext="{Binding Project.Aside, FallbackValue={x:Null}}" IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}" />
       </Panel>
     </Panel>
 
