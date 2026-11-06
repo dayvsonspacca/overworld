@@ -17,6 +17,9 @@
     "ttf-jetbrains-mono-nerd",
     "ibus",
     "wlsunset",
+    "networkmanager",
+    "upower",
+    "power-profiles-daemon",
     "kitty",
     "nautilus",
     "quickshell"
