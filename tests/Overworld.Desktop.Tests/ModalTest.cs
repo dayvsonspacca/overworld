@@ -95,4 +95,23 @@ public sealed class ModalTest
             Assert.Contains(":fixed", modal.Classes);
         });
     }
+
+    [Fact]
+    public void HoldsOnTheAppOnlyWhileItCannotBeDismissedAndShows()
+    {
+        TestApp.Run(() =>
+        {
+            var modal = new Modal { IsDismissible = false };
+            var app = new Avalonia.Controls.Panel { Children = { new Avalonia.Controls.Border(), modal } };
+
+            Assert.True(Modal.HoldsOn(app));
+
+            modal.IsVisible = false;
+            Assert.False(Modal.HoldsOn(app));
+
+            modal.IsVisible = true;
+            modal.IsDismissible = true;
+            Assert.False(Modal.HoldsOn(app));
+        });
+    }
 }

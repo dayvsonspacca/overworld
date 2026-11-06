@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 
 namespace Overworld.Desktop;
 
@@ -48,6 +49,9 @@ public sealed class Modal : ContentControl
         add => AddHandler(DismissedEvent, value);
         remove => RemoveHandler(DismissedEvent, value);
     }
+
+    public static bool HoldsOn(Visual root) =>
+        root.GetVisualDescendants().OfType<Modal>().Any(modal => !modal.IsDismissible && modal.IsEffectivelyVisible);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

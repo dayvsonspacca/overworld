@@ -73,14 +73,15 @@ public static class DesktopHost
                 window.Title = bar.Title ?? app.Title;
             }
         };
-        window.AddHandler(InputElement.KeyDownEvent, (_, e) => Pressed(e, palette, keymap), RoutingStrategies.Bubble);
+        window.AddHandler(InputElement.KeyDownEvent, (_, e) => Pressed(e, window, palette, keymap), RoutingStrategies.Bubble);
 
         return window;
     }
 
-    private static void Pressed(KeyEventArgs e, CommandPalette palette, Keymap keymap)
+    private static void Pressed(KeyEventArgs e, Window window, CommandPalette palette, Keymap keymap)
     {
-        if (e.Handled || palette.IsOpen)
+        // A modal that can't be dismissed holds the whole app until it goes away, its shortcuts too.
+        if (e.Handled || palette.IsOpen || Modal.HoldsOn(window))
         {
             return;
         }
