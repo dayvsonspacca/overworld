@@ -1,0 +1,61 @@
+{
+  "colors": {
+    "background": "#0A1015",
+    "raised": "#0E171D",
+    "surface": "#132026",
+    "divider": "#18282F",
+    "border": "#22363F",
+    "faint": "#3E5A62",
+    "subtle": "#6A8A90",
+    "textSoft": "#A3BFC2",
+    "text": "#D9ECEC",
+    "accentDeep": "#005E66",
+    "accentPressed": "#00838A",
+    "accent": "#0FA3A8",
+    "accentHover": "#26B8BC",
+    "accentText": "#3FD0D4",
+    "accentLight": "#8DF0F0",
+    "onAccent": "#031417",
+    "selected": "#0E2E34",
+    "danger": "#E0605A",
+    "added": "#7FC79A",
+    "scrim": "#B8030709",
+    "hoverTint": "#0FFFFFFF",
+    "edge": "#12FFFFFF",
+    "activeTint": "#17FFFFFF",
+    "activeHoverTint": "#1FFFFFFF"
+  },
+  "font": {
+    "mono": [
+      "JetBrainsMono Nerd Font",
+      "JetBrains Mono",
+      "monospace"
+    ],
+    "sizes": {
+      "footnote": 11,
+      "callout": 12,
+      "body": 13,
+      "content": 14,
+      "title3": 15,
+      "title2": 17,
+      "title1": 22,
+      "largeTitle": 26
+    }
+  },
+  "radii": {
+    "small": 4,
+    "control": 6,
+    "panel": 8,
+    "container": 10,
+    "window": 14,
+    "pill": 99
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "6": 24,
+    "8": 32
+  }
+}
