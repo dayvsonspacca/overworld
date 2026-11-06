@@ -44,12 +44,6 @@ public sealed class McpHttpHost(string name) : IDisposable
     public void Dispose()
     {
         _closing.Cancel();
-
-        if (_listener.IsListening)
-        {
-            _listener.Stop();
-        }
-
         _listener.Close();
         _closing.Dispose();
     }
