@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
+using Overworld.Apps.Crafter.Presentation.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Chats;
 
@@ -8,7 +9,11 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record) : Observable
 {
     private const int Longest = 60;
 
+    private ConversationViewModel? _conversation;
+
     public ChatRecord Record { get; } = record;
+
+    public ConversationViewModel Conversation => _conversation ??= new ConversationViewModel(Record);
 
     public string Title => Record.Title.Text;
 

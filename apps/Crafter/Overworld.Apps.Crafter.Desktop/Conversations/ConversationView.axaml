@@ -1,0 +1,338 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conversations="using:Overworld.Apps.Crafter.Presentation.Conversations"
+             xmlns:local="using:Overworld.Apps.Crafter.Desktop.Conversations"
+             xmlns:text="using:Overworld.Desktop.Text"
+             x:Class="Overworld.Apps.Crafter.Desktop.Conversations.ConversationView"
+             x:DataType="conversations:ConversationViewModel">
+  <UserControl.Resources>
+    <!-- One step of a reply on the timeline: a node on the line, what happened beside it. -->
+    <ControlTheme x:Key="{x:Type local:TimelineNode}" TargetType="local:TimelineNode">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Grid ColumnDefinitions="28,*">
+            <Rectangle Name="PART_Line" Width="1" HorizontalAlignment="Center" Fill="{DynamicResource DividerBrush}" Margin="0,0,11,0" />
+            <Border Name="PART_Node"
+                    Width="17"
+                    Height="17"
+                    CornerRadius="9"
+                    Margin="0,2,11,0"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource BackgroundBrush}">
+              <TextBlock Name="PART_Glyph"
+                         Text="{TemplateBinding Glyph}"
+                         FontFamily="{DynamicResource MonoFont}"
+                         FontSize="9"
+                         Foreground="{DynamicResource AccentTextBrush}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center" />
+            </Border>
+            <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" Margin="0,0,0,12" />
+          </Grid>
+        </ControlTemplate>
+      </Setter>
+
+      <Style Selector="^.speech /template/ Border#PART_Node">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      </Style>
+      <Style Selector="^.speech /template/ TextBlock#PART_Glyph">
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+      </Style>
+      <Style Selector="^.failed /template/ Border#PART_Node">
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+      </Style>
+      <Style Selector="^.failed /template/ TextBlock#PART_Glyph">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+      </Style>
+      <Style Selector="^.running /template/ Border#PART_Node">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        <Style.Animations>
+          <Animation Duration="0:0:1.6" IterationCount="INFINITE">
+            <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+            <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.4" /></KeyFrame>
+            <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+      <Style Selector="^.last /template/ Rectangle#PART_Line">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </ControlTheme>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- What an agent says, drawn from its markdown and selected as one text. -->
+    <Style Selector="SelectableTextBlock.prose">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeContent}" />
+      <Setter Property="LineHeight" Value="22" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.h1">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeTitle1}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LineHeight" Value="30" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.h2">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeTitle3}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LineHeight" Value="24" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.h3">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.marker">
+      <Setter Property="MinWidth" Value="12" />
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.code">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="LineHeight" Value="20" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.td, SelectableTextBlock.prose.th">
+      <Setter Property="MaxWidth" Value="360" />
+    </Style>
+    <Style Selector="SelectableTextBlock.prose.th">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+    </Style>
+    <Style Selector="Border.prose-quote">
+      <Setter Property="Padding" Value="12,0,0,0" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Border.prose-quote SelectableTextBlock.prose">
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+    </Style>
+    <Style Selector="Border.prose-code, Border.prose-table, Border.prose-preview">
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+      <Setter Property="ClipToBounds" Value="True" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+    </Style>
+    <Style Selector="Border.prose-preview">
+      <Setter Property="Padding" Value="16,14" />
+    </Style>
+    <Style Selector="Border.prose-code">
+      <Setter Property="Padding" Value="14,12" />
+    </Style>
+    <Style Selector="Border.prose-table">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Border.prose-cell">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    </Style>
+    <Style Selector="Border.prose-cell.header">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.prose-cell.last">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Rectangle.prose-rule">
+      <Setter Property="Height" Value="1" />
+      <Setter Property="Fill" Value="{DynamicResource DividerBrush}" />
+    </Style>
+
+    <!-- An act's row: a flat button that opens what the act gave back. -->
+    <Style Selector="Button.act">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4,2" />
+      <Setter Property="Margin" Value="-4,0,0,0" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.act:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverTintBrush}" />
+    </Style>
+    <Style Selector="Button.act:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ActiveTintBrush}" />
+    </Style>
+    <Style Selector="Button.act TextBlock">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSoftBrush}" />
+    </Style>
+    <Style Selector="Button.act TextBlock.added">
+      <Setter Property="Foreground" Value="{DynamicResource AddedBrush}" />
+    </Style>
+    <Style Selector="Button.act TextBlock.removed, Button.act.failed TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <Style Selector="Button.act TextBlock.verdict">
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+    </Style>
+    <Style Selector="SelectableTextBlock.output">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSoftBrush}" />
+      <Setter Property="LineHeight" Value="17" />
+    </Style>
+    <Style Selector="StackPanel.step.done TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+      <Setter Property="TextDecorations" Value="Strikethrough" />
+    </Style>
+    <Style Selector="StackPanel.step.done TextBlock.glyph">
+      <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+      <Setter Property="TextDecorations" Value="{x:Null}" />
+    </Style>
+    <Style Selector="StackPanel.step.doing TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="StackPanel.step.doing TextBlock.glyph">
+      <Setter Property="Foreground" Value="{DynamicResource AccentLightBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="conversations:PromptEntry">
+      <Border HorizontalAlignment="Right"
+              MaxWidth="560"
+              Margin="60,8,0,16"
+              Padding="12,8"
+              CornerRadius="12,12,4,12"
+              Background="{DynamicResource SurfaceBrush}">
+        <StackPanel Spacing="6">
+          <text:SelectableText Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" />
+          <ItemsControl ItemsSource="{Binding Files}" IsVisible="{Binding HasFiles}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding StringFormat='@{0}'}"
+                           FontFamily="{DynamicResource MonoFont}"
+                           FontSize="{StaticResource FontSizeCallout}"
+                           Foreground="{DynamicResource AccentLightBrush}"
+                           TextTrimming="CharacterEllipsis" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HasSkills}">
+            <ItemsControl ItemsSource="{Binding Skills}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="10" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding StringFormat='/{0}'}"
+                             FontFamily="{DynamicResource MonoFont}"
+                             FontSize="{StaticResource FontSizeCallout}"
+                             Foreground="{DynamicResource AccentTextBrush}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+          <TextBlock Text="{Binding PicturesLabel}"
+                     IsVisible="{Binding HasPictures}"
+                     FontSize="{StaticResource FontSizeCallout}"
+                     Foreground="{DynamicResource SubtleBrush}" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:ThoughtEntry">
+      <local:TimelineNode Glyph="…">
+        <text:SelectableText Text="{Binding Text}"
+                             TextWrapping="Wrap"
+                             FontStyle="Italic"
+                             LineHeight="20"
+                             Foreground="{DynamicResource SubtleBrush}" />
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:SpeechEntry">
+      <local:TimelineNode Glyph="✦" Classes="speech">
+        <local:ProseView Blocks="{Binding Blocks}" />
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:ActEntry">
+      <local:TimelineNode Glyph="{Binding Glyph}" Classes.failed="{Binding HasFailed}" Classes.running="{Binding IsRunning}">
+        <StackPanel Spacing="4">
+          <Button Classes="act" Classes.failed="{Binding HasFailed}" Command="{Binding ToggleCommand}" IsEnabled="{Binding HasOutput}">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="12,0,0,0">
+                <TextBlock Classes="added" Text="{Binding Added}" IsVisible="{Binding Added, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Classes="removed" Text="{Binding Removed}" IsVisible="{Binding Removed, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Classes="verdict" Text="{Binding Verdict}" IsVisible="{Binding Verdict, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </StackPanel>
+              <TextBlock Text="{Binding Subject}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+          </Button>
+          <Border IsVisible="{Binding ShowsOutput}"
+                  Padding="10,8"
+                  CornerRadius="{StaticResource RadiusControl}"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource DividerBrush}"
+                  Background="{DynamicResource RaisedBrush}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+              <text:SelectableText Classes="output" Text="{Binding Shown}" />
+            </ScrollViewer>
+          </Border>
+        </StackPanel>
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:PlanEntry">
+      <local:TimelineNode Glyph="☰">
+        <Border Padding="12,10"
+                CornerRadius="{StaticResource RadiusPanel}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource DividerBrush}"
+                Background="{DynamicResource RaisedBrush}">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{Binding Progress, StringFormat='PLAN · {0}'}"
+                       FontSize="{StaticResource FontSizeFootnote}"
+                       LetterSpacing="0.6"
+                       Foreground="{DynamicResource SubtleBrush}" />
+            <ItemsControl ItemsSource="{Binding Lines}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="conversations:PlanLine">
+                  <StackPanel Classes="step" Classes.done="{Binding IsDone}" Classes.doing="{Binding IsDoing}" Orientation="Horizontal" Spacing="8" Margin="0,1">
+                    <TextBlock Classes="glyph" Text="{Binding Glyph}" Width="12" FontFamily="{DynamicResource MonoFont}" Foreground="{DynamicResource SubtleBrush}" />
+                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:NoticeEntry">
+      <local:TimelineNode Glyph="↺">
+        <TextBlock Text="{Binding Text}"
+                   Margin="0,2,0,0"
+                   TextWrapping="Wrap"
+                   FontSize="{StaticResource FontSizeFootnote}"
+                   Foreground="{DynamicResource SubtleBrush}" />
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:OutcomeEntry">
+      <local:TimelineNode Glyph="■" Classes="last" Classes.failed="{Binding WentWrong}">
+        <TextBlock Text="{Binding Text}"
+                   Margin="0,2,0,8"
+                   TextWrapping="Wrap"
+                   FontSize="{StaticResource FontSizeFootnote}"
+                   Foreground="{DynamicResource SubtleBrush}" />
+      </local:TimelineNode>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <text:TextPage Name="Page">
+    <ItemsControl ItemsSource="{Binding Timeline.Entries}" MaxWidth="760" Margin="24,20,24,12" />
+  </text:TextPage>
+</UserControl>
