@@ -48,6 +48,24 @@ public sealed class CrewTest : IDisposable
     }
 
     [Fact]
+    public async Task HiresOnlyAnAgentThatIsReady()
+    {
+        var hired = await new HireAgentOp(_crew).ExecuteAsync(new HireAgent("codex"), Token);
+
+        Assert.Equal("agent.not_ready", hired.Error.Code);
+        Assert.Equal("Agent codex can only be hired once it is ready; it is signed out: Codex is not signed in. Run `codex login`.", hired.Error.Message);
+        Assert.False(File.Exists(AgentsFile));
+    }
+
+    [Fact]
+    public async Task LetsGoAnAgentThatIsNoLongerReady()
+    {
+        await File.WriteAllTextAsync(AgentsFile, """{ "hired": ["codex"] }""", Token);
+
+        Assert.False((await _crew.HireAsync("codex", false, Token)).Value.Hired);
+    }
+
+    [Fact]
     public async Task SetsUpAnAgentForEveryAppChangingOnlyWhatIsGiven()
     {
         await ConfigureAsync("claude-code", mode: Mode.Plan, model: "big");

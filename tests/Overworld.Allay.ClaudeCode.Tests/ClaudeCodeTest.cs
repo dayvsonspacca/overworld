@@ -32,22 +32,34 @@ public sealed class ClaudeCodeTest
 
     [Theory]
     [InlineData("""echo '{"loggedIn":true,"authMethod":"claude.ai","subscriptionType":"team"}'""", "Version 2.1.317 · claude.ai · team")]
-    [InlineData("echo 'not json'", "Version 2.1.317")]
     [InlineData("echo '{\"loggedIn\":true}'", "Version 2.1.317")]
-    [InlineData("echo 'unknown command' >&2; exit 1", "Version 2.1.317")]
-    public async Task IsReadyWhenInstalled(string status, string detail)
+    public async Task IsReadyWhenInstalledAndSignedIn(string status, string detail)
     {
         using var claude = new FakeClaude(Script(status));
 
         Assert.Equal(new Ready("Ready", detail), await Agent(claude).CheckAsync(Token));
     }
 
-    [Fact]
-    public async Task AsksToSignInWhenSignedOut()
+    [Theory]
+    [InlineData("""echo '{"loggedIn":false,"authMethod":"none"}'""")]
+    [InlineData("""echo '{"loggedIn":false,"authMethod":"none"}'; exit 1""")]
+    public async Task AsksToSignInWhenSignedOut(string status)
     {
-        using var claude = new FakeClaude(Script("""echo '{"loggedIn":false,"authMethod":"none"}'"""));
+        using var claude = new FakeClaude(Script(status));
 
         Assert.Equal(new Blocked("Signed out", "Sign in from a terminal.", ClaudeCode.SignIn), await Agent(claude).CheckAsync(Token));
+    }
+
+    [Theory]
+    [InlineData("echo 'unknown command' >&2; exit 1", "unknown command")]
+    [InlineData("echo 'not json'", "`claude auth status` did not say whether it is signed in.")]
+    [InlineData("echo '{\"authMethod\":\"claude.ai\"}'", "`claude auth status` did not say whether it is signed in.")]
+    [InlineData("echo '[]'", "`claude auth status` did not say whether it is signed in.")]
+    public async Task IsBrokenWhenItCannotTellWhetherItIsSignedIn(string status, string detail)
+    {
+        using var claude = new FakeClaude(Script(status));
+
+        Assert.Equal(new Blocked("Not working", detail), await Agent(claude).CheckAsync(Token));
     }
 
     [Fact]

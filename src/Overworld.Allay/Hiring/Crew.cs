@@ -68,6 +68,11 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
             return agent.Error;
         }
 
+        if (hired && await agent.Value.CheckAsync(cancellationToken) is Blocked blocked)
+        {
+            return Unready(agent.Value, blocked);
+        }
+
         var written = await staff.UpdateAsync(
             saved =>
             {
@@ -152,6 +157,12 @@ public sealed class Crew(IReadOnlyList<IAgent> roster, StaffFile staff)
                 roster.Count == 0
                     ? $"There is no agent '{id}'; Overworld knows no agents yet."
                     : $"There is no agent '{id}'; it is one of {string.Join(", ", roster.Select(each => each.Id.Value))}.");
+
+    private static Error Unready(IAgent agent, Blocked blocked) =>
+        new(
+            "agent.not_ready",
+            $"{agent.Name} can only be hired once it is ready; it is {blocked.State.ToLowerInvariant()}: {blocked.Detail}"
+            + (blocked.Remedy is { } remedy ? $" Run `{remedy}`." : string.Empty));
 
     private static Setup SetupOf(IAgent agent, Staff staff) =>
         staff.Setups?.GetValueOrDefault(agent.Id.Value) ?? Setup.Default;

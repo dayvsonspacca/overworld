@@ -65,16 +65,12 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
 
         var status = await AskAsync(["auth", "status", "--json"], cancellationToken);
 
-        if (status is null || status.Code != 0)
+        return (status is null ? null : Account(status.Output)) switch
         {
-            return new Ready("Ready", $"Version {installed}");
-        }
-
-        return Account(status.Output) switch
-        {
+            { LoggedIn: true, Label: { } label } => new Ready("Ready", $"Version {installed} · {label}"),
+            { LoggedIn: true } => new Ready("Ready", $"Version {installed}"),
             { LoggedIn: false } => new Blocked("Signed out", "Sign in from a terminal.", SignIn),
-            { Label: { } label } => new Ready("Ready", $"Version {installed} · {label}"),
-            _ => new Ready("Ready", $"Version {installed}"),
+            _ => new Blocked(Broken, status is null ? "`claude auth status` did not start." : Said(status, "`claude auth status` did not say whether it is signed in.")),
         };
     }
 
@@ -185,20 +181,27 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
         }
     }
 
-    private static (bool LoggedIn, string? Label) Account(string json)
+    private static (bool LoggedIn, string? Label)? Account(string json)
     {
         try
         {
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
-            var loggedIn = !root.TryGetProperty("loggedIn", out var flag) || flag.ValueKind != JsonValueKind.False;
+
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("loggedIn", out var flag)
+                || flag.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+            {
+                return null;
+            }
+
             string[] parts = [.. new[] { Text(root, "authMethod"), Text(root, "subscriptionType") }.OfType<string>().Where(part => part.Length > 0)];
 
-            return (loggedIn, parts.Length > 0 ? string.Join(" · ", parts) : null);
+            return (flag.GetBoolean(), parts.Length > 0 ? string.Join(" · ", parts) : null);
         }
         catch (JsonException)
         {
-            return (true, null);
+            return null;
         }
     }
 

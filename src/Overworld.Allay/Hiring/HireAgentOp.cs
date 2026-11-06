@@ -3,7 +3,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Allay.Hiring;
 
-[Operation("agents-hire", "Hires an agent, so apps offer it, or lets it go.")]
+[Operation("agents-hire", "Hires an agent that is ready to work, so apps offer it, or lets it go.")]
 public sealed class HireAgentOp(Crew crew) : IOperation<HireAgent, AgentCard>
 {
     public Task<Result<AgentCard>> ExecuteAsync(HireAgent input, CancellationToken cancellationToken) =>
