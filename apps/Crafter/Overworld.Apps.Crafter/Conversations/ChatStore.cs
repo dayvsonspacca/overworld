@@ -67,6 +67,19 @@ public sealed class ChatStore(string directory)
         return Result.Success(chats);
     }
 
+    public async Task<Result<IReadOnlyList<ChatRecord>>> KeepAsync(string folder, ChatRecord chat, CancellationToken cancellationToken)
+    {
+        var entry = Entry(chat);
+        var kept = await FileOf(folder).UpdateAsync(
+            saved => Result.Success<IReadOnlyList<ChatEntry>>(
+                saved.Any(each => each.Id == entry.Id)
+                    ? [.. saved.Select(each => each.Id == entry.Id ? entry : each)]
+                    : [.. saved, entry]),
+            cancellationToken);
+
+        return kept.IsSuccess ? await LoadAsync(folder, cancellationToken) : kept.Error;
+    }
+
     private JsonFile<IReadOnlyList<ChatEntry>> FileOf(string folder) =>
         _files.GetOrAdd(folder, key => new JsonFile<IReadOnlyList<ChatEntry>>(Path.Combine(directory, NameOf(key)), () => []));
 
