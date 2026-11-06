@@ -51,6 +51,10 @@ public sealed class ScriptedSession(params IReadOnlyList<Moment>[] replies) : IS
 
     public void Stop(string job) => JobsChanged?.Invoke(this, []);
 
+    public bool Ended { get; private set; }
+
+    public void End() => Ended = true;
+
     private static async IAsyncEnumerable<Moment> Stream(IReadOnlyList<Moment> moments)
     {
         foreach (var moment in moments)

@@ -24,4 +24,6 @@ public interface ISession
     string? Output(string job);
 
     void Stop(string job);
+
+    void End();
 }
