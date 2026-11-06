@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Overworld.Beacon/Overworld.Beacon.csproj" />
     <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
   </ItemGroup>
 </Project>

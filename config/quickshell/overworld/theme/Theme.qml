@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs.daemon
 
 // Colors, type sizes and radii come from the theme Seed installs; the measures below are the shell's own.
 Singleton {
@@ -86,5 +87,14 @@ Singleton {
         path: root.path
         blockLoading: true
         onLoadFailed: console.error(`overworld: no theme at ${root.path}; run just seed to install one`)
+    }
+
+    Connections {
+        target: Beacon
+
+        function onLit(name: string): void {
+            if (name === "theme")
+                file.reload();
+        }
     }
 }

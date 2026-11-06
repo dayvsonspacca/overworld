@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Overworld.Desktop.Theming;
 
@@ -84,6 +85,63 @@ public sealed class ThemeResourcesTest : IDisposable
             var thrown = Assert.Throws<InvalidDataException>(() => Read("""{ "colors": {} }"""));
 
             Assert.Contains("'font'", thrown.Message);
+        });
+    }
+
+    [Fact]
+    public void RepaintsItsColorsWhenReloaded()
+    {
+        TestApp.Run(() =>
+        {
+            var theme = Read(Theme);
+            File.WriteAllText(_path, Theme.Replace("#8E62D1", "#3A7BD5"));
+
+            theme.Reload();
+
+            Assert.Equal(Color.Parse("#3A7BD5"), theme["AccentColor"]);
+            Assert.Equal(Color.Parse("#3A7BD5"), ((SolidColorBrush)theme["AccentBrush"]!).Color);
+            Assert.Equal(Color.FromArgb(0x38, 0x3A, 0x7B, 0xD5), ((BoxShadows)theme["FocusGlow"]!)[0].Color);
+        });
+    }
+
+    [Fact]
+    public void KeepsItsColorsWhenTheThemeCannotBeRead()
+    {
+        TestApp.Run(() =>
+        {
+            var theme = Read(Theme);
+            File.WriteAllText(_path, "{ not a theme");
+
+            theme.Reload();
+
+            Assert.Equal(Color.Parse("#8E62D1"), theme["AccentColor"]);
+        });
+    }
+
+    [Fact]
+    public void ControlsFollowTheColorsWhenReloaded()
+    {
+        TestApp.Run(() =>
+        {
+            var theme = Application.Current!.Resources.MergedDictionaries.OfType<ThemeResources>().Single();
+            var window = new Window { Content = new CheckBox { IsChecked = true } };
+            window.Show();
+            Text.Page.Settle();
+            var accent = (Color)theme["AccentColor"]!;
+
+            try
+            {
+                theme["AccentColor"] = Colors.Red;
+                Text.Page.Settle();
+
+                Assert.True(window.TryFindResource("CheckBoxCheckBackgroundFillChecked", window.ActualThemeVariant, out var brush));
+                Assert.Equal(Colors.Red, ((SolidColorBrush)brush!).Color);
+            }
+            finally
+            {
+                theme["AccentColor"] = accent;
+                window.Close();
+            }
         });
     }
 }
