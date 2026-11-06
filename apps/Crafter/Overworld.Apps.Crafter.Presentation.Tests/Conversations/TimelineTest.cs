@@ -9,6 +9,39 @@ public sealed class TimelineTest
     private readonly Timeline _timeline = new();
 
     [Fact]
+    public void ShowsThePictureAnAgentSentRightUnderTheStepThatSentIt()
+    {
+        var mockup = new Picture("image/png", [1, 2, 3]);
+        var timeline = new Timeline(find: name => name == "ab12.png" ? mockup : null);
+        timeline.Add(new Act("1", ActKind.Tool, "crafter: show picture · docs/mockup.png"));
+        timeline.Add(new Speech("Here it is."));
+
+        timeline.Add(new ActResult("1", true, """{ "shownPicture": "ab12.png", "file": "mockup.png", "caption": "The new modal" }"""));
+
+        var shown = Assert.IsType<PictureEntry>(timeline.Entries[1]);
+        Assert.Equal(mockup, shown.Picture.Picture);
+        Assert.Equal(("mockup.png", "The new modal"), (shown.File, shown.Caption));
+        Assert.IsType<SpeechEntry>(timeline.Entries[2]);
+        Assert.Equal(timeline.Entries, timeline.Shown);
+    }
+
+    [Theory]
+    [InlineData(ActKind.Command, true, """{ "shownPicture": "ab12.png" }""")]
+    [InlineData(ActKind.Tool, false, """{ "shownPicture": "ab12.png" }""")]
+    [InlineData(ActKind.Tool, true, """{ "shownPicture": "gone.png" }""")]
+    [InlineData(ActKind.Tool, true, "{ not json")]
+    [InlineData(ActKind.Tool, true, "\"Todo #3 is done.\"")]
+    public void ShowsNoPictureForAnyOtherResult(ActKind kind, bool succeeded, string output)
+    {
+        var timeline = new Timeline(find: name => name == "ab12.png" ? new Picture("image/png", [1]) : null);
+        timeline.Add(new Act("1", kind, "something"));
+
+        timeline.Add(new ActResult("1", succeeded, output));
+
+        Assert.IsType<ActEntry>(Assert.Single(timeline.Entries));
+    }
+
+    [Fact]
     public void ShowsTheLatestEntriesAndBringsBackEarlierOnesAPageAtATime()
     {
         for (var at = 0; at < (Timeline.Page * 2) + 3; at++)
@@ -118,7 +151,7 @@ public sealed class TimelineTest
 
         var prompt = Assert.IsType<PromptEntry>(_timeline.Entries[0]);
         Assert.Equal(["src/A.cs"], prompt.Files);
-        Assert.Equal("1 picture", prompt.PicturesLabel);
+        Assert.Single(prompt.Pictures);
         Assert.Equal(["commit"], prompt.Skills);
         Assert.IsType<NoticeEntry>(_timeline.Entries[1]);
         var outcome = Assert.IsType<OutcomeEntry>(_timeline.Entries[^1]);

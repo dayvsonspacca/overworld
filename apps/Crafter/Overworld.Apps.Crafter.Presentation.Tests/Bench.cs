@@ -4,6 +4,7 @@ using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Tests.Fakes;
@@ -33,7 +34,8 @@ public sealed class Bench : IDisposable
         var todos = new TodoList(shelf);
         var book = new AxiomBook(shelf, settings);
         var skills = new ProjectSkills(shelf, new SkillLibrary(new PreferencesStore(data, _root), new Mirror(PathTo("data", "library"))));
-        Chats = new ChatStore(PathTo("data", "chats"));
+        Pictures = new PictureStore(PathTo("data", "pictures"));
+        Chats = new ChatStore(PathTo("data", "chats"), Pictures);
         Agent = new ScriptedAgent(Session);
         Crew = new Crew([Agent], new StaffFile(PathTo("allay")));
         Summaries = new SummaryStore();
@@ -65,6 +67,7 @@ public sealed class Bench : IDisposable
             ShowPreferences = Operation.From(new ShowPreferencesOp(preferences)),
             SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
             Chats = Chats,
+            Pictures = Pictures,
             Workshop = Workshop,
         };
     }
@@ -82,6 +85,8 @@ public sealed class Bench : IDisposable
     public Abilities Abilities { get; }
 
     public ChatStore Chats { get; }
+
+    public PictureStore Pictures { get; }
 
     public Operation<AddProject, Project> AddProject { get; }
 

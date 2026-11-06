@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Text.Json;
 using Overworld.Allay.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
@@ -14,11 +15,14 @@ public sealed class Timeline
 
     private readonly Action<string, Decision> _decide;
 
+    private readonly Func<string, Picture?> _find;
+
     private PlanEntry? _plan;
 
-    public Timeline(Action<string, Decision>? decide = null)
+    public Timeline(Action<string, Decision>? decide = null, Func<string, Picture?>? find = null)
     {
         _decide = decide ?? ((_, _) => { });
+        _find = find ?? (_ => null);
         Entries.CollectionChanged += Follow;
     }
 
@@ -103,6 +107,7 @@ public sealed class Timeline
                 break;
             case ActResult result when _acts.TryGetValue(result.Id, out var done):
                 done.Settle(result);
+                Picture(done, result);
                 break;
             case Permission permission:
                 Ask(new PermissionEntry(permission, _decide));
@@ -119,6 +124,32 @@ public sealed class Timeline
             case Outcome outcome:
                 Entries.Add(new OutcomeEntry(outcome));
                 break;
+        }
+    }
+
+    private void Picture(ActEntry act, ActResult result)
+    {
+        if (act.Kind != ActKind.Tool || !result.Succeeded || !result.Output.TrimStart().StartsWith('{'))
+        {
+            return;
+        }
+
+        try
+        {
+            using var said = JsonDocument.Parse(result.Output);
+            var root = said.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("shownPicture", out var name) && name.GetString() is { } kept
+                && _find(kept) is { } picture)
+            {
+                var file = root.TryGetProperty("file", out var named) ? named.GetString() ?? kept : kept;
+                var caption = root.TryGetProperty("caption", out var told) ? told.GetString() : null;
+                Entries.Insert(Entries.IndexOf(act) + 1, new PictureEntry(new PictureView(picture, caption ?? file), file, caption));
+            }
+        }
+        catch (JsonException)
+        {
         }
     }
 

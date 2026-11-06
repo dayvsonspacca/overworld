@@ -185,6 +185,41 @@
       <Setter Property="Width" Value="10" />
       <Setter Property="Height" Value="10" />
     </Style>
+    <!-- A picture in the conversation: a thumbnail in a prompt or what the agent showed; either opens in the viewer. -->
+    <Style Selector="Button.picture">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="ClipToBounds" Value="True" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.picture:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+    </Style>
+    <Style Selector="Button.picture.shown">
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+    </Style>
+    <Style Selector="Image.thumb">
+      <Setter Property="MaxHeight" Value="96" />
+      <Setter Property="MaxWidth" Value="220" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+    <Style Selector="Image.shown">
+      <Setter Property="MaxHeight" Value="280" />
+      <Setter Property="MaxWidth" Value="480" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="Margin" Value="10,6" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="MaxWidth" Value="460" />
+    </Style>
     <Style Selector="Border.drop">
       <Setter Property="Background" Value="{DynamicResource ScrimBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
@@ -226,7 +261,7 @@
               CornerRadius="12,12,4,12"
               Background="{DynamicResource SurfaceBrush}">
         <StackPanel Spacing="6">
-          <text:SelectableText Text="{Binding Text}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" />
+          <text:SelectableText Text="{Binding Text}" IsVisible="{Binding HasText}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" LineHeight="22" />
           <ItemsControl ItemsSource="{Binding Files}" IsVisible="{Binding HasFiles}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="x:String">
@@ -255,12 +290,41 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
-          <TextBlock Text="{Binding PicturesLabel}"
-                     IsVisible="{Binding HasPictures}"
-                     FontSize="{StaticResource FontSizeCallout}"
-                     Foreground="{DynamicResource SubtleBrush}" />
+          <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}" HorizontalAlignment="Right">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="6" LineSpacing="6" HorizontalAlignment="Right" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="conversations:PictureView">
+                <Button Classes="picture"
+                        ToolTip.Tip="Open the picture"
+                        Command="{Binding $parent[local:ConversationView].((conversations:ConversationViewModel)DataContext).OpenPictureCommand}"
+                        CommandParameter="{Binding}">
+                  <Image Classes="thumb" Source="{Binding Data, Converter={x:Static imaging:BytesImage.Instance}, ConverterParameter=192}" />
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </StackPanel>
       </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:PictureEntry">
+      <local:TimelineNode Glyph="◫">
+        <StackPanel Spacing="6" HorizontalAlignment="Left">
+          <Button Classes="picture shown"
+                  ToolTip.Tip="Open the picture"
+                  Command="{Binding $parent[local:ConversationView].((conversations:ConversationViewModel)DataContext).OpenPictureCommand}"
+                  CommandParameter="{Binding Picture}">
+            <StackPanel>
+              <Image Classes="shown" Source="{Binding Picture.Data, Converter={x:Static imaging:BytesImage.Instance}, ConverterParameter=560}" />
+              <TextBlock Classes="caption" Text="{Binding Caption}" IsVisible="{Binding HasCaption}" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </local:TimelineNode>
     </DataTemplate>
 
     <DataTemplate DataType="conversations:ThoughtEntry">

@@ -17,7 +17,16 @@ public sealed class BytesImage : IValueConverter
 
         using var stream = new MemoryStream(data);
 
-        return new Bitmap(stream);
+        try
+        {
+            return int.TryParse(parameter?.ToString(), CultureInfo.InvariantCulture, out var height)
+                ? Bitmap.DecodeToHeight(stream, height)
+                : new Bitmap(stream);
+        }
+        catch (Exception unreadable) when (unreadable is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
+        {
+            return null;
+        }
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

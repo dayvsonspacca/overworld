@@ -5,6 +5,7 @@ using Overworld.Allay.Settings;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
@@ -46,7 +47,7 @@ public sealed class WorkshopTest : IDisposable
         _crew = new Crew([_agent], new StaffFile(_folder.PathTo("allay")));
         _axioms = new AxiomBook(shelf, new SettingsStore());
         var skills = new ProjectSkills(shelf, new SkillLibrary(new PreferencesStore(_folder.PathTo("data"), "/home/someone"), new Mirror(_folder.PathTo("data", "library"))));
-        _store = new ChatStore(_folder.PathTo("chats"));
+        _store = new ChatStore(_folder.PathTo("chats"), new PictureStore(_folder.PathTo("pictures")));
         _workshop = new Workshop(_crew, new ProjectBrief(_summaries, _axioms, skills), new Toolbox(_host, [], [], _axioms, _summaries), _store);
         shelf.AddAsync(_project, CancellationToken.None).GetAwaiter().GetResult();
     }

@@ -267,6 +267,8 @@
     </Panel>
   </Grid>
 
+  <conversations:PictureViewer DataContext="{Binding Project.Chat.Conversation.Viewer, FallbackValue={x:Null}}" />
+
   <!-- Adding a project: the repositories under the projects folder, or any folder the system picker gives. -->
   <desktop:Modal Name="Adding"
                  Title="Add a project"

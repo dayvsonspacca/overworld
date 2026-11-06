@@ -53,7 +53,8 @@ public sealed partial class ConversationViewModel : ObservableObject
             OnPropertyChanged(nameof(HasAttachments));
             SendCommand.NotifyCanExecuteChanged();
         };
-        Timeline = new Timeline(Decide);
+        Timeline = new Timeline(Decide, abilities.Pictures.Find);
+        Viewer = new ViewerViewModel(picture => abilities.Pictures.Keep(picture) is { } kept ? abilities.Pictures.PathTo(kept) : null);
         Title = record.Title.Text;
 
         foreach (var turn in record.Turns)
@@ -67,6 +68,8 @@ public sealed partial class ConversationViewModel : ObservableObject
     public event EventHandler? Answered;
 
     public Timeline Timeline { get; }
+
+    public ViewerViewModel Viewer { get; }
 
     public ChatRecord Record => _chat?.Record() ?? _record;
 
@@ -179,6 +182,19 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     [RelayCommand]
     private void Detach(AttachmentView attachment) => Attachments.Remove(attachment);
+
+    [RelayCommand]
+    private void OpenPicture(PictureView picture) =>
+        Viewer.Open(
+            [
+                .. Timeline.Entries.SelectMany(entry => entry switch
+                {
+                    PromptEntry prompt => prompt.Pictures,
+                    PictureEntry shown => [shown.Picture],
+                    _ => [],
+                }),
+            ],
+            picture);
 
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()

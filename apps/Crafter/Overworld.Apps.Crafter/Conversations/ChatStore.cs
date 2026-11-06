@@ -4,12 +4,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
+using Overworld.Apps.Crafter.Pictures;
 using Overworld.Bedrock.Results;
 using Overworld.Chest;
 
 namespace Overworld.Apps.Crafter.Conversations;
 
-public sealed class ChatStore(string directory)
+public sealed class ChatStore(string directory, PictureStore pictures)
 {
     private static readonly IReadOnlyDictionary<ActKind, string> Does = new Dictionary<ActKind, string>
     {
@@ -90,21 +91,27 @@ public sealed class ChatStore(string directory)
         return $"{Path.GetFileName(folder)}-{hash}.json";
     }
 
-    private static ChatRecord Record(ChatEntry entry)
+    private ChatRecord Record(ChatEntry entry)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entry.Agent);
 
         return new(new ChatId(entry.Id), new AgentId(entry.Agent), ChatTitle.Of(entry.Title), entry.SessionId, [.. (entry.Turns ?? []).Select(Turn)]);
     }
 
-    private static ChatEntry Entry(ChatRecord record) =>
+    private ChatEntry Entry(ChatRecord record) =>
         new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry).OfType<TurnEntry>()]);
 
-    private static Turn Turn(TurnEntry entry)
+    private Turn Turn(TurnEntry entry)
     {
         if (entry.Kind == "asked")
         {
-            return new Prompt(entry.Text ?? string.Empty, [], []);
+            Attachment[] attachments =
+            [
+                .. (entry.Files ?? []).Select(file => new FileMention(file)),
+                .. (entry.Pictures ?? []).Select(pictures.Find).OfType<Picture>(),
+            ];
+
+            return new Prompt(entry.Text ?? string.Empty, attachments.Length > 0 ? attachments : [], entry.Skills ?? []);
         }
 
         IReadOnlyList<Moment> moments = entry.Steps is { Count: > 0 } steps
@@ -151,9 +158,14 @@ public sealed class ChatStore(string directory)
         _ => new Failed(entry.Detail ?? "The answer could not be read back."),
     };
 
-    private static TurnEntry? Entry(Turn turn) => turn switch
+    private TurnEntry? Entry(Turn turn) => turn switch
     {
-        Prompt prompt => new TurnEntry("asked", prompt.Text),
+        Prompt prompt => new TurnEntry(
+            "asked",
+            prompt.Text,
+            Pictures: Listed([.. prompt.Attachments.OfType<Picture>().Select(pictures.Keep).OfType<string>()]),
+            Files: Listed([.. prompt.Attachments.OfType<FileMention>().Select(file => file.Path)]),
+            Skills: Listed(prompt.Skills)),
         Reply reply => new TurnEntry(
             "answered",
             string.Concat(reply.Moments.OfType<Speech>().Select(speech => speech.Text)),
@@ -162,6 +174,8 @@ public sealed class ChatStore(string directory)
             reply.Moments.Any(moment => moment is not Speech) ? [.. reply.Moments.Select(Step).OfType<StepEntry>()] : null),
         _ => null,
     };
+
+    private static IReadOnlyList<string>? Listed(IReadOnlyList<string> items) => items.Count > 0 ? items : null;
 
     private static StepEntry? Step(Moment moment) => moment switch
     {

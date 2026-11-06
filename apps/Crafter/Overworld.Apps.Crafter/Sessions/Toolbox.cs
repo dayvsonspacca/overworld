@@ -23,7 +23,8 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             + "Crafter keeps the project's other chats too: list-chats lists them and read-chat reads one, when the user refers to something talked about before. "
             + "Rename or give the project an icon with edit-project when the user asks. "
             + "Crafter keeps a library of skills: show-library lists them with the folder of each, whose instructions.md holds the skill; "
-            + "save-skill writes one when the user asks to keep a way of working as a skill, and give-skill turns one on or off for the project.";
+            + "save-skill writes one when the user asks to keep a way of working as a skill, and give-skill turns one on or off for the project. "
+            + "To show the user a picture, like a screenshot you took, a mockup you rendered or an image you made, call show-picture with its file; it appears in the chat.";
 
     private const string Naming =
         " Once this chat's subject is clear, give it a short title with rename-chat, a few words like \"Pictures in the conversation\", and rename it when the subject changes.";

@@ -1,6 +1,7 @@
 using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
+using Overworld.Apps.Crafter.Pictures;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
 
@@ -20,7 +21,7 @@ public sealed class ChatToolsTest : IDisposable
 
     public ChatToolsTest()
     {
-        _store = new ChatStore(_folder.Path);
+        _store = new ChatStore(_folder.Path, new PictureStore(_folder.PathTo("pictures")));
         _modal = new ChatRecord(
             ChatId.New(),
             Claude,

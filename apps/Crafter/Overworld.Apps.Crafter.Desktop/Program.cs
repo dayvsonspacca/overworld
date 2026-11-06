@@ -4,6 +4,7 @@ using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Desktop.Workbench;
 using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
 using Overworld.Apps.Crafter.Presentation.Workbench;
@@ -29,7 +30,8 @@ var summaries = new SummaryStore();
 var preferences = new PreferencesStore(data, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 var library = new SkillLibrary(preferences, new Mirror(Path.Combine(data, "library")));
 var skills = new ProjectSkills(shelf, library);
-var chats = new ChatStore(Path.Combine(data, "chats"));
+var pictures = new PictureStore(Path.Combine(data, "pictures"));
+var chats = new ChatStore(Path.Combine(data, "chats"), pictures);
 var staff = new StaffFile(allay);
 using var tools = new McpHttpHost(app.Name);
 var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
@@ -43,7 +45,7 @@ var showLibrary = Operation.From(new ShowLibraryOp(library));
 var saveSkill = Operation.From(new SaveSkillOp(library));
 var toolbox = new Toolbox(
     tools,
-    [listTodos, showLibrary, Operation.From(new ListChatsOp(chats)), Operation.From(new ReadChatOp(chats))],
+    [listTodos, showLibrary, Operation.From(new ListChatsOp(chats)), Operation.From(new ReadChatOp(chats)), Operation.From(new ShowPictureOp(pictures))],
     [addTodo, completeTodo, removeTodo, editProject, giveSkill, saveSkill],
     axioms,
     summaries);
@@ -73,6 +75,7 @@ var abilities = new Abilities
     ShowPreferences = Operation.From(new ShowPreferencesOp(preferences)),
     SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
     Chats = chats,
+    Pictures = pictures,
     Workshop = workshop,
 };
 

@@ -1,6 +1,7 @@
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
@@ -55,6 +56,8 @@ public sealed class Abilities
     public required Operation<SetProjectsRoot, UserPreferences> SetProjectsRoot { get; init; }
 
     public required ChatStore Chats { get; init; }
+
+    public required PictureStore Pictures { get; init; }
 
     public required Workshop Workshop { get; init; }
 }

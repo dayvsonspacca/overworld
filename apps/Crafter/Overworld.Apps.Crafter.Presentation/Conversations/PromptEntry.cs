@@ -6,9 +6,11 @@ public sealed class PromptEntry(Prompt prompt) : Entry
 {
     public string Text { get; } = prompt.Text;
 
+    public bool HasText => Text.Trim().Length > 0;
+
     public IReadOnlyList<string> Files { get; } = [.. prompt.Attachments.OfType<FileMention>().Select(file => file.Path)];
 
-    public int Pictures { get; } = prompt.Attachments.OfType<Picture>().Count();
+    public IReadOnlyList<PictureView> Pictures { get; } = [.. prompt.Attachments.OfType<Picture>().Select(picture => new PictureView(picture, "Pasted by you"))];
 
     public IReadOnlyList<string> Skills { get; } = prompt.Skills;
 
@@ -16,7 +18,5 @@ public sealed class PromptEntry(Prompt prompt) : Entry
 
     public bool HasSkills => Skills.Count > 0;
 
-    public bool HasPictures => Pictures > 0;
-
-    public string PicturesLabel => Pictures == 1 ? "1 picture" : $"{Pictures} pictures";
+    public bool HasPictures => Pictures.Count > 0;
 }
