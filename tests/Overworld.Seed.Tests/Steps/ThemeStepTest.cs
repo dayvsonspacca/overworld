@@ -16,7 +16,7 @@ public sealed class ThemeStepTest : IDisposable
 
     private string Target => _folder.PathTo("config", "overworld", "theme.json");
 
-    private Task<Bedrock.Results.Result<string>> Install(string theme) =>
+    private Task<Bedrock.Results.Result<string>> Install(string? theme) =>
         new ThemeStep(_folder.PathTo("themes"), theme, Target).RunAsync(TestContext.Current.CancellationToken);
 
     [Fact]
@@ -35,6 +35,25 @@ public sealed class ThemeStepTest : IDisposable
         var switched = await Install("redstone");
 
         Assert.True(switched.IsSuccess);
+        Assert.Equal(_folder.PathTo("themes", "redstone.json"), new FileInfo(Target).LinkTarget);
+    }
+
+    [Fact]
+    public async Task LinksAmethystWhenNoneIsChosenOnANewMachine()
+    {
+        await Install(null);
+
+        Assert.Equal(_folder.PathTo("themes", "amethyst.json"), new FileInfo(Target).LinkTarget);
+    }
+
+    [Fact]
+    public async Task KeepsTheThemeWornWhenNoneIsChosen()
+    {
+        await Install("redstone");
+
+        var kept = await Install(null);
+
+        Assert.EndsWith("keeps redstone", kept.Value);
         Assert.Equal(_folder.PathTo("themes", "redstone.json"), new FileInfo(Target).LinkTarget);
     }
 

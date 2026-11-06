@@ -26,6 +26,7 @@ IReadOnlyList<IStep> Plan(Install install) =>
     new PackagesStep(root.PathTo("src", "Overworld.Seed", "packages.json")),
     new LinkStep(root.PathTo("config", "hypr"), Path.Combine(config, "hypr")),
     new LinkStep(root.PathTo("config", "quickshell", "overworld"), Path.Combine(config, "quickshell", "overworld")),
+    new LinkStep(root.PathTo("config", "overworld", "themes"), Path.Combine(config, "overworld", "themes")),
     new ThemeStep(root.PathTo("config", "overworld", "themes"), install.Theme, Path.Combine(config, "overworld", "theme.json")),
     new PublishStep(root.PathTo("src", "Overworld.Daemon"), daemon),
     new LinkStep(Path.Combine(daemon, "overworld"), Path.Combine(bin, "overworld")),
