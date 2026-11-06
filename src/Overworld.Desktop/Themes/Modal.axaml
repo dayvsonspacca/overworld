@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:desktop="using:Overworld.Desktop">
-  <!-- A dialog over the app's screen: the scrim behind it, a header with the title and a close button, the app's content below. -->
+  <!-- A dialog over the app's screen: the scrim behind it, a header with the title and a close button (no header without a title, no close button when it can't be dismissed), the app's content below. -->
   <ControlTheme x:Key="{x:Type desktop:Modal}" TargetType="desktop:Modal">
     <Setter Property="Padding" Value="20,16" />
     <Setter Property="Template">
@@ -21,7 +21,9 @@
                   Background="{DynamicResource BackgroundBrush}"
                   BoxShadow="0 24 64 0 #80000000">
             <DockPanel>
-              <Border DockPanel.Dock="Top"
+              <Border Name="PART_Header"
+                      DockPanel.Dock="Top"
+                      IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                       Height="44"
                       Padding="20,0,8,0"
                       Background="{DynamicResource RaisedBrush}"
@@ -50,6 +52,10 @@
         </Panel>
       </ControlTemplate>
     </Setter>
+
+    <Style Selector="^:fixed /template/ Button#PART_Close">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
 
     <Style Selector="^:compact /template/ Border#PART_Dialog">
       <Setter Property="MaxWidth" Value="520" />

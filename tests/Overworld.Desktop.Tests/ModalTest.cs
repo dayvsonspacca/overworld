@@ -77,4 +77,22 @@ public sealed class ModalTest
             Assert.Contains(":compact", modal.Classes);
         });
     }
+
+    [Fact]
+    public void StaysWhenItCannotBeDismissed()
+    {
+        TestApp.Run(() =>
+        {
+            var modal = new Modal { IsDismissible = false };
+            var dismissed = 0;
+            modal.Dismissed += (_, _) => dismissed++;
+            var escape = Pressed(Key.Escape);
+
+            modal.RaiseEvent(escape);
+
+            Assert.Equal(0, dismissed);
+            Assert.False(escape.Handled);
+            Assert.Contains(":fixed", modal.Classes);
+        });
+    }
 }

@@ -8,7 +8,7 @@ namespace Overworld.Desktop;
 
 [TemplatePart("PART_Backdrop", typeof(Control))]
 [TemplatePart("PART_Close", typeof(Button))]
-[PseudoClasses(":compact")]
+[PseudoClasses(":compact", ":fixed")]
 public sealed class Modal : ContentControl
 {
     public static readonly StyledProperty<string?> TitleProperty =
@@ -16,6 +16,9 @@ public sealed class Modal : ContentControl
 
     public static readonly StyledProperty<bool> IsCompactProperty =
         AvaloniaProperty.Register<Modal, bool>(nameof(IsCompact));
+
+    public static readonly StyledProperty<bool> IsDismissibleProperty =
+        AvaloniaProperty.Register<Modal, bool>(nameof(IsDismissible), defaultValue: true);
 
     public static readonly RoutedEvent<RoutedEventArgs> DismissedEvent =
         RoutedEvent.Register<Modal, RoutedEventArgs>(nameof(Dismissed), RoutingStrategies.Bubble);
@@ -34,6 +37,12 @@ public sealed class Modal : ContentControl
         set => SetValue(IsCompactProperty, value);
     }
 
+    public bool IsDismissible
+    {
+        get => GetValue(IsDismissibleProperty);
+        set => SetValue(IsDismissibleProperty, value);
+    }
+
     public event EventHandler<RoutedEventArgs>? Dismissed
     {
         add => AddHandler(DismissedEvent, value);
@@ -47,6 +56,10 @@ public sealed class Modal : ContentControl
         if (change.Property == IsCompactProperty)
         {
             PseudoClasses.Set(":compact", IsCompact);
+        }
+        else if (change.Property == IsDismissibleProperty)
+        {
+            PseudoClasses.Set(":fixed", !IsDismissible);
         }
     }
 
@@ -83,6 +96,11 @@ public sealed class Modal : ContentControl
 
     private void Dismiss(RoutedEventArgs e)
     {
+        if (!IsDismissible)
+        {
+            return;
+        }
+
         e.Handled = true;
         RaiseEvent(new RoutedEventArgs(DismissedEvent, this));
     }
