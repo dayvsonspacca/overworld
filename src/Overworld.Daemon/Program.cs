@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Overworld.Allay.Hiring;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Daemon.Lifetime;
@@ -35,12 +36,18 @@ internal static class Program
             ["taskbar"] = new(Path.Combine(pins, "taskbar.json")),
         });
 
+        var crew = new Crew([], new StaffFile(DataDirectory.For("allay")));
+
         return
         [
             Operation.From(new PingOp()),
             Operation.From(new ListPinsOp(places)),
             Operation.From(new AddPinOp(places)),
             Operation.From(new RemovePinOp(places)),
+            Operation.From(new ListAgentsOp(crew)),
+            Operation.From(new CheckAgentOp(crew)),
+            Operation.From(new HireAgentOp(crew)),
+            Operation.From(new ConfigureAgentOp(crew)),
         ];
     }
 
