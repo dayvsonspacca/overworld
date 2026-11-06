@@ -1,8 +1,6 @@
-using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Schema;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Overworld.Bedrock.Json;
@@ -35,30 +33,7 @@ public sealed class OperationTool(Operation operation) : McpServerTool
             : Failure(result.Error);
     }
 
-    private static JsonElement InputSchema(Type inputType)
-    {
-        var schema = JsonSchemaExporter.GetJsonSchemaAsNode(BedrockJson.Options, inputType, new JsonSchemaExporterOptions
-        {
-            TreatNullObliviousAsNonNullable = true,
-            TransformSchemaNode = (context, node) =>
-            {
-                var description = context.PropertyInfo?.AttributeProvider?
-                    .GetCustomAttributes(typeof(DescriptionAttribute), inherit: false)
-                    .OfType<DescriptionAttribute>()
-                    .FirstOrDefault()?
-                    .Description;
-
-                if (description is not null && node is JsonObject property)
-                {
-                    property.Insert(0, "description", description);
-                }
-
-                return node;
-            },
-        });
-
-        return JsonSerializer.SerializeToElement(schema);
-    }
+    private static JsonElement InputSchema(Type inputType) => JsonSerializer.SerializeToElement(OperationSchema.Of(inputType));
 
     private static CallToolResult Text(string text) => new() { Content = [new TextContentBlock { Text = text }] };
 
