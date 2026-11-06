@@ -55,4 +55,20 @@ public sealed class BedrockJsonTest
 
         Assert.Contains("Name it overworld:<app> & keep \\\"ação\\\"", json);
     }
+
+    public sealed record Tick(int Number);
+
+    [Theory]
+    [InlineData("""{"number":3}""")]
+    [InlineData("""{"number":"3"}""")]
+    public void ReadsANumberSentAsTextToo(string json)
+    {
+        Assert.Equal(new Tick(3), BedrockJson.ReadInput(JsonNode.Parse(json), typeof(Tick)).Value);
+    }
+
+    [Fact]
+    public void WritesNumbersAsNumbers()
+    {
+        Assert.Contains("\"number\": 3", JsonSerializer.Serialize(new Tick(3), BedrockJson.Options));
+    }
 }
