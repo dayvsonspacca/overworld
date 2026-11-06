@@ -190,6 +190,8 @@
             <TextBlock Classes="empty" Text="No axioms yet." IsVisible="{Binding !HasAxioms}" Margin="14,0" />
           </Panel>
         </DockPanel>
+        </Panel>
+
         <!-- Jobs: what the open chat's agent left running, to read and to stop. -->
         <Panel IsVisible="{Binding ShowsJobs}">
           <ScrollViewer>
@@ -228,7 +230,6 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </ScrollViewer>
-        </Panel>
         </Panel>
       </Panel>
     </DockPanel>
