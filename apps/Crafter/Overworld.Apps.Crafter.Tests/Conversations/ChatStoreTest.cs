@@ -6,7 +6,7 @@ namespace Overworld.Apps.Crafter.Tests.Conversations;
 
 public sealed class ChatStoreTest : IDisposable
 {
-    private const string Crafter = "/home/hero/Projetos/me/desktop/crafter";
+    private const string Project = "/home/hero/Projetos/me/overworld";
 
     private static readonly AgentId Claude = new("claude-code");
 
@@ -20,7 +20,7 @@ public sealed class ChatStoreTest : IDisposable
 
     private async Task<string> SavedFileAsync()
     {
-        await new ChatStore(_folder.Path).SaveAsync(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Odd"), null, [])], Token);
+        await new ChatStore(_folder.Path).SaveAsync(Project, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Odd"), null, [])], Token);
 
         return Directory.GetFiles(_folder.Path).Single();
     }
@@ -28,7 +28,7 @@ public sealed class ChatStoreTest : IDisposable
     [Fact]
     public async Task StartsEmptyWithoutAFile()
     {
-        Assert.Empty((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value);
+        Assert.Empty((await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value);
     }
 
     private static Prompt Ask(string text) => new(text, [], []);
@@ -68,8 +68,8 @@ public sealed class ChatStoreTest : IDisposable
             new(ChatId.New(), Codex, ChatTitle.Untitled, null, []),
         ];
 
-        await new ChatStore(_folder.Path).SaveAsync(Crafter, chats, Token);
-        var loaded = (await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value;
+        await new ChatStore(_folder.Path).SaveAsync(Project, chats, Token);
+        var loaded = (await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value;
 
         Assert.Equal(chats, loaded);
     }
@@ -78,7 +78,7 @@ public sealed class ChatStoreTest : IDisposable
     public async Task WritesStepsCrafterCanStillRead()
     {
         await new ChatStore(_folder.Path).SaveAsync(
-            Crafter,
+            Project,
             [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Run"), null, [Ask("Run"), new Reply([new Speech("Ok."), new Act("t-1", ActKind.Command, "dotnet test"), new ActResult("t-1", false, "1 failed")], new Finished())])],
             Token);
 
@@ -100,7 +100,7 @@ public sealed class ChatStoreTest : IDisposable
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Old","turns":[{"kind":"answered","text":"","ending":"finished","steps":[{"kind":"acting","id":"t-1","tool":"Bash","does":"shell","summary":"ls"},{"kind":"acting","id":"t-2","tool":"crafter","does":"served","summary":"add todo · Modal"},{"kind":"acting","id":"t-3","tool":"Write","summary":"b.md"},{"kind":"acting","id":"t-4","tool":"Monitor","summary":""}]}]}]""",
             Token);
 
-        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns));
+        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value).Turns));
 
         Assert.Equal(
             [
@@ -117,7 +117,7 @@ public sealed class ChatStoreTest : IDisposable
     {
         var store = new ChatStore(_folder.Path);
 
-        await store.SaveAsync(Crafter, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Here"), null, [])], Token);
+        await store.SaveAsync(Project, [new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Here"), null, [])], Token);
 
         Assert.Empty((await store.LoadAsync("/home/hero/elsewhere/crafter", Token)).Value);
     }
@@ -127,7 +127,7 @@ public sealed class ChatStoreTest : IDisposable
     {
         var file = await SavedFileAsync();
 
-        Assert.Matches(@"^crafter-[0-9a-f]{12}\.json$", Path.GetFileName(file));
+        Assert.Matches(@"^overworld-[0-9a-f]{12}\.json$", Path.GetFileName(file));
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class ChatStoreTest : IDisposable
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Fix","sessionId":"s-1","turns":[{"kind":"asked","text":"Fix it"},{"kind":"answered","text":"Done","ending":"finished"}]}]""",
             Token);
 
-        var chat = Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value);
+        var chat = Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value);
 
         Assert.Equal("s-1", chat.SessionId);
         Assert.Equal([Ask("Fix it"), new Reply([new Speech("Done")], new Finished())], chat.Turns);
@@ -154,7 +154,7 @@ public sealed class ChatStoreTest : IDisposable
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Odd","sessionId":null,"turns":[{"kind":"answered","text":"?","ending":"vanished","detail":null}]}]""",
             Token);
 
-        var turn = Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns);
+        var turn = Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value).Turns);
 
         Assert.Equal(new Reply([new Speech("?")], new Failed("The answer could not be read back.")), turn);
     }
@@ -168,7 +168,7 @@ public sealed class ChatStoreTest : IDisposable
             """[{"id":"6f0c8a4e-3a51-4c1e-9a52-1d2b3c4d5e6f","agent":"claude-code","title":"Old","sessionId":null,"turns":[{"kind":"answered","text":"","ending":"finished","detail":null,"steps":[{"kind":"acting","id":"t-1","tool":"Edit","summary":"a.cs","stat":"+2 −1"},{"kind":"acting","id":"t-2","tool":"Write","summary":"b.md","stat":"+3"}]}]}]""",
             Token);
 
-        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Crafter, Token)).Value).Turns));
+        var reply = Assert.IsType<Reply>(Assert.Single(Assert.Single((await new ChatStore(_folder.Path).LoadAsync(Project, Token)).Value).Turns));
 
         Assert.Equal([new Act("t-1", ActKind.Change, "a.cs", new Changes(2, 1)), new Act("t-2", ActKind.Create, "b.md", new Changes(3))], reply.Moments);
     }
@@ -193,7 +193,7 @@ public sealed class ChatStoreTest : IDisposable
         var file = await SavedFileAsync();
         await File.WriteAllTextAsync(file, content, Token);
 
-        var loaded = await new ChatStore(_folder.Path).LoadAsync(Crafter, Token);
+        var loaded = await new ChatStore(_folder.Path).LoadAsync(Project, Token);
 
         Assert.Equal("file.unreadable", loaded.Error.Code);
     }

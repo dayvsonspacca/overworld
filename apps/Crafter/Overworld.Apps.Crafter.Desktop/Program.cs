@@ -3,7 +3,6 @@ using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Desktop.Workbench;
-using Overworld.Apps.Crafter.Imports;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
@@ -68,7 +67,6 @@ return await AppHost.RunAsync(
         Operation.From(new SetDefaultSkillOp(library)),
         listSkills,
         Operation.From(new GiveSkillOp(skills)),
-        Operation.From(new ImportOldCrafterOp(OldCrafter.Here(), data, staff)),
     ],
     args,
     withoutArgs: () =>
