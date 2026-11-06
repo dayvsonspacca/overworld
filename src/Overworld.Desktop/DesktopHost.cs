@@ -20,16 +20,17 @@ public static class DesktopHost
     public static int Run(AppIdentity app, Func<Control> content, string[] args) =>
         Run(app, _ => content(), args);
 
-    public static int Run(AppIdentity app, Func<CommandBook, Control> content, string[] args) =>
+    public static int Run(AppIdentity app, Func<Frame, Control> content, string[] args) =>
         AppBuilder
             .Configure(() => new OverworldApplication(() => Window(app, content)))
             .UsePlatformDetect()
             .StartWithClassicDesktopLifetime(args);
 
-    internal static Window Window(AppIdentity app, Func<CommandBook, Control> content)
+    internal static Window Window(AppIdentity app, Func<Frame, Control> content)
     {
         var icon = Icon();
         var book = new CommandBook();
+        var bar = new TitleBar { Title = app.Title, Icon = icon, [DockPanel.DockProperty] = Dock.Top };
         var keymap = new Keymap(book);
         var palette = new CommandPalette { Book = book };
 
@@ -44,12 +45,19 @@ public static class DesktopHost
             {
                 Children =
                 {
-                    new TitleBar { Title = app.Title, Icon = icon, [DockPanel.DockProperty] = Dock.Top },
-                    new Panel { Children = { content(book), palette } },
+                    bar,
+                    new Panel { Children = { content(new Frame(book, bar)), palette } },
                 },
             },
         };
 
+        bar.PropertyChanged += (_, change) =>
+        {
+            if (change.Property == TitleBar.TitleProperty)
+            {
+                window.Title = bar.Title ?? app.Title;
+            }
+        };
         window.AddHandler(InputElement.KeyDownEvent, (_, e) => Pressed(e, palette, keymap), RoutingStrategies.Bubble);
 
         return window;

@@ -43,25 +43,32 @@
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}">
           <Grid ColumnDefinitions="*,Auto,*">
-            <Image Source="{TemplateBinding Icon}"
-                   IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
-                   Width="16"
-                   Height="16"
-                   Margin="12,0,0,0"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Center"
-                   RenderOptions.BitmapInterpolationMode="None" />
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left">
+              <Image Source="{TemplateBinding Icon}"
+                     IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
+                     Width="16"
+                     Height="16"
+                     Margin="12,0,4,0"
+                     VerticalAlignment="Center"
+                     RenderOptions.BitmapInterpolationMode="None" />
+              <ContentPresenter Content="{TemplateBinding Leading}" VerticalAlignment="Center" />
+            </StackPanel>
 
-            <TextBlock Grid.Column="1"
-                       Text="{TemplateBinding Title}"
-                       FontSize="{StaticResource FontSizeBody}"
-                       FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextBrush}"
-                       VerticalAlignment="Center"
-                       TextTrimming="CharacterEllipsis"
-                       IsHitTestVisible="False" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsHitTestVisible="False">
+              <TextBlock Text="{TemplateBinding Title}"
+                         FontSize="{StaticResource FontSizeBody}"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextBrush}"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Subtitle, RelativeSource={RelativeSource TemplatedParent}, StringFormat='· {0}'}"
+                         IsVisible="{TemplateBinding Subtitle, Converter={x:Static ObjectConverters.IsNotNull}}"
+                         FontSize="{StaticResource FontSizeFootnote}"
+                         Foreground="{DynamicResource SubtleBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+              <ContentPresenter Content="{TemplateBinding Trailing}" VerticalAlignment="Center" Margin="0,0,4,0" />
               <Button Name="PART_Minimize"
                       Theme="{StaticResource TitleBarControl}"
                       AutomationProperties.Name="Minimize">

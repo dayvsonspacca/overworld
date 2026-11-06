@@ -13,9 +13,9 @@ public sealed class CommandsTest
     private static (Window Window, CommandPalette Palette, TextBox Box) Shown(Action<CommandBook> register)
     {
         var box = new TextBox();
-        var window = DesktopHost.Window(new AppIdentity("test"), book =>
+        var window = DesktopHost.Window(new AppIdentity("test"), frame =>
         {
-            register(book);
+            register(frame.Commands);
 
             return box;
         });

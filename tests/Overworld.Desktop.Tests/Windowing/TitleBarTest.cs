@@ -1,3 +1,5 @@
+using Avalonia.Controls;
+using Overworld.Bedrock.Apps;
 using Overworld.Desktop.Windowing;
 
 namespace Overworld.Desktop.Tests.Windowing;
@@ -47,6 +49,27 @@ public sealed class TitleBarTest
             var bar = new TitleBar();
 
             Assert.DoesNotContain(":maximized", bar.Classes);
+        });
+    }
+
+    [Fact]
+    public void LendsItsTitleToTheWindow()
+    {
+        TestApp.Run(() =>
+        {
+            TitleBar? bar = null;
+            var window = DesktopHost.Window(new AppIdentity("test"), frame =>
+            {
+                bar = frame.Bar;
+
+                return new Panel();
+            });
+
+            bar!.Title = "A chat";
+            Assert.Equal("A chat", window.Title);
+
+            bar.Title = null;
+            Assert.Equal("Test", window.Title);
         });
     }
 }

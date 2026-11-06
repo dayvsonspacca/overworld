@@ -17,6 +17,15 @@ public sealed class TitleBar : TemplatedControl
     public static readonly StyledProperty<string?> TitleProperty =
         AvaloniaProperty.Register<TitleBar, string?>(nameof(Title));
 
+    public static readonly StyledProperty<string?> SubtitleProperty =
+        AvaloniaProperty.Register<TitleBar, string?>(nameof(Subtitle));
+
+    public static readonly StyledProperty<object?> LeadingProperty =
+        AvaloniaProperty.Register<TitleBar, object?>(nameof(Leading));
+
+    public static readonly StyledProperty<object?> TrailingProperty =
+        AvaloniaProperty.Register<TitleBar, object?>(nameof(Trailing));
+
     public static readonly StyledProperty<IImage?> IconProperty =
         AvaloniaProperty.Register<TitleBar, IImage?>(nameof(Icon));
 
@@ -35,6 +44,24 @@ public sealed class TitleBar : TemplatedControl
     {
         get => GetValue(TitleProperty);
         set => SetValue(TitleProperty, value);
+    }
+
+    public string? Subtitle
+    {
+        get => GetValue(SubtitleProperty);
+        set => SetValue(SubtitleProperty, value);
+    }
+
+    public object? Leading
+    {
+        get => GetValue(LeadingProperty);
+        set => SetValue(LeadingProperty, value);
+    }
+
+    public object? Trailing
+    {
+        get => GetValue(TrailingProperty);
+        set => SetValue(TrailingProperty, value);
     }
 
     public IImage? Icon
