@@ -100,7 +100,7 @@
         </Border>
       </StackPanel>
 
-      <TextBlock Classes="hint" Text="Agents, and the mode, model and effort they start with, are Allay's: overworld agents-hire and overworld agents-configure." />
+      <TextBlock Classes="hint" Text="Agents, and the mode, model and effort they start with, are set in Allay, for every app." />
     </StackPanel>
   </ScrollViewer>
 </UserControl>

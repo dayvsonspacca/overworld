@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:desktop="using:Overworld.Desktop"
+             xmlns:gate="using:Overworld.Apps.Crafter.Presentation.Gate"
+             x:Class="Overworld.Apps.Crafter.Desktop.Gate.GateView"
+             x:DataType="gate:GateViewModel"
+             IsVisible="{Binding IsShut}">
+  <!-- Crafter can't be used without a hired agent that is ready: this covers it until there is one. -->
+  <desktop:Modal IsCompact="True" IsDismissible="False">
+    <StackPanel Spacing="14" Margin="12,12,12,4" HorizontalAlignment="Center" MaxWidth="360">
+      <Image Source="/Gate/allay.png" Width="96" Height="96" HorizontalAlignment="Center" />
+
+      <TextBlock Text="{Binding Heading}" FontSize="{StaticResource FontSizeTitle2}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextSoftBrush}" />
+
+      <Border IsVisible="{Binding !NobodyHired}"
+              Padding="12,10"
+              CornerRadius="{StaticResource RadiusPanel}"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource DangerBrush}"
+              Background="{DynamicResource RaisedBrush}">
+        <StackPanel Spacing="2">
+          <TextBlock Text="{Binding Agent}" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding Trouble}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource DangerBrush}" />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Text="{Binding Trouble}"
+                 IsVisible="{Binding Failed}"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 FontSize="{StaticResource FontSizeFootnote}"
+                 Foreground="{DynamicResource DangerBrush}" />
+
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+        <Button Classes="primary" Content="Open Allay" Command="{Binding OpenAllayCommand}" IsDefault="True" />
+        <Button Classes="ghost" Content="Check again" Command="{Binding LoadCommand}" IsVisible="{Binding !NobodyHired}" />
+      </StackPanel>
+
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 FontSize="{StaticResource FontSizeCallout}"
+                 Foreground="{DynamicResource DangerBrush}" />
+
+      <TextBlock Text="Waiting for an agent…"
+                 IsVisible="{Binding NobodyHired}"
+                 HorizontalAlignment="Center"
+                 FontSize="{StaticResource FontSizeCallout}"
+                 Foreground="{DynamicResource SubtleBrush}" />
+    </StackPanel>
+  </desktop:Modal>
+</UserControl>

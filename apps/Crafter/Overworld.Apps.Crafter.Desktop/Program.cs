@@ -1,23 +1,33 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Data.Converters;
+using Avalonia.Input;
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Conversations;
+using Overworld.Apps.Crafter.Desktop.Gate;
 using Overworld.Apps.Crafter.Desktop.Workbench;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
+using Overworld.Apps.Crafter.Presentation.Gate;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
+using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Desktop;
 using Overworld.Hosting;
 using Overworld.Mcp;
+using Overworld.Redstone;
 
 var app = new AppIdentity("crafter");
 var data = DataDirectory.For(app.Name);
@@ -119,10 +129,29 @@ return await AppHost.RunAsync(
             Shortcuts.Register(frame, workbench, view);
             _ = workbench.LoadAsync(CancellationToken.None);
 
-            return view;
+            var gate = new GateViewModel(Operation.From(new ListAgentsOp(crew)), Operation.From(new CheckAgentOp(crew)), OpenAllay);
+            view.Bind(InputElement.IsEnabledProperty, new Binding(nameof(GateViewModel.IsShut)) { Source = gate, Converter = BoolConverters.Not });
+            _ = gate.LoadAsync(CancellationToken.None);
+            _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
+
+            return new Panel { Children = { view, new GateView { DataContext = gate } } };
         }, args);
 
         workshop.CloseAll();
 
         return Task.FromResult(code);
     });
+
+static bool OpenAllay()
+{
+    try
+    {
+        using var allay = Process.Start(new ProcessStartInfo("overworld:allay") { UseShellExecute = false });
+
+        return allay is not null;
+    }
+    catch (Win32Exception)
+    {
+        return false;
+    }
+}
