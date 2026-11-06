@@ -39,18 +39,34 @@ public sealed class Bench : IDisposable
         Summaries = new SummaryStore();
         Workshop = new Workshop(Crew, new ProjectBrief(Summaries, book, skills), new Toolbox(_host, todos, book, Summaries), Chats);
         AddProject = Operation.From(new AddProjectOp(shelf, settings));
-        Abilities = new Abilities(
-            Operation.From(new ListProjectsOp(shelf, settings)),
-            Operation.From(new ListTodosOp(todos)),
-            Operation.From(new AddTodoOp(todos)),
-            Operation.From(new CompleteTodoOp(todos)),
-            Operation.From(new RemoveTodoOp(todos)),
-            Operation.From(new ListAxiomsOp(book)),
-            Operation.From(new AddAxiomOp(book)),
-            Operation.From(new RemoveAxiomOp(book)),
-            Operation.From(new ListProjectSkillsOp(skills)),
-            Chats,
-            Workshop);
+        var preferences = new PreferencesStore(data, _root);
+        var library = new SkillLibrary(preferences, new Mirror(PathTo("data", "library")));
+        Abilities = new Abilities
+        {
+            ListProjects = Operation.From(new ListProjectsOp(shelf, settings)),
+            AddProject = AddProject,
+            EditProject = Operation.From(new EditProjectOp(shelf, settings)),
+            RemoveProject = Operation.From(new RemoveProjectOp(shelf, settings)),
+            ListTodos = Operation.From(new ListTodosOp(todos)),
+            AddTodo = Operation.From(new AddTodoOp(todos)),
+            CompleteTodo = Operation.From(new CompleteTodoOp(todos)),
+            RemoveTodo = Operation.From(new RemoveTodoOp(todos)),
+            ListAxioms = Operation.From(new ListAxiomsOp(book)),
+            AddAxiom = Operation.From(new AddAxiomOp(book)),
+            RemoveAxiom = Operation.From(new RemoveAxiomOp(book)),
+            ShowSummary = Operation.From(new ShowSummaryOp(shelf, Summaries)),
+            WriteSummary = Operation.From(new WriteSummaryOp(shelf, Summaries)),
+            ListProjectSkills = Operation.From(new ListProjectSkillsOp(skills)),
+            GiveSkill = Operation.From(new GiveSkillOp(skills)),
+            ShowLibrary = Operation.From(new ShowLibraryOp(library)),
+            LinkLibrary = Operation.From(new LinkLibraryOp(library)),
+            SyncLibrary = Operation.From(new SyncLibraryOp(library)),
+            SetDefaultSkill = Operation.From(new SetDefaultSkillOp(library)),
+            ShowPreferences = Operation.From(new ShowPreferencesOp(preferences)),
+            SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
+            Chats = Chats,
+            Workshop = Workshop,
+        };
     }
 
     public ScriptedSession Session { get; } = new();

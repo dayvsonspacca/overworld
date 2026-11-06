@@ -31,51 +31,67 @@ var library = new SkillLibrary(preferences, new Mirror(Path.Combine(data, "libra
 var skills = new ProjectSkills(shelf, library);
 var chats = new ChatStore(Path.Combine(data, "chats"));
 var staff = new StaffFile(allay);
+using var tools = new McpHttpHost(app.Name);
+var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
+var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), new Toolbox(tools, todos, axioms, summaries), chats);
 
-var listProjects = Operation.From(new ListProjectsOp(shelf, settings));
-var listTodos = Operation.From(new ListTodosOp(todos));
-var addTodo = Operation.From(new AddTodoOp(todos));
-var completeTodo = Operation.From(new CompleteTodoOp(todos));
-var removeTodo = Operation.From(new RemoveTodoOp(todos));
-var listAxioms = Operation.From(new ListAxiomsOp(axioms));
-var addAxiom = Operation.From(new AddAxiomOp(axioms));
-var removeAxiom = Operation.From(new RemoveAxiomOp(axioms));
-var listSkills = Operation.From(new ListProjectSkillsOp(skills));
+var abilities = new Abilities
+{
+    ListProjects = Operation.From(new ListProjectsOp(shelf, settings)),
+    AddProject = Operation.From(new AddProjectOp(shelf, settings)),
+    EditProject = Operation.From(new EditProjectOp(shelf, settings)),
+    RemoveProject = Operation.From(new RemoveProjectOp(shelf, settings)),
+    ListTodos = Operation.From(new ListTodosOp(todos)),
+    AddTodo = Operation.From(new AddTodoOp(todos)),
+    CompleteTodo = Operation.From(new CompleteTodoOp(todos)),
+    RemoveTodo = Operation.From(new RemoveTodoOp(todos)),
+    ListAxioms = Operation.From(new ListAxiomsOp(axioms)),
+    AddAxiom = Operation.From(new AddAxiomOp(axioms)),
+    RemoveAxiom = Operation.From(new RemoveAxiomOp(axioms)),
+    ShowSummary = Operation.From(new ShowSummaryOp(shelf, summaries)),
+    WriteSummary = Operation.From(new WriteSummaryOp(shelf, summaries)),
+    ListProjectSkills = Operation.From(new ListProjectSkillsOp(skills)),
+    GiveSkill = Operation.From(new GiveSkillOp(skills)),
+    ShowLibrary = Operation.From(new ShowLibraryOp(library)),
+    LinkLibrary = Operation.From(new LinkLibraryOp(library)),
+    SyncLibrary = Operation.From(new SyncLibraryOp(library)),
+    SetDefaultSkill = Operation.From(new SetDefaultSkillOp(library)),
+    ShowPreferences = Operation.From(new ShowPreferencesOp(preferences)),
+    SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
+    Chats = chats,
+    Workshop = workshop,
+};
 
 return await AppHost.RunAsync(
     app.Command,
     [
-        listProjects,
-        Operation.From(new AddProjectOp(shelf, settings)),
-        Operation.From(new EditProjectOp(shelf, settings)),
-        Operation.From(new RemoveProjectOp(shelf, settings)),
-        listAxioms,
-        addAxiom,
-        removeAxiom,
-        Operation.From(new ShowSummaryOp(shelf, summaries)),
-        Operation.From(new WriteSummaryOp(shelf, summaries)),
-        listTodos,
-        addTodo,
-        completeTodo,
-        removeTodo,
-        Operation.From(new ShowPreferencesOp(preferences)),
-        Operation.From(new SetProjectsRootOp(preferences)),
-        Operation.From(new ShowLibraryOp(library)),
-        Operation.From(new LinkLibraryOp(library)),
-        Operation.From(new SyncLibraryOp(library)),
+        abilities.ListProjects,
+        abilities.AddProject,
+        abilities.EditProject,
+        abilities.RemoveProject,
+        abilities.ListAxioms,
+        abilities.AddAxiom,
+        abilities.RemoveAxiom,
+        abilities.ShowSummary,
+        abilities.WriteSummary,
+        abilities.ListTodos,
+        abilities.AddTodo,
+        abilities.CompleteTodo,
+        abilities.RemoveTodo,
+        abilities.ShowPreferences,
+        abilities.SetProjectsRoot,
+        abilities.ShowLibrary,
+        abilities.LinkLibrary,
+        abilities.SyncLibrary,
         Operation.From(new SaveSkillOp(library)),
-        Operation.From(new SetDefaultSkillOp(library)),
-        listSkills,
-        Operation.From(new GiveSkillOp(skills)),
+        abilities.SetDefaultSkill,
+        abilities.ListProjectSkills,
+        abilities.GiveSkill,
     ],
     args,
     withoutArgs: () =>
     {
-        using var tools = new McpHttpHost(app.Name);
         tools.Start();
-        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
-        var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), new Toolbox(tools, todos, axioms, summaries), chats);
-        var abilities = new Abilities(listProjects, listTodos, addTodo, completeTodo, removeTodo, listAxioms, addAxiom, removeAxiom, listSkills, chats, workshop);
 
         var code = DesktopHost.Run(app, frame =>
         {
