@@ -2,13 +2,39 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Crafter.Presentation.Chats;
+using Overworld.Apps.Crafter.Presentation.Preferences;
 using Overworld.Apps.Crafter.Presentation.Projects;
+using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Projects;
 
 namespace Overworld.Apps.Crafter.Presentation.Workbench;
 
-public sealed partial class WorkbenchViewModel(Abilities abilities) : ObservableObject
+public sealed partial class WorkbenchViewModel : ObservableObject
 {
+    private readonly Abilities abilities;
+
+    public WorkbenchViewModel(Abilities abilities, RepositoryFinder? finder = null)
+    {
+        this.abilities = abilities;
+        Adding = new AddProjectViewModel(abilities, finder ?? new RepositoryFinder());
+        Adding.Added += (_, project) =>
+        {
+            var shown = Shown(project);
+            Projects.Add(shown);
+            Project = shown;
+        };
+        Preferences = new PreferencesViewModel(abilities);
+        Preferences.Changed += (_, _) => _ = RebriefAllAsync();
+    }
+
+    public PreferencesViewModel Preferences { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle))]
+    public partial bool ShowsPreferences { get; private set; }
+
+    public AddProjectViewModel Adding { get; }
+
     public const int Slots = 9;
 
     public ObservableCollection<ProjectViewModel> Projects { get; } = [];
@@ -28,9 +54,9 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
 
     public Task Opening { get; private set; } = Task.CompletedTask;
 
-    public string Title => Project is { ShowsOverview: false, Chat: { } chat } ? chat.Title : Project?.Name ?? "Crafter";
+    public string Title => ShowsPreferences ? "Preferences" : Project is { ShowsOverview: false, Chat: { } chat } ? chat.Title : Project?.Name ?? "Crafter";
 
-    public string? Subtitle => Project switch
+    public string? Subtitle => ShowsPreferences ? null : Project switch
     {
         { ShowsOverview: true } => "Project",
         { Chat: not null } project => project.Name,
@@ -65,12 +91,43 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
     {
         if (slot >= 0 && slot < Projects.Count)
         {
-            Project = Projects[slot];
+            Open(Projects[slot]);
         }
     }
 
     [RelayCommand]
-    public void Open(ProjectViewModel project) => Project = project;
+    public void Open(ProjectViewModel project)
+    {
+        ShowsPreferences = false;
+        Project = project;
+    }
+
+    [RelayCommand]
+    public async Task TogglePreferencesAsync()
+    {
+        ShowsPreferences = !ShowsPreferences;
+
+        if (ShowsPreferences)
+        {
+            await Preferences.LoadAsync(CancellationToken.None);
+        }
+    }
+
+    private async Task RebriefAllAsync()
+    {
+        foreach (var project in Projects)
+        {
+            await abilities.Workshop.RebriefAsync(project.Project.Folder, CancellationToken.None);
+        }
+
+        if (Project is not null)
+        {
+            await Project.Aside.Skills.LoadAsync(CancellationToken.None);
+        }
+    }
+
+    [RelayCommand]
+    public Task AddProjectAsync() => Adding.OpenAsync(CancellationToken.None);
 
     [RelayCommand]
     public Task OpenOverviewAsync() => Project?.OpenOverviewAsync(CancellationToken.None) ?? Task.CompletedTask;

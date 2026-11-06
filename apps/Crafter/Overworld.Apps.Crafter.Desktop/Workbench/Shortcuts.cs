@@ -30,6 +30,7 @@ public static class Shortcuts
         book.Add("Previous chat", Chats, workbench.PreviousChat, "Ctrl+Shift+Tab");
         book.Add("Search chats", Chats, view.FocusSearch, "Ctrl+F");
 
+        book.Add("Add a project", Projects, () => _ = workbench.AddProjectAsync(), "Ctrl+K Ctrl+O");
         book.Add("Open the project's page", Projects, () => _ = workbench.OpenOverviewAsync());
         book.Add("Rename the project", Projects, () => _ = workbench.RenameAsync(), "F2");
 
@@ -39,6 +40,7 @@ public static class Shortcuts
             book.Add($"Go to project {slot + 1}", Projects, () => workbench.Go(at), $"Ctrl+{slot + 1}");
         }
 
+        book.Add("Preferences", Window, () => _ = workbench.TogglePreferencesAsync(), "Ctrl+,");
         book.Add("Show or hide the chats", Window, workbench.ToggleList, "Ctrl+B");
         book.Add("Show or hide the todos, skills and axioms", Window, workbench.ToggleAside, "Ctrl+Alt+B");
 

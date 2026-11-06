@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:preferences="using:Overworld.Apps.Crafter.Presentation.Preferences"
+             x:Class="Overworld.Apps.Crafter.Desktop.Preferences.PreferencesView"
+             x:DataType="preferences:PreferencesViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+      <Setter Property="LetterSpacing" Value="0.6" />
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Padding" Value="16,14" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer Background="{DynamicResource BackgroundBrush}">
+    <StackPanel MaxWidth="760" Margin="32,24" Spacing="24">
+      <TextBlock Text="Preferences" FontSize="{StaticResource FontSizeTitle1}" FontWeight="SemiBold" />
+
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource DangerBrush}" />
+
+      <!-- Where adding a project looks for repositories. -->
+      <StackPanel>
+        <TextBlock Classes="section" Text="PROJECTS FOLDER" />
+        <Border Classes="card">
+          <StackPanel Spacing="8">
+            <DockPanel>
+              <Button Name="ChooseRoot" DockPanel.Dock="Right" Classes="ghost" Content="Choose" Margin="8,0,0,0" />
+              <TextBlock Text="{Binding ProjectsRoot}" VerticalAlignment="Center" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeCallout}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+            <TextBlock Classes="hint" Text="Adding a project lists the git repositories found under this folder." />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- The repository that keeps the skills. -->
+      <StackPanel>
+        <TextBlock Classes="section" Text="SKILLS LIBRARY" />
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="8,0,0,0">
+                <Button Classes="primary" Content="Link" Command="{Binding LinkCommand}" />
+                <Button Classes="ghost" Content="Sync" Command="{Binding SyncCommand}" IsVisible="{Binding IsLinked}" />
+                <Button Classes="ghost" Content="Unlink" Command="{Binding UnlinkCommand}" IsVisible="{Binding IsLinked}" />
+              </StackPanel>
+              <TextBox Text="{Binding Draft}" PlaceholderText="git@github.com:you/skills.git" FontFamily="{DynamicResource MonoFont}" />
+            </DockPanel>
+            <TextBlock Classes="hint" Text="Working with the repository…" IsVisible="{Binding IsBusy}" />
+            <TextBlock Classes="hint" Text="Linking clones the repository; Sync brings it to what the repository holds now." IsVisible="{Binding !IsBusy}" />
+            <ItemsControl ItemsSource="{Binding Problems}" IsVisible="{Binding HasProblems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource DangerBrush}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- The skills every project gets on this machine. -->
+      <StackPanel>
+        <TextBlock Classes="section" Text="SKILLS EVERY PROJECT GETS" />
+        <Border Classes="card">
+          <Panel>
+            <ItemsControl ItemsSource="{Binding Skills}" IsVisible="{Binding HasSkills}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="10" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="preferences:DefaultSkillViewModel">
+                  <CheckBox IsChecked="{Binding IsDefault}">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeCallout}" Foreground="{DynamicResource SubtleBrush}" />
+                    </StackPanel>
+                  </CheckBox>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="hint" Text="Link a library to choose its skills." IsVisible="{Binding !HasSkills}" />
+          </Panel>
+        </Border>
+      </StackPanel>
+
+      <TextBlock Classes="hint" Text="Agents, and the mode, model and effort they start with, are Allay's: overworld agents-hire and overworld agents-configure." />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -6,7 +6,9 @@
              xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
              xmlns:projects="using:Overworld.Apps.Crafter.Presentation.Projects"
              xmlns:pages="using:Overworld.Apps.Crafter.Desktop.Projects"
+             xmlns:settings="using:Overworld.Apps.Crafter.Desktop.Preferences"
              xmlns:workbench="using:Overworld.Apps.Crafter.Presentation.Workbench"
+             xmlns:desktop="using:Overworld.Desktop"
              x:Class="Overworld.Apps.Crafter.Desktop.Workbench.WorkbenchView"
              x:DataType="workbench:WorkbenchViewModel">
   <UserControl.Styles>
@@ -55,6 +57,19 @@
       </Style.Animations>
     </Style>
 
+    <Style Selector="Button.rail-tool Path">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+      <Setter Property="StrokeThickness" Value="1.1" />
+      <Setter Property="Stroke" Value="{DynamicResource SubtleBrush}" />
+    </Style>
+    <Style Selector="Button.rail-tool">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.rail-tool:pointerover Path">
+      <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
+    </Style>
+
     <Style Selector="Button.project-name">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
@@ -72,14 +87,27 @@
     </Style>
   </UserControl.Styles>
 
+  <Panel>
   <Grid ColumnDefinitions="Auto,Auto,*,Auto">
     <!-- The rail: every project, one click away. -->
     <Border Width="56"
             Background="{DynamicResource BackgroundBrush}"
             BorderBrush="{DynamicResource DividerBrush}"
             BorderThickness="0,0,1,0">
+      <DockPanel>
+      <Button Name="PreferencesButton"
+              DockPanel.Dock="Bottom"
+              Classes="project rail-tool"
+              Classes.current="{Binding ShowsPreferences}"
+              Margin="0,8,0,10"
+              HorizontalAlignment="Center"
+              ToolTip.Tip="Preferences"
+              Command="{Binding TogglePreferencesCommand}">
+        <Path Data="M8,5.5 A2.5,2.5 0 1 1 7.99,5.5 Z M8,1.5 V3.5 M8,12.5 V14.5 M1.5,8 H3.5 M12.5,8 H14.5 M3.4,3.4 L4.8,4.8 M11.2,11.2 L12.6,12.6 M3.4,12.6 L4.8,11.2 M11.2,4.8 L12.6,3.4" />
+      </Button>
       <ScrollViewer VerticalScrollBarVisibility="Hidden">
-        <ItemsControl ItemsSource="{Binding Projects}" Margin="0,10">
+        <StackPanel Spacing="8" Margin="0,10">
+        <ItemsControl ItemsSource="{Binding Projects}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel Spacing="8" />
@@ -117,7 +145,15 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <Button Classes="project rail-tool"
+                HorizontalAlignment="Center"
+                ToolTip.Tip="Add a project · Ctrl+K Ctrl+O"
+                Command="{Binding AddProjectCommand}">
+          <Path Data="M8,3 V13 M3,8 H13" />
+        </Button>
+        </StackPanel>
       </ScrollViewer>
+      </DockPanel>
     </Border>
 
     <!-- The project's chats, searchable, newest first. -->
@@ -224,5 +260,61 @@
     <Panel Grid.Column="3" Width="280" IsVisible="{Binding ShowsAside}">
       <aside:AsideView DataContext="{Binding Project.Aside, FallbackValue={x:Null}}" />
     </Panel>
+
+    <!-- Preferences take the whole window but the rail. -->
+    <Panel Grid.Column="1" Grid.ColumnSpan="3" IsVisible="{Binding ShowsPreferences}">
+      <settings:PreferencesView DataContext="{Binding Preferences}" />
+    </Panel>
   </Grid>
+
+  <!-- Adding a project: the repositories under the projects folder, or any folder the system picker gives. -->
+  <desktop:Modal Name="Adding"
+                 Title="Add a project"
+                 IsCompact="True"
+                 DataContext="{Binding Adding}"
+                 x:DataType="projects:AddProjectViewModel"
+                 IsVisible="{Binding IsOpen}">
+    <StackPanel Spacing="10">
+      <TextBox Name="AddingSearch" Text="{Binding Query}" PlaceholderText="Search the repositories" />
+      <TextBlock Text="{Binding Root, StringFormat='Git repositories under {0}'}" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource SubtleBrush}" />
+      <Border Height="260"
+              CornerRadius="{StaticResource RadiusControl}"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource DividerBrush}"
+              Background="{DynamicResource BackgroundBrush}">
+        <Panel>
+          <ListBox Name="AddingList" ItemsSource="{Binding Repositories}" SelectedItem="{Binding Selected}" Background="Transparent">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="projects:RepositoryChoice">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Right"
+                             Text="{Binding Place}"
+                             Margin="12,0,0,0"
+                             FontFamily="{DynamicResource MonoFont}"
+                             FontSize="{StaticResource FontSizeFootnote}"
+                             Foreground="{DynamicResource SubtleBrush}"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeCallout}" />
+                </DockPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Text="Looking for repositories…" IsVisible="{Binding IsSearching}" Margin="12" Foreground="{DynamicResource SubtleBrush}" />
+          <TextBlock Text="No repository here that is not open yet." IsVisible="{Binding FoundNone}" Margin="12" Foreground="{DynamicResource SubtleBrush}" />
+        </Panel>
+      </Border>
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource DangerBrush}" />
+      <DockPanel>
+        <Button Name="OtherFolder" DockPanel.Dock="Left" Classes="ghost" Content="Another folder…" />
+        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+          <Button Classes="ghost" Content="Cancel" Command="{Binding CloseCommand}" />
+          <Button Classes="primary" Content="Add" Command="{Binding AddCommand}" IsDefault="True" />
+        </StackPanel>
+      </DockPanel>
+    </StackPanel>
+  </desktop:Modal>
+  </Panel>
 </UserControl>
