@@ -58,7 +58,8 @@ return await AppHost.RunAsync(
         using var tools = new McpHttpHost(app.Name);
         tools.Start();
         var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
-        var workshop = new Workshop(crew, new ProjectBrief(new SummaryStore(), axioms, skills), new Toolbox(tools, todos), chats);
+        var summaries = new SummaryStore();
+        var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), new Toolbox(tools, todos, axioms, summaries), chats);
         var abilities = new Abilities(listProjects, listTodos, addTodo, completeTodo, removeTodo, listAxioms, addAxiom, removeAxiom, listSkills, chats, workshop);
 
         var code = DesktopHost.Run(app, frame =>

@@ -19,5 +19,12 @@ public sealed class ScriptedAgent(ScriptedSession session) : IAgent
 
     public Task<Readiness> CheckAsync(CancellationToken cancellationToken) => Task.FromResult<Readiness>(new Ready("Ready", "Scripted"));
 
-    public ISession Begin(Brief brief, string? resume = null) => session;
+    public Brief? Brief { get; private set; }
+
+    public ISession Begin(Brief brief, string? resume = null)
+    {
+        Brief = brief;
+
+        return session;
+    }
 }

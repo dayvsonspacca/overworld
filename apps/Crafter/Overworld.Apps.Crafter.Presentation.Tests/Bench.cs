@@ -18,7 +18,7 @@ namespace Overworld.Apps.Crafter.Presentation.Tests;
 
 public sealed class Bench : IDisposable
 {
-    public static readonly AgentId Agent = new("scripted");
+    public static readonly AgentId Scripted = new("scripted");
 
     private readonly string _root = Directory.CreateTempSubdirectory("crafter-presentation-").FullName;
 
@@ -34,8 +34,10 @@ public sealed class Bench : IDisposable
         var book = new AxiomBook(shelf, settings);
         var skills = new ProjectSkills(shelf, new SkillLibrary(new PreferencesStore(data, _root), new Mirror(PathTo("data", "library"))));
         Chats = new ChatStore(PathTo("data", "chats"));
-        Crew = new Crew([new ScriptedAgent(Session)], new StaffFile(PathTo("allay")));
-        Workshop = new Workshop(Crew, new ProjectBrief(new SummaryStore(), book, skills), new Toolbox(_host, todos), Chats);
+        Agent = new ScriptedAgent(Session);
+        Crew = new Crew([Agent], new StaffFile(PathTo("allay")));
+        Summaries = new SummaryStore();
+        Workshop = new Workshop(Crew, new ProjectBrief(Summaries, book, skills), new Toolbox(_host, todos, book, Summaries), Chats);
         AddProject = Operation.From(new AddProjectOp(shelf, settings));
         Abilities = new Abilities(
             Operation.From(new ListProjectsOp(shelf, settings)),
@@ -53,7 +55,11 @@ public sealed class Bench : IDisposable
 
     public ScriptedSession Session { get; } = new();
 
+    public ScriptedAgent Agent { get; }
+
     public Crew Crew { get; }
+
+    public SummaryStore Summaries { get; }
 
     public Workshop Workshop { get; }
 
@@ -77,7 +83,7 @@ public sealed class Bench : IDisposable
         return folder;
     }
 
-    public async Task HireAsync() => Assert.True((await Crew.HireAsync(Agent.Value, true, Cancellation)).IsSuccess);
+    public async Task HireAsync() => Assert.True((await Crew.HireAsync(Scripted.Value, true, Cancellation)).IsSuccess);
 
     public async Task ChatsAsync(string folder, params ChatRecord[] chats) =>
         Assert.True((await Chats.SaveAsync(folder, chats, Cancellation)).IsSuccess);
@@ -85,7 +91,7 @@ public sealed class Bench : IDisposable
     public ChatSummaryViewModel Summary(ChatRecord record) => new(record, PathTo("projects"), Abilities);
 
     public static ChatRecord Chat(string title, params Turn[] turns) =>
-        new(ChatId.New(), Agent, ChatTitle.Of(title), null, turns);
+        new(ChatId.New(), Scripted, ChatTitle.Of(title), null, turns);
 
     public void Dispose()
     {

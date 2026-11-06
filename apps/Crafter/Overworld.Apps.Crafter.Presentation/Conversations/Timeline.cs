@@ -41,6 +41,8 @@ public sealed class Timeline(Action<string, Decision>? decide = null)
         Entries.Add(new PromptEntry(prompt));
     }
 
+    public void Add(ProposalEntry proposal) => Entries.Add(proposal);
+
     public void Add(Moment moment)
     {
         switch (moment)

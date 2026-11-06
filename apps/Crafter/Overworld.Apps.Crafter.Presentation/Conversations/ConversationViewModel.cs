@@ -9,6 +9,7 @@ using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Presentation.Composing;
+using Overworld.Apps.Crafter.Proposals;
 using Overworld.Apps.Crafter.Sessions;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
@@ -263,7 +264,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             return true;
         }
 
-        var opened = await _workshop.OpenAsync(_folder, _record, CancellationToken.None);
+        var opened = await _workshop.OpenAsync(_folder, _record, AskAsync, CancellationToken.None);
 
         if (!opened.IsSuccess)
         {
@@ -324,6 +325,27 @@ public sealed partial class ConversationViewModel : ObservableObject
         {
             Answered?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    private Task<bool> AskAsync(Proposal proposal, CancellationToken cancellationToken)
+    {
+        var asked = new TaskCompletionSource<ProposalEntry>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        OnUi(() =>
+        {
+            ProposalEntry entry = proposal switch
+            {
+                AxiomProposal axiom => new AxiomProposalEntry(axiom.Axiom),
+                SummaryProposal summary => new SummaryProposalEntry(summary.Current, summary.Proposed),
+                _ => throw new ArgumentOutOfRangeException(nameof(proposal), proposal, "Crafter knows no such proposal."),
+            };
+
+            Timeline.Add(entry);
+            cancellationToken.Register(() => OnUi(entry.Withdraw));
+            asked.SetResult(entry);
+        });
+
+        return asked.Task.ContinueWith(entry => entry.Result.Decision, TaskScheduler.Default).Unwrap();
     }
 
     private void Decide(string request, Decision decision) => _chat?.Session.Decide(request, decision);

@@ -279,6 +279,12 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
     </Style>
+    <Style Selector="TextBlock.added">
+      <Setter Property="Foreground" Value="{DynamicResource AddedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.removed">
+      <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
     <Style Selector="TextBlock.answer">
       <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
       <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
@@ -478,6 +484,61 @@
               <Button Classes="ghost" Content="Skip" Command="{Binding SkipCommand}" />
             </StackPanel>
             <TextBlock Classes="answer" Text="{Binding Answer}" IsVisible="{Binding !IsOpen}" />
+          </StackPanel>
+        </Border>
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:AxiomProposalEntry">
+      <local:TimelineNode Glyph="§">
+        <Border Classes="request" Classes.open="{Binding IsOpen}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="A new axiom for the project" FontWeight="SemiBold" />
+            <text:SelectableText Text="{Binding Axiom}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeContent}" />
+            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOpen}">
+              <Button Classes="primary" Content="Approve" Command="{Binding ApproveCommand}" />
+              <Button Classes="ghost" Content="Decline" Command="{Binding DeclineCommand}" />
+            </StackPanel>
+            <TextBlock Classes="answer" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
+          </StackPanel>
+        </Border>
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <DataTemplate DataType="conversations:SummaryProposalEntry">
+      <local:TimelineNode Glyph="¶">
+        <Border Classes="request" Classes.open="{Binding IsOpen}">
+          <StackPanel Spacing="10">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                <Button Classes="chip" Classes.chosen="{Binding ShowsPreview}" Content="Preview" Command="{Binding ShowPreviewCommand}" />
+                <Button Classes="chip" Classes.chosen="{Binding ShowsChanges}" Content="Changes" Command="{Binding ShowChangesCommand}" />
+              </StackPanel>
+              <TextBlock Text="{Binding Asking}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </DockPanel>
+            <Border Classes="prose-preview" IsVisible="{Binding ShowsPreview}">
+              <local:ProseView Blocks="{Binding Blocks}" />
+            </Border>
+            <Border Classes="prose-code" IsVisible="{Binding ShowsChanges}">
+              <ItemsControl ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="conversations:SummaryLine">
+                    <TextBlock Text="{Binding Marked}"
+                               Classes.added="{Binding IsAdded}"
+                               Classes.removed="{Binding IsRemoved}"
+                               TextWrapping="Wrap"
+                               FontFamily="{DynamicResource MonoFont}"
+                               FontSize="{StaticResource FontSizeCallout}"
+                               LineHeight="20" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOpen}">
+              <Button Classes="primary" Content="Approve" Command="{Binding ApproveCommand}" />
+              <Button Classes="ghost" Content="Decline" Command="{Binding DeclineCommand}" />
+            </StackPanel>
+            <TextBlock Classes="answer" Text="{Binding Verdict}" IsVisible="{Binding !IsOpen}" />
           </StackPanel>
         </Border>
       </local:TimelineNode>

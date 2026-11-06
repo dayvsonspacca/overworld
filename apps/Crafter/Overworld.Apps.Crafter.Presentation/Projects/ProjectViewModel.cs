@@ -13,12 +13,21 @@ public sealed partial class ProjectViewModel : ObservableObject
 
     private readonly List<ChatSummaryViewModel> _chats = [];
 
+    private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
+
     public ProjectViewModel(Project project, Abilities abilities)
     {
         _abilities = abilities;
         Project = project;
         Aside = new AsideViewModel(project.Folder, abilities);
         Aside.Axioms.Changed += (_, _) => _ = abilities.Workshop.RebriefAsync(project.Folder, CancellationToken.None);
+        abilities.Workshop.Changed += (_, folder) =>
+        {
+            if (folder == project.Folder)
+            {
+                OnUi(() => _ = Aside.LoadAsync(CancellationToken.None));
+            }
+        };
     }
 
     public Project Project { get; }
@@ -132,6 +141,18 @@ public sealed partial class ProjectViewModel : ObservableObject
         if (Chat is not null)
         {
             Chat.IsOpen = value;
+        }
+    }
+
+    private void OnUi(Action act)
+    {
+        if (_ui is null)
+        {
+            act();
+        }
+        else
+        {
+            _ui.Post(_ => act(), null);
         }
     }
 
