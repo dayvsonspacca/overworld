@@ -15,6 +15,7 @@
         <ResourceInclude Source="/Themes/TitleBar.axaml" />
         <ResourceInclude Source="/Themes/Modal.axaml" />
         <ResourceInclude Source="/Themes/StatusBar.axaml" />
+        <ResourceInclude Source="/Themes/CommandPalette.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Variant}" Source="/Themes/Fluent.axaml" />

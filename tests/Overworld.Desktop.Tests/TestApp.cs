@@ -12,7 +12,7 @@ public sealed class TestApp : Application
 {
     private static readonly Uri Desktop = new("avares://Overworld.Desktop/");
 
-    private static readonly string[] Dictionaries = ["Metrics", "TextField", "SidebarSection", "Sidebar", "TitleBar", "Modal", "StatusBar"];
+    private static readonly string[] Dictionaries = ["Metrics", "TextField", "SidebarSection", "Sidebar", "TitleBar", "Modal", "StatusBar", "CommandPalette"];
 
     private static readonly Lazy<HeadlessUnitTestSession> Session = new(() => HeadlessUnitTestSession.StartNew(typeof(TestApp)));
 

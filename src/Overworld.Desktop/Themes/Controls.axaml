@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:desktop="using:Overworld.Desktop">
+        xmlns:desktop="using:Overworld.Desktop"
+        xmlns:commands="using:Overworld.Desktop.Commands">
   <Style Selector="Window">
     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -292,6 +293,50 @@
     <Setter Property="Margin" Value="2,6" />
     <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+  </Style>
+
+  <!-- The palette's input: a bare line on top of the palette, and the hints under the list. -->
+  <Style Selector="TextBox.palette">
+    <Setter Property="MinHeight" Value="46" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeContent}" />
+  </Style>
+  <Style Selector="TextBox.palette /template/ Border#PART_BorderElement, TextBox.palette:pointerover /template/ Border#PART_BorderElement, TextBox.palette:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BoxShadow" Value="none" />
+  </Style>
+  <Style Selector="StackPanel.palette-hints">
+    <Setter Property="Margin" Value="14,8" />
+  </Style>
+  <Style Selector="StackPanel.palette-hints TextBlock">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+    <Setter Property="Foreground" Value="{DynamicResource SubtleBrush}" />
+  </Style>
+
+  <!-- Keys as caps: a raised key per key, and "then" between the steps of a two-step shortcut. -->
+  <Style Selector="commands|KeyCaps Border.key">
+    <Setter Property="MinWidth" Value="22" />
+    <Setter Property="Height" Value="22" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+    <Setter Property="BorderThickness" Value="1,1,1,2" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+  </Style>
+  <Style Selector="commands|KeyCaps Border.key TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="commands|KeyCaps TextBlock.then">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeFootnote}" />
+    <Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
   <!-- Lists select in the theme's colours, not Fluent's blue. -->
