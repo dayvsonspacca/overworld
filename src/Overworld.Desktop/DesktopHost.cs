@@ -31,9 +31,13 @@ public static class DesktopHost
             Environment.SetEnvironmentVariable(InputMethod, "none");
         }
 
+        // Through XWayland, Hyprland hands a drop from a Wayland app over as the clipboard
+        // instead of the dragged files; talking Wayland directly, the drop arrives as sent.
         return AppBuilder
             .Configure(() => new OverworldApplication(() => Window(app, content)))
             .UsePlatformDetect()
+            .UseWaylandWithFallback()
+            .With(new WaylandPlatformOptions { AppId = app.Name })
             .StartWithClassicDesktopLifetime(args);
     }
 
