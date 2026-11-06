@@ -13,6 +13,7 @@
         <ResourceInclude Source="/Themes/SidebarSection.axaml" />
         <ResourceInclude Source="/Themes/Sidebar.axaml" />
         <ResourceInclude Source="/Themes/TitleBar.axaml" />
+        <ResourceInclude Source="/Themes/Modal.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Variant}" Source="/Themes/Fluent.axaml" />
