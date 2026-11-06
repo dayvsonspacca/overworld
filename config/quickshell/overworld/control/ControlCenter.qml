@@ -12,6 +12,7 @@ PanelWindow {
     property string page: "general"
     readonly property var pages: ({
         general: general,
+        wifi: wifi,
         sound: sound,
         notices: notices,
         agenda: agenda,
@@ -139,7 +140,17 @@ PanelWindow {
     Component {
         id: general
 
-        GeneralPage {}
+        GeneralPage {
+            onOpened: page => root.page = page
+        }
+    }
+
+    Component {
+        id: wifi
+
+        WifiPage {
+            onBack: root.page = "general"
+        }
     }
 
     Component {
@@ -189,7 +200,7 @@ PanelWindow {
             anchors.margins: 1
             anchors.bottomMargin: 0
             topLeftRadius: Theme.radiusPanel - 1
-            current: root.page
+            current: root.page === "wifi" ? "general" : root.page
             focus: true
             onSelected: page => root.page = page
             Keys.onUpPressed: shift(-1)

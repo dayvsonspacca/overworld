@@ -6,6 +6,8 @@ import qs.theme
 Column {
     id: root
 
+    signal opened(string page)
+
     spacing: 14
 
     PageTitle {
@@ -39,7 +41,9 @@ Column {
             detail: !Network.wifiEnabled ? "Off" : Network.wifiConnected ? (Network.wifiNetwork?.name ?? "Connected") : "Disconnected"
             on: Network.wifiEnabled
             interactive: Network.wifiAvailable
+            more: true
             onClicked: Network.setWifi(!Network.wifiEnabled)
+            onExpanded: root.opened("wifi")
         }
 
         QuickTile {

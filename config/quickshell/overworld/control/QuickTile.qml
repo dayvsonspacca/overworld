@@ -10,8 +10,10 @@ Rectangle {
     property string detail
     property bool on
     property bool interactive: true
+    property bool more
 
     signal clicked
+    signal expanded
 
     implicitHeight: Theme.quickTileHeight
     activeFocusOnTab: interactive
@@ -34,7 +36,7 @@ Rectangle {
     Column {
         anchors.left: icon.right
         anchors.leftMargin: 10
-        anchors.right: parent.right
+        anchors.right: root.more ? chevron.left : parent.right
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
 
@@ -68,5 +70,49 @@ Rectangle {
         enabled: root.interactive
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
+    }
+
+    Rectangle {
+        id: chevron
+
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        width: 34
+        visible: root.more
+        activeFocusOnTab: visible
+        Keys.onReturnPressed: root.expanded()
+        Keys.onSpacePressed: root.expanded()
+        topRightRadius: Theme.radiusPanel
+        bottomRightRadius: Theme.radiusPanel
+        color: chevronMouse.containsMouse ? Theme.hoverTint : "transparent"
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1
+            height: parent.height - 16
+            color: root.on ? Qt.alpha("white", 0.25) : Theme.divider
+        }
+
+        Glyph {
+            anchors.centerIn: parent
+            path: Glyphs.right
+            size: 14
+            color: root.on ? "white" : Theme.subtle
+        }
+
+        FocusRing {
+            radius: Theme.radiusPanel + gap
+        }
+
+        MouseArea {
+            id: chevronMouse
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.expanded()
+        }
     }
 }

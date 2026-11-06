@@ -6,6 +6,8 @@ import QtQuick
 Singleton {
     readonly property string wired: "M6 1.5h4v3h-4z M8 4.5v3 M3 11.5v-2h10v2 M8 7.5v4 M1.5 11.5h3v3h-3z M6.5 11.5h3v3h-3z M11.5 11.5h3v3h-3z"
     readonly property string wifi: "M1.5 6a9.5 9.5 0 0 1 13 0 M3.8 8.6a6.2 6.2 0 0 1 8.4 0 M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M7.5 13.3a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0"
+    readonly property string wifiMid: "M3.8 8.6a6.2 6.2 0 0 1 8.4 0 M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M7.5 13.3a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0"
+    readonly property string wifiLow: "M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M7.5 13.3a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0"
     readonly property string offline: "M1.5 6a9.5 9.5 0 0 1 13 0 M3.8 8.6a6.2 6.2 0 0 1 8.4 0 M6.1 11.1a2.9 2.9 0 0 1 3.8 0 M2 2l12 12"
     readonly property string volume: "M2 6h2.5L8 3v10L4.5 10H2z M10.5 5.5a3.5 3.5 0 0 1 0 5 M12.3 3.8a6 6 0 0 1 0 8.4"
     readonly property string volumeLow: "M2 6h2.5L8 3v10L4.5 10H2z M10.5 5.5a3.5 3.5 0 0 1 0 5"
