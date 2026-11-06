@@ -30,7 +30,7 @@ return await AppHost.RunAsync(
         Operation.From(new ShowPaletteOp(store)),
         listThemes,
         Operation.From(new ShowThemeOp(themes)),
-        Operation.From(new SaveThemeOp(themes)),
+        Operation.From(new SaveThemeOp(themes, beacon)),
         applyTheme,
     ],
     args,
@@ -38,9 +38,23 @@ return await AppHost.RunAsync(
     {
         var dye = new DyeViewModel(new PalettesViewModel(list, save), new ThemesViewModel(listThemes, applyTheme));
         _ = dye.LoadAsync(CancellationToken.None);
+        _ = FollowAsync(dye.Themes);
 
         var view = new DyeView { DataContext = dye };
         DyeView.Dress(frame, dye);
 
         return view;
     }, args)));
+
+static async Task FollowAsync(ThemesViewModel themes)
+{
+    var beacon = new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName));
+
+    await foreach (var signal in beacon.WatchAsync(CancellationToken.None))
+    {
+        if (signal is "themes" or "theme")
+        {
+            await themes.LoadAsync(CancellationToken.None);
+        }
+    }
+}

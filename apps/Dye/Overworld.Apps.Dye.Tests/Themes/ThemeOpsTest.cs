@@ -1,9 +1,25 @@
 using Overworld.Apps.Dye.Themes;
+using Overworld.Beacon;
+using Overworld.Redstone;
 
 namespace Overworld.Apps.Dye.Tests.Themes;
 
 public sealed class ThemeOpsTest : IDisposable
 {
+    private sealed class Daemon : IRedstoneClient
+    {
+        public List<Request> Requests { get; } = [];
+
+        public Task<Response> SendAsync(Request request, CancellationToken token)
+        {
+            Requests.Add(request);
+
+            return Task.FromResult(Response.Success(null));
+        }
+    }
+
+    private readonly Daemon _daemon = new();
+
     private readonly TemporaryFolder _root = new();
 
     private readonly ThemeStore _store;
@@ -17,6 +33,8 @@ public sealed class ThemeOpsTest : IDisposable
             """{ "colors": { "background": "#1C1B21", "accent": "#8E62D1", "scrim": "#9E0B0A0E" } }""");
         _store = new ThemeStore(themes, System.IO.Path.Combine(_root.Path, "theme.json"));
     }
+
+    private SaveThemeOp Save() => new(_store, new BeaconClient(_daemon));
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
@@ -41,7 +59,7 @@ public sealed class ThemeOpsTest : IDisposable
     [Fact]
     public async Task SavesTheColorChangesInUppercase()
     {
-        var saved = await new SaveThemeOp(_store).ExecuteAsync(
+        var saved = await Save().ExecuteAsync(
             new SaveTheme(" deep-sea ", "amethyst", ["accent=#3a7bd5", " scrim = #CC000000 "]),
             Token);
 
@@ -54,9 +72,19 @@ public sealed class ThemeOpsTest : IDisposable
     [Fact]
     public async Task SavesACopyWhenNoColorChanges()
     {
-        var saved = await new SaveThemeOp(_store).ExecuteAsync(new SaveTheme("copy", "amethyst"), Token);
+        var saved = await Save().ExecuteAsync(new SaveTheme("copy", "amethyst"), Token);
 
         Assert.Equal("#8E62D1", saved.Value.Colors["accent"]);
+    }
+
+    [Fact]
+    public async Task SignalsThemesOnceOneIsSaved()
+    {
+        await Save().ExecuteAsync(new SaveTheme("copy", "amethyst"), Token);
+
+        var request = Assert.Single(_daemon.Requests);
+        Assert.Equal("beacon-light", request.Operation);
+        Assert.Equal("themes", request.Input!["signal"]!.GetValue<string>());
     }
 
     [Theory]
@@ -68,7 +96,7 @@ public sealed class ThemeOpsTest : IDisposable
     [InlineData("accent=#GGGGGG")]
     public async Task RefusesAChangeThatIsNotRoleAndHex(string change)
     {
-        var saved = await new SaveThemeOp(_store).ExecuteAsync(new SaveTheme("ocean", "amethyst", [change]), Token);
+        var saved = await Save().ExecuteAsync(new SaveTheme("ocean", "amethyst", [change]), Token);
 
         Assert.Equal("theme.color_invalid", saved.Error.Code);
     }
@@ -76,10 +104,11 @@ public sealed class ThemeOpsTest : IDisposable
     [Fact]
     public async Task RefusesTheSameRoleTwice()
     {
-        var saved = await new SaveThemeOp(_store).ExecuteAsync(
+        var saved = await Save().ExecuteAsync(
             new SaveTheme("ocean", "amethyst", ["accent=#3A7BD5", "accent=#101418"]),
             Token);
 
         Assert.Equal("theme.color_repeated", saved.Error.Code);
+        Assert.Empty(_daemon.Requests);
     }
 }

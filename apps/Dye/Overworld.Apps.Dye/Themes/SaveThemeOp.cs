@@ -1,11 +1,12 @@
 using System.Text.RegularExpressions;
+using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Dye.Themes;
 
-[Operation("themes-save", "Saves a new theme made from another with some colors changed, in Overworld's themes kept with its config.")]
-public sealed partial class SaveThemeOp(ThemeStore store) : IOperation<SaveTheme, Theme>
+[Operation("themes-save", "Saves a new theme made from another with some colors changed, in Overworld's themes kept with its config, and signals that the themes changed.")]
+public sealed partial class SaveThemeOp(ThemeStore store, BeaconClient beacon) : IOperation<SaveTheme, Theme>
 {
     public async Task<Result<Theme>> ExecuteAsync(SaveTheme input, CancellationToken cancellationToken)
     {
@@ -28,7 +29,14 @@ public sealed partial class SaveThemeOp(ThemeStore store) : IOperation<SaveTheme
             }
         }
 
-        return await store.SaveAsync(input.Name.Trim(), input.From.Trim(), colors, cancellationToken);
+        var saved = await store.SaveAsync(input.Name.Trim(), input.From.Trim(), colors, cancellationToken);
+
+        if (saved.IsSuccess)
+        {
+            await beacon.LightAsync("themes", cancellationToken);
+        }
+
+        return saved;
     }
 
     [GeneratedRegex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")]
