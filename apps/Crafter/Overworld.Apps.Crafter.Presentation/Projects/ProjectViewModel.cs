@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
@@ -68,6 +69,14 @@ public sealed partial class ProjectViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsCurrent { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsRemovingChat))]
+    public partial ChatSummaryViewModel? Removing { get; private set; }
+
+    public bool IsRemovingChat => Removing is not null;
+
+    public bool CanArrange => Query.Length == 0;
+
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
         var chats = await _abilities.Chats.LoadAsync(Project.Folder, cancellationToken);
@@ -120,6 +129,59 @@ public sealed partial class ProjectViewModel : ObservableObject
 
     public void Renamed(Project project) => Project = project;
 
+    [RelayCommand]
+    private void AskToRemoveChat(ChatSummaryViewModel chat) => Removing = chat;
+
+    [RelayCommand]
+    private void KeepChat() => Removing = null;
+
+    [RelayCommand]
+    private async Task RemoveChatAsync()
+    {
+        if (Removing is not { } chat)
+        {
+            return;
+        }
+
+        Removing = null;
+        chat.Forget();
+        var removed = await _abilities.Chats.RemoveAsync(Project.Folder, chat.Id, CancellationToken.None);
+
+        if (!removed.IsSuccess)
+        {
+            Problem = removed.Error.Message;
+
+            return;
+        }
+
+        Problem = null;
+        var at = Chats.IndexOf(chat);
+        _chats.Remove(chat);
+        Filter();
+
+        if (Chat == chat)
+        {
+            Chat = Chats.Count == 0 ? null : Chats[Math.Clamp(at, 0, Chats.Count - 1)];
+        }
+    }
+
+    public async Task MoveChatAsync(int from, int to, CancellationToken cancellationToken)
+    {
+        if (!CanArrange || from == to || from < 0 || from >= _chats.Count || to < 0 || to >= _chats.Count)
+        {
+            return;
+        }
+
+        var moved = _chats[from];
+        var open = Chat;
+        _chats.RemoveAt(from);
+        _chats.Insert(to, moved);
+        Chats.Move(from, to);
+        Chat = open;
+        var arranged = await _abilities.Chats.ArrangeAsync(Project.Folder, [.. _chats.Select(chat => chat.Id)], cancellationToken);
+        Problem = arranged.IsSuccess ? null : arranged.Error.Message;
+    }
+
     private async Task RefreshAsync(CancellationToken cancellationToken)
     {
         var projects = await _abilities.ListProjects.ExecuteAsync(new ListProjects(), cancellationToken);
@@ -154,7 +216,11 @@ public sealed partial class ProjectViewModel : ObservableObject
         Chat = Chats[((at + by) % Chats.Count + Chats.Count) % Chats.Count];
     }
 
-    partial void OnQueryChanged(string value) => Filter();
+    partial void OnQueryChanged(string value)
+    {
+        Filter();
+        OnPropertyChanged(nameof(CanArrange));
+    }
 
     partial void OnChatChanged(ChatSummaryViewModel? oldValue, ChatSummaryViewModel? newValue)
     {

@@ -250,4 +250,31 @@ public sealed class ChatStoreTest : IDisposable
 
         Assert.Equal("file.unreadable", loaded.Error.Code);
     }
+
+    [Fact]
+    public async Task RemovesAChatAndKeepsTheOthers()
+    {
+        ChatRecord first = new(ChatId.New(), Claude, ChatTitle.Of("First"), null, []);
+        ChatRecord second = new(ChatId.New(), Claude, ChatTitle.Of("Second"), null, []);
+        await Store().SaveAsync(Project, [first, second], Token);
+
+        var left = await Store().RemoveAsync(Project, first.Id, Token);
+
+        Assert.Equal([second], left.Value);
+        Assert.Equal([second], (await Store().LoadAsync(Project, Token)).Value);
+    }
+
+    [Fact]
+    public async Task ArrangesChatsNewestFirstAndKeepsTheOnesItWasNotToldOfOnTop()
+    {
+        ChatRecord first = new(ChatId.New(), Claude, ChatTitle.Of("First"), null, []);
+        ChatRecord second = new(ChatId.New(), Claude, ChatTitle.Of("Second"), null, []);
+        ChatRecord third = new(ChatId.New(), Claude, ChatTitle.Of("Third"), null, []);
+        ChatRecord unknown = new(ChatId.New(), Claude, ChatTitle.Of("Unknown"), null, []);
+        await Store().SaveAsync(Project, [first, second, third, unknown], Token);
+
+        var arranged = await Store().ArrangeAsync(Project, [first.Id, third.Id, second.Id, ChatId.New()], Token);
+
+        Assert.Equal([second, third, first, unknown], arranged.Value);
+    }
 }

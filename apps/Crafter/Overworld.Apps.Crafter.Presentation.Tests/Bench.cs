@@ -49,6 +49,7 @@ public sealed class Bench : IDisposable
             AddProject = AddProject,
             EditProject = Operation.From(new EditProjectOp(shelf, settings)),
             RemoveProject = Operation.From(new RemoveProjectOp(shelf, settings)),
+            MoveProject = Operation.From(new MoveProjectOp(shelf, settings)),
             ListTodos = Operation.From(new ListTodosOp(todos)),
             AddTodo = Operation.From(new AddTodoOp(todos)),
             CompleteTodo = Operation.From(new CompleteTodoOp(todos)),

@@ -41,6 +41,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private CancellationTokenSource? _stopping;
 
+    private bool _forgotten;
+
     public ConversationViewModel(string folder, ChatRecord record, Abilities abilities)
     {
         _folder = folder;
@@ -171,6 +173,13 @@ public sealed partial class ConversationViewModel : ObservableObject
     }
 
     public void Close() => _workshop.Close(_record.Id);
+
+    public void Forget()
+    {
+        _forgotten = true;
+        Stop();
+        Close();
+    }
 
     public void Attach(Attachment attachment)
     {
@@ -336,6 +345,11 @@ public sealed partial class ConversationViewModel : ObservableObject
         finally
         {
             Title = _chat!.Title.Text;
+        }
+
+        if (_forgotten)
+        {
+            return;
         }
 
         var kept = await _workshop.KeepAsync(_folder, _chat!, CancellationToken.None);

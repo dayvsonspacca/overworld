@@ -149,4 +149,63 @@ public sealed class ProjectViewModelTest : IDisposable
 
         Assert.False(talking.IsUnread);
     }
+
+    [Fact]
+    public async Task RemovesAChatOnlyOnceAskedAndPicksTheNextOne()
+    {
+        var project = await LoadedAsync("First", "Second", "Third");
+        var third = project.Chat!;
+
+        project.AskToRemoveChatCommand.Execute(third);
+
+        Assert.True(project.IsRemovingChat);
+        Assert.Equal(3, project.Chats.Count);
+
+        await project.RemoveChatCommand.ExecuteAsync(null);
+
+        Assert.False(project.IsRemovingChat);
+        Assert.Equal(["Second", "First"], project.Chats.Select(chat => chat.Title));
+        Assert.Equal("Second", project.Chat?.Title);
+        Assert.Equal(["First", "Second"], (await _bench.Chats.LoadAsync(project.Project.Folder, Bench.Cancellation)).Value.Select(chat => chat.Title.Text));
+    }
+
+    [Fact]
+    public async Task KeepsAChatWhenTheRemovalIsDeclined()
+    {
+        var project = await LoadedAsync("First", "Second");
+
+        project.AskToRemoveChatCommand.Execute(project.Chats[1]);
+        project.KeepChatCommand.Execute(null);
+
+        Assert.False(project.IsRemovingChat);
+        Assert.Equal(2, (await _bench.Chats.LoadAsync(project.Project.Folder, Bench.Cancellation)).Value.Count);
+    }
+
+    [Fact]
+    public async Task MovesAChatAndRemembersWhereItWent()
+    {
+        var project = await LoadedAsync("First", "Second", "Third");
+
+        await project.MoveChatAsync(2, 0, Bench.Cancellation);
+
+        Assert.Equal(["First", "Third", "Second"], project.Chats.Select(chat => chat.Title));
+
+        var again = new ProjectViewModel(project.Project, _bench.Abilities);
+        await again.LoadAsync(Bench.Cancellation);
+
+        Assert.Equal(["First", "Third", "Second"], again.Chats.Select(chat => chat.Title));
+    }
+
+    [Fact]
+    public async Task DoesNotMoveChatsWhileSearching()
+    {
+        var project = await LoadedAsync("Seed one", "Seed two", "Shell");
+        project.Query = "seed";
+
+        Assert.False(project.CanArrange);
+
+        await project.MoveChatAsync(1, 0, Bench.Cancellation);
+
+        Assert.Equal(["Seed two", "Seed one"], project.Chats.Select(chat => chat.Title));
+    }
 }

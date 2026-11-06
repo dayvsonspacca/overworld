@@ -51,6 +51,18 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
 
     public void Close() => _conversation?.Close();
 
+    public void Forget()
+    {
+        if (_conversation is null)
+        {
+            abilities.Workshop.Close(Id);
+        }
+        else
+        {
+            _conversation.Forget();
+        }
+    }
+
     partial void OnIsOpenChanged(bool value)
     {
         if (value && State == ChatState.Unread)

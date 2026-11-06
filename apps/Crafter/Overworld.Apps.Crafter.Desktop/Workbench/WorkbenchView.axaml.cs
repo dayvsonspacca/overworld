@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Overworld.Apps.Crafter.Desktop.Lists;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 
 namespace Overworld.Apps.Crafter.Desktop.Workbench;
@@ -15,6 +16,23 @@ public sealed partial class WorkbenchView : UserControl
         Adding.Dismissed += (_, _) => (DataContext as WorkbenchViewModel)?.Adding.CloseCommand.Execute(null);
         OtherFolder.Click += PickFolder;
         AddingSearch.AddHandler(KeyDownEvent, Steer, RoutingStrategies.Tunnel);
+        RemovingChat.Dismissed += (_, _) => Workbench?.Project?.KeepChatCommand.Execute(null);
+        _ = new ListDrag(ChatList)
+        {
+            CanLift = () => Workbench?.Project?.CanArrange == true,
+            Arranged = (from, to) => Workbench?.Project?.MoveChatAsync(from, to, CancellationToken.None) ?? Task.CompletedTask,
+            Swiped = at =>
+            {
+                if (Workbench?.Project is { } project && at < project.Chats.Count)
+                {
+                    project.AskToRemoveChatCommand.Execute(project.Chats[at]);
+                }
+            },
+        };
+        _ = new ListDrag(Rail)
+        {
+            Arranged = (from, to) => Workbench?.MoveProjectAsync(from, to, CancellationToken.None) ?? Task.CompletedTask,
+        };
         Adding.PropertyChanged += (_, change) =>
         {
             if (change.Property == IsVisibleProperty && Adding.IsVisible)
@@ -23,6 +41,8 @@ public sealed partial class WorkbenchView : UserControl
             }
         };
     }
+
+    private WorkbenchViewModel? Workbench => DataContext as WorkbenchViewModel;
 
     public void FocusComposer() => Conversation.FocusComposer();
 

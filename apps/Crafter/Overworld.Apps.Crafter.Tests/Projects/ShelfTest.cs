@@ -120,4 +120,30 @@ public sealed class ShelfTest : IDisposable
 
         Assert.Equal("project.not_open", found.Error.Code);
     }
+
+    [Fact]
+    public async Task MovesAProjectToAnotherPlace()
+    {
+        var shelf = new Shelf(_folder.Path);
+        await shelf.AddAsync("/work/overworld", Token);
+        await shelf.AddAsync("/work/zarb", Token);
+        await shelf.AddAsync("/work/dye", Token);
+
+        var moved = await shelf.MoveAsync("/work/dye", 0, Token);
+
+        Assert.Equal([new Shelved("/work/dye"), new Shelved("/work/overworld"), new Shelved("/work/zarb")], moved.Value);
+        Assert.Equal(moved.Value, (await new Shelf(_folder.Path).ListAsync(Token)).Value);
+    }
+
+    [Fact]
+    public async Task MovesAProjectPastTheEndToTheLastPlace()
+    {
+        var shelf = new Shelf(_folder.Path);
+        await shelf.AddAsync("/work/overworld", Token);
+        await shelf.AddAsync("/work/zarb", Token);
+
+        var moved = await shelf.MoveAsync("/work/overworld", 9, Token);
+
+        Assert.Equal([new Shelved("/work/zarb"), new Shelved("/work/overworld")], moved.Value);
+    }
 }

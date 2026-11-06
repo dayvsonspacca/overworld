@@ -33,6 +33,26 @@ public sealed class Shelf(string directory)
                 : Result.Success<IReadOnlyList<Shelved>>([.. shelf, new Shelved(folder)]),
             cancellationToken);
 
+    public Task<Result<IReadOnlyList<Shelved>>> MoveAsync(string folder, int to, CancellationToken cancellationToken) =>
+        _file.UpdateAsync(
+            shelf =>
+            {
+                var entries = shelf.ToList();
+                var from = entries.FindIndex(shelved => shelved.Folder == folder);
+
+                if (from < 0)
+                {
+                    return new Error("project.not_open", $"'{folder}' is not a project open in Crafter.");
+                }
+
+                var moved = entries[from];
+                entries.RemoveAt(from);
+                entries.Insert(Math.Clamp(to, 0, entries.Count), moved);
+
+                return Result.Success<IReadOnlyList<Shelved>>(entries);
+            },
+            cancellationToken);
+
     public async Task<Result<IReadOnlyList<string>>> GiveAsync(string folder, string skill, bool given, CancellationToken cancellationToken)
     {
         var updated = await _file.UpdateAsync(

@@ -81,6 +81,29 @@ public sealed class ChatStore(string directory, PictureStore pictures)
         return kept.IsSuccess ? await LoadAsync(folder, cancellationToken) : kept.Error;
     }
 
+    public async Task<Result<IReadOnlyList<ChatRecord>>> RemoveAsync(string folder, ChatId chat, CancellationToken cancellationToken)
+    {
+        var removed = await FileOf(folder).UpdateAsync(
+            saved => Result.Success<IReadOnlyList<ChatEntry>>([.. saved.Where(each => each.Id != chat.Value)]),
+            cancellationToken);
+
+        return removed.IsSuccess ? await LoadAsync(folder, cancellationToken) : removed.Error;
+    }
+
+    public async Task<Result<IReadOnlyList<ChatRecord>>> ArrangeAsync(string folder, IReadOnlyList<ChatId> newestFirst, CancellationToken cancellationToken)
+    {
+        var rank = newestFirst.Select((chat, at) => (chat.Value, at)).ToDictionary(each => each.Value, each => each.at);
+        var arranged = await FileOf(folder).UpdateAsync(
+            saved => Result.Success<IReadOnlyList<ChatEntry>>(
+            [
+                .. saved.Where(each => rank.ContainsKey(each.Id)).OrderByDescending(each => rank[each.Id]),
+                .. saved.Where(each => !rank.ContainsKey(each.Id)),
+            ]),
+            cancellationToken);
+
+        return arranged.IsSuccess ? await LoadAsync(folder, cancellationToken) : arranged.Error;
+    }
+
     private JsonFile<IReadOnlyList<ChatEntry>> FileOf(string folder) =>
         _files.GetOrAdd(folder, key => new JsonFile<IReadOnlyList<ChatEntry>>(Path.Combine(directory, NameOf(key)), () => []));
 

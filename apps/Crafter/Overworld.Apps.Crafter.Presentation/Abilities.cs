@@ -21,6 +21,8 @@ public sealed class Abilities
 
     public required Operation<RemoveProject, Project> RemoveProject { get; init; }
 
+    public required Operation<MoveProject, Project> MoveProject { get; init; }
+
     public required Operation<ListTodos, IReadOnlyList<Todo>> ListTodos { get; init; }
 
     public required Operation<AddTodo, Todo> AddTodo { get; init; }

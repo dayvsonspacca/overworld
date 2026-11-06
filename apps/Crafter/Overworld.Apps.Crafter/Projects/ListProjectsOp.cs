@@ -3,7 +3,7 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Projects;
 
-[Operation("list-projects", "Lists the projects open in Crafter, with their names and icons, in the order they were added.")]
+[Operation("list-projects", "Lists the projects open in Crafter, with their names and icons, in the order of the rail.")]
 public sealed class ListProjectsOp(Shelf shelf, SettingsStore settings) : IOperation<ListProjects, IReadOnlyList<Project>>
 {
     public async Task<Result<IReadOnlyList<Project>>> ExecuteAsync(ListProjects input, CancellationToken cancellationToken)

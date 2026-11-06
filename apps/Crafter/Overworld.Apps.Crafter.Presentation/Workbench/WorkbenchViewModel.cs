@@ -102,6 +102,19 @@ public sealed partial class WorkbenchViewModel : ObservableObject
         Project = project;
     }
 
+    public async Task MoveProjectAsync(int from, int to, CancellationToken cancellationToken)
+    {
+        if (from == to || from < 0 || from >= Projects.Count || to < 0 || to >= Projects.Count)
+        {
+            return;
+        }
+
+        var project = Projects[from];
+        Projects.Move(from, to);
+        var moved = await abilities.MoveProject.ExecuteAsync(new MoveProject(project.Project.Folder, to), cancellationToken);
+        Problem = moved.IsSuccess ? null : moved.Error.Message;
+    }
+
     [RelayCommand]
     public async Task TogglePreferencesAsync()
     {

@@ -79,4 +79,24 @@ public sealed class WorkbenchViewModelTest : IDisposable
     {
         Assert.Equal("Crafter", new WorkbenchViewModel(_bench.Abilities).Title);
     }
+
+    [Fact]
+    public async Task MovesAProjectOnTheRailAndRemembersWhereItWent()
+    {
+        await _bench.ProjectAsync("alpha");
+        await _bench.ProjectAsync("beta");
+        await _bench.ProjectAsync("gamma");
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+
+        await workbench.MoveProjectAsync(2, 0, Bench.Cancellation);
+
+        Assert.Equal(["gamma", "alpha", "beta"], workbench.Projects.Select(project => project.Name));
+        Assert.Equal("alpha", workbench.Project?.Name);
+
+        var again = new WorkbenchViewModel(_bench.Abilities);
+        await again.LoadAsync(Bench.Cancellation);
+
+        Assert.Equal(["gamma", "alpha", "beta"], again.Projects.Select(project => project.Name));
+    }
 }
