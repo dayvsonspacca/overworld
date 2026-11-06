@@ -629,7 +629,7 @@
               </StackPanel>
             </Button>
           </Panel>
-          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <WrapPanel ItemSpacing="6" LineSpacing="6" Margin="0,0,8,0" VerticalAlignment="Center">
             <Button Classes="chip" Content="{Binding ModeLabel}" Command="{Binding CycleModeCommand}" ToolTip.Tip="How the agent works: Auto, Edits or Plan" />
             <Button Name="ModelChip" Classes="chip" Content="{Binding ModelLabel}" ToolTip.Tip="The model the agent answers with" />
             <Button Classes="chip" Classes.chosen="{Binding IsMax}" Content="{Binding EffortLabel}" Command="{Binding ToggleEffortCommand}" ToolTip.Tip="How hard the agent thinks" />
@@ -639,7 +639,7 @@
                        VerticalAlignment="Center"
                        FontSize="{StaticResource FontSizeFootnote}"
                        Foreground="{DynamicResource SubtleBrush}" />
-          </StackPanel>
+          </WrapPanel>
         </DockPanel>
       </StackPanel>
     </Border>
