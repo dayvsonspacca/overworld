@@ -13,7 +13,7 @@ public sealed class ConversationViewModelTest : IDisposable
     private async Task<(string Folder, ConversationViewModel Conversation)> ReadyAsync()
     {
         var folder = await _bench.ProjectAsync("alpha");
-        var conversation = new ConversationViewModel(folder, Bench.Chat("New chat"), _bench.Workshop);
+        var conversation = new ConversationViewModel(folder, Bench.Chat("New chat"), _bench.Abilities);
         await conversation.LoadDeskAsync(Bench.Cancellation);
 
         return (folder, conversation);
@@ -168,7 +168,7 @@ public sealed class ConversationViewModelTest : IDisposable
     public async Task CannotSendWithoutAnAgentToTalkTo()
     {
         var folder = await _bench.ProjectAsync("alpha");
-        var conversation = new ConversationViewModel(folder, new Apps.Crafter.Conversations.ChatRecord(Apps.Crafter.Conversations.ChatId.New(), new Allay.Agents.AgentId("gone"), Apps.Crafter.Conversations.ChatTitle.Untitled, null, []), _bench.Workshop);
+        var conversation = new ConversationViewModel(folder, new Apps.Crafter.Conversations.ChatRecord(Apps.Crafter.Conversations.ChatId.New(), new Allay.Agents.AgentId("gone"), Apps.Crafter.Conversations.ChatTitle.Untitled, null, []), _bench.Abilities);
 
         await conversation.LoadDeskAsync(Bench.Cancellation);
         conversation.Draft = "oi";
@@ -176,5 +176,48 @@ public sealed class ConversationViewModelTest : IDisposable
         Assert.False(conversation.SendCommand.CanExecute(null));
         Assert.NotNull(conversation.Problem);
         Assert.Equal("No agent to talk to", conversation.Placeholder);
+    }
+
+    [Fact]
+    public async Task SendsWhatIsAttachedAndPointsAtTheFilesMentioned()
+    {
+        var (folder, conversation) = await ReadyAsync();
+        File.WriteAllText(Path.Combine(folder, "notes.md"), "");
+        _bench.Session.Script(new Finished());
+        var picture = new Picture("image/png", [1]);
+        conversation.Attach(picture);
+        conversation.Attach(picture);
+        conversation.Draft = "Read @notes.md";
+
+        await conversation.SendCommand.ExecuteAsync(null);
+
+        Assert.Equal([new FileMention("notes.md"), picture], Assert.Single(_bench.Session.Heard).Attachments);
+        Assert.False(conversation.HasAttachments);
+    }
+
+    [Fact]
+    public async Task SendsAPictureAloneAndDropsOneOnRequest()
+    {
+        var (_, conversation) = await ReadyAsync();
+        conversation.Attach(new FileMention("/tmp/a.log"));
+        conversation.Attach(new Picture("image/png", [1]));
+
+        conversation.DetachCommand.Execute(conversation.Attachments[0]);
+
+        Assert.True(conversation.SendCommand.CanExecute(null));
+        Assert.True(Assert.Single(conversation.Attachments).IsPicture);
+    }
+
+    [Fact]
+    public async Task RefusesACommandThatIsNotTheProjectsAndKeepsTheDraft()
+    {
+        var (_, conversation) = await ReadyAsync();
+        conversation.Draft = "/compact";
+
+        await conversation.SendCommand.ExecuteAsync(null);
+
+        Assert.Empty(_bench.Session.Heard);
+        Assert.Equal("/compact", conversation.Draft);
+        Assert.Contains("/compact", conversation.Problem, StringComparison.Ordinal);
     }
 }

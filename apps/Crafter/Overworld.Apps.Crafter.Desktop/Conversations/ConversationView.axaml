@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:composing="using:Overworld.Apps.Crafter.Presentation.Composing"
              xmlns:conversations="using:Overworld.Apps.Crafter.Presentation.Conversations"
+             xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
              xmlns:local="using:Overworld.Apps.Crafter.Desktop.Conversations"
              xmlns:text="using:Overworld.Desktop.Text"
              x:Class="Overworld.Apps.Crafter.Desktop.Conversations.ConversationView"
@@ -220,6 +222,49 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <!-- The suggestions over the message box: files after @, the project's skills after /. -->
+    <Style Selector="Border.suggestion">
+      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.suggestion:pointerover">
+      <Setter Property="Background" Value="{DynamicResource HoverTintBrush}" />
+    </Style>
+    <Style Selector="Border.suggestion.selected">
+      <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.hit">
+      <Setter Property="Foreground" Value="{DynamicResource AccentLightBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- What goes along with the message: a picture's thumbnail or a file's name, removable. -->
+    <Style Selector="Border.attachment">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="4,0,0,0" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.attachment Button.icon">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+    </Style>
+    <Style Selector="Border.attachment Button.icon Path">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+    </Style>
+    <Style Selector="Border.drop">
+      <Setter Property="Background" Value="{DynamicResource ScrimBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusContainer}" />
+      <Setter Property="Margin" Value="12" />
     </Style>
 
     <!-- A request waits in an accent frame; once answered it quiets down. -->
@@ -459,10 +504,44 @@
     </DataTemplate>
   </UserControl.DataTemplates>
 
+  <Panel DragDrop.AllowDrop="True">
   <DockPanel>
     <!-- The message box: what to ask next, and how the agent should work on it. -->
     <Border DockPanel.Dock="Bottom" Classes="composer" MaxWidth="760" Margin="24,4,24,14">
       <StackPanel Spacing="8">
+        <ItemsControl ItemsSource="{Binding Attachments}" IsVisible="{Binding HasAttachments}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel ItemSpacing="6" LineSpacing="6" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="composing:AttachmentView">
+              <Border Classes="attachment" ToolTip.Tip="{Binding Tip}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Image Source="{Binding Data, Converter={x:Static imaging:BytesImage.Instance}}"
+                         IsVisible="{Binding IsPicture}"
+                         Width="24"
+                         Height="24"
+                         Stretch="UniformToFill" />
+                  <TextBlock Text="{Binding Label}"
+                             IsVisible="{Binding !IsPicture}"
+                             VerticalAlignment="Center"
+                             FontFamily="{DynamicResource MonoFont}"
+                             FontSize="{StaticResource FontSizeCallout}"
+                             MaxWidth="220"
+                             TextTrimming="CharacterEllipsis" />
+                  <Button Classes="icon"
+                          ToolTip.Tip="Remove"
+                          Command="{Binding $parent[local:ConversationView].((conversations:ConversationViewModel)DataContext).DetachCommand}"
+                          CommandParameter="{Binding}">
+                    <Path Data="M4,4 L12,12 M12,4 L4,12" />
+                  </Button>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <TextBlock Text="{Binding Problem}"
                    IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                    TextWrapping="Wrap"
@@ -497,8 +576,66 @@
       </StackPanel>
     </Border>
 
+    <Border DockPanel.Dock="Bottom"
+            MaxWidth="760"
+            Margin="24,0"
+            Padding="4"
+            IsVisible="{Binding Mentions.IsOpen}"
+            CornerRadius="{StaticResource RadiusPanel}"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource DividerBrush}"
+            Background="{DynamicResource RaisedBrush}">
+      <ItemsControl Name="Suggestions" ItemsSource="{Binding Mentions.Choices}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="composing:MentionViewModel">
+            <Border Classes="suggestion" Classes.selected="{Binding IsSelected}" Tag="{Binding}">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding Glyph}"
+                           Width="16"
+                           FontFamily="{DynamicResource MonoFont}"
+                           Foreground="{DynamicResource AccentTextBrush}" />
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding Folder}"
+                           IsVisible="{Binding HasFolder}"
+                           Margin="12,0,0,0"
+                           FontFamily="{DynamicResource MonoFont}"
+                           FontSize="{StaticResource FontSizeFootnote}"
+                           Foreground="{DynamicResource SubtleBrush}"
+                           TextTrimming="CharacterEllipsis" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <ItemsControl ItemsSource="{Binding Name}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="composing:NamePart">
+                        <TextBlock Text="{Binding Text}" Classes.hit="{Binding IsHit}" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeCallout}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Text="{Binding Description}"
+                             IsVisible="{Binding IsSkill}"
+                             FontSize="{StaticResource FontSizeCallout}"
+                             Foreground="{DynamicResource SubtleBrush}"
+                             TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
     <text:TextPage Name="Page">
       <ItemsControl ItemsSource="{Binding Timeline.Entries}" MaxWidth="760" Margin="24,20,24,12" />
     </text:TextPage>
   </DockPanel>
+
+  <Border Name="DropZone" Classes="drop" IsVisible="False" IsHitTestVisible="False">
+    <TextBlock Text="Drop to attach" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{StaticResource FontSizeTitle3}" />
+  </Border>
+  </Panel>
 </UserControl>

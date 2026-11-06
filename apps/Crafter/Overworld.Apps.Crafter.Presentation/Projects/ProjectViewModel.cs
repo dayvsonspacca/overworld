@@ -94,7 +94,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
 
         Problem = null;
-        var chat = new ChatSummaryViewModel(record.Value, Project.Folder, _abilities.Workshop, fresh: true);
+        var chat = new ChatSummaryViewModel(record.Value, Project.Folder, _abilities, fresh: true);
         _chats.Insert(0, chat);
         Query = string.Empty;
         Filter();
@@ -135,7 +135,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
     }
 
-    private ChatSummaryViewModel Summary(ChatRecord record) => new(record, Project.Folder, _abilities.Workshop);
+    private ChatSummaryViewModel Summary(ChatRecord record) => new(record, Project.Folder, _abilities);
 
     private void Filter()
     {

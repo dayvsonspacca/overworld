@@ -6,6 +6,9 @@ using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
 using Overworld.Apps.Crafter.Conversations;
+using Overworld.Apps.Crafter.Folders;
+using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Presentation.Composing;
 using Overworld.Apps.Crafter.Sessions;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
@@ -24,6 +27,10 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly Workshop _workshop;
 
+    private readonly Abilities _abilities;
+
+    private IReadOnlyList<Skill> _skills = [];
+
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
 
     private readonly Queue<Prompt> _queued = new();
@@ -32,11 +39,18 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private CancellationTokenSource? _stopping;
 
-    public ConversationViewModel(string folder, ChatRecord record, Workshop workshop)
+    public ConversationViewModel(string folder, ChatRecord record, Abilities abilities)
     {
         _folder = folder;
         _record = record;
-        _workshop = workshop;
+        _abilities = abilities;
+        _workshop = abilities.Workshop;
+        Mentions = new MentionsViewModel(cancellationToken => ProjectFiles.OfAsync(folder, cancellationToken), () => _skills);
+        Attachments.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasAttachments));
+            SendCommand.NotifyCanExecuteChanged();
+        };
         Timeline = new Timeline(Decide);
         Title = record.Title.Text;
 
@@ -53,6 +67,12 @@ public sealed partial class ConversationViewModel : ObservableObject
     public ChatRecord Record => _chat?.Record() ?? _record;
 
     public ObservableCollection<ModelOption> Models { get; } = [Default];
+
+    public MentionsViewModel Mentions { get; }
+
+    public ObservableCollection<AttachmentView> Attachments { get; } = [];
+
+    public bool HasAttachments => Attachments.Count > 0;
 
     [ObservableProperty]
     public partial string Title { get; private set; }
@@ -114,6 +134,9 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     public async Task LoadDeskAsync(CancellationToken cancellationToken)
     {
+        var skills = await _abilities.ListProjectSkills.ExecuteAsync(new ListProjectSkills(_folder), cancellationToken);
+        _skills = skills.IsSuccess ? skills.Value : [];
+
         var desk = await _workshop.DeskAsync(_record, cancellationToken);
 
         if (!desk.IsSuccess)
@@ -138,11 +161,34 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     public void Close() => _workshop.Close(_record.Id);
 
+    public void Attach(Attachment attachment)
+    {
+        if (!Attachments.Any(each => each.Attachment.Equals(attachment)))
+        {
+            Attachments.Add(new AttachmentView(attachment));
+        }
+    }
+
+    [RelayCommand]
+    private void Detach(AttachmentView attachment) => Attachments.Remove(attachment);
+
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()
     {
-        var prompt = new Prompt(Draft.Trim(), [], []);
+        var asked = Asking.Of(Draft, _folder, [.. _skills.Select(skill => skill.Id)], [.. Attachments.Select(each => each.Attachment)]);
+
+        if (!asked.IsSuccess)
+        {
+            Problem = asked.Error.Message;
+
+            return;
+        }
+
+        var prompt = asked.Value;
+        Problem = null;
         Draft = string.Empty;
+        Attachments.Clear();
+        Mentions.Close();
 
         if (IsWorking)
         {
@@ -177,7 +223,7 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand]
     private void PickModel(ModelOption option) => Model = option.Id == Crew.DefaultModel ? null : option.Id;
 
-    private bool CanSend() => Draft.Trim().Length > 0 && Agent is not null;
+    private bool CanSend() => (Draft.Trim().Length > 0 || Attachments.Count > 0) && Agent is not null;
 
     private async Task TalkAsync(Prompt prompt)
     {

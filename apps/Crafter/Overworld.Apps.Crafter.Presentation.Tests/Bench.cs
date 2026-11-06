@@ -82,7 +82,7 @@ public sealed class Bench : IDisposable
     public async Task ChatsAsync(string folder, params ChatRecord[] chats) =>
         Assert.True((await Chats.SaveAsync(folder, chats, Cancellation)).IsSuccess);
 
-    public ChatSummaryViewModel Summary(ChatRecord record) => new(record, PathTo("projects"), Workshop);
+    public ChatSummaryViewModel Summary(ChatRecord record) => new(record, PathTo("projects"), Abilities);
 
     public static ChatRecord Chat(string title, params Turn[] turns) =>
         new(ChatId.New(), Agent, ChatTitle.Of(title), null, turns);

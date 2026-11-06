@@ -3,11 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Conversations;
-using Overworld.Apps.Crafter.Sessions;
 
 namespace Overworld.Apps.Crafter.Presentation.Chats;
 
-public sealed partial class ChatSummaryViewModel(ChatRecord record, string folder, Workshop workshop, bool fresh = false) : ObservableObject
+public sealed partial class ChatSummaryViewModel(ChatRecord record, string folder, Abilities abilities, bool fresh = false) : ObservableObject
 {
     private const int Longest = 60;
 
@@ -25,7 +24,7 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
         {
             if (_conversation is null)
             {
-                _conversation = new ConversationViewModel(folder, record, workshop);
+                _conversation = new ConversationViewModel(folder, record, abilities);
                 _conversation.PropertyChanged += Changed;
                 _conversation.Answered += (_, _) => Heard();
                 _ = _conversation.LoadDeskAsync(CancellationToken.None);
