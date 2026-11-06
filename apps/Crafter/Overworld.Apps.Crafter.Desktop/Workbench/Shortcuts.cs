@@ -25,6 +25,7 @@ public static class Shortcuts
         book.Add("New chat", Chats, () => _ = NewChatAsync(workbench, view), "Ctrl+T");
         book.Add("Write a message", Chats, view.FocusComposer, "Ctrl+L");
         book.Add("Stop the agent", Chats, () => workbench.Project?.Chat?.Conversation.StopCommand.Execute(null));
+        book.Add("Background jobs of the chat", Chats, workbench.ShowJobs, "Ctrl+J");
         book.Add("Next chat", Chats, workbench.NextChat, "Ctrl+Tab");
         book.Add("Previous chat", Chats, workbench.PreviousChat, "Ctrl+Shift+Tab");
         book.Add("Search chats", Chats, view.FocusSearch, "Ctrl+F");

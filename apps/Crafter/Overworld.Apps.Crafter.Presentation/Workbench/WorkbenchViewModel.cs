@@ -77,6 +77,16 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
     public void PreviousChat() => Project?.Step(-1);
 
     [RelayCommand]
+    public void ShowJobs()
+    {
+        if (Project?.Aside is { Conversation.HasJobs: true } aside)
+        {
+            ShowsAside = true;
+            aside.ShowJobs();
+        }
+    }
+
+    [RelayCommand]
     public void ToggleList() => ShowsList = !ShowsList;
 
     [RelayCommand]

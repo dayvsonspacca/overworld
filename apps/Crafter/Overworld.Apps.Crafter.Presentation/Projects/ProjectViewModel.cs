@@ -134,6 +134,8 @@ public sealed partial class ProjectViewModel : ObservableObject
         {
             newValue.IsOpen = IsCurrent;
         }
+
+        Aside.Conversation = newValue?.Conversation;
     }
 
     partial void OnIsCurrentChanged(bool value)

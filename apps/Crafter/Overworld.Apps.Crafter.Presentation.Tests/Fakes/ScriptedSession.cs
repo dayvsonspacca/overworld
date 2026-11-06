@@ -17,7 +17,15 @@ public sealed class ScriptedSession : ISession
 
     public string? Id { get; set; } = "s-1";
 
-    public IReadOnlyList<Job> Jobs => [];
+    public IReadOnlyList<Job> Jobs { get; private set; } = [];
+
+    public List<string> Stopped { get; } = [];
+
+    public void Report(params Job[] jobs)
+    {
+        Jobs = jobs;
+        JobsChanged?.Invoke(this, jobs);
+    }
 
     public TaskCompletionSource? Held { get; set; }
 
@@ -72,9 +80,9 @@ public sealed class ScriptedSession : ISession
 
     public void Decide(string request, Decision decision) => Decisions.Add((request, decision));
 
-    public string? Output(string job) => null;
+    public string? Output(string job) => $"output of {job}";
 
-    public void Stop(string job) => JobsChanged?.Invoke(this, []);
+    public void Stop(string job) => Stopped.Add(job);
 
     public void End() => Ended = true;
 }

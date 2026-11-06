@@ -9,6 +9,7 @@ using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Presentation.Composing;
+using Overworld.Apps.Crafter.Presentation.Jobs;
 using Overworld.Apps.Crafter.Proposals;
 using Overworld.Apps.Crafter.Sessions;
 
@@ -74,6 +75,10 @@ public sealed partial class ConversationViewModel : ObservableObject
     public ObservableCollection<AttachmentView> Attachments { get; } = [];
 
     public bool HasAttachments => Attachments.Count > 0;
+
+    public ObservableCollection<JobViewModel> Jobs { get; } = [];
+
+    public bool HasJobs => Jobs.Count > 0;
 
     [ObservableProperty]
     public partial string Title { get; private set; }
@@ -276,6 +281,8 @@ public sealed partial class ConversationViewModel : ObservableObject
         Problem = null;
         _chat = opened.Value;
         _chat.Conversation.Woke += (_, moments) => OnUi(() => _ = WokenAsync(moments));
+        _chat.Session.JobsChanged += (_, jobs) => OnUi(() => Rejob(jobs));
+        Rejob(_chat.Session.Jobs);
 
         return true;
     }
@@ -346,6 +353,19 @@ public sealed partial class ConversationViewModel : ObservableObject
         });
 
         return asked.Task.ContinueWith(entry => entry.Result.Decision, TaskScheduler.Default).Unwrap();
+    }
+
+    private void Rejob(IReadOnlyList<Allay.Jobs.Job> jobs)
+    {
+        var known = Jobs.ToDictionary(job => job.Id);
+        Jobs.Clear();
+
+        foreach (var job in jobs)
+        {
+            Jobs.Add(known.GetValueOrDefault(job.Id) ?? new JobViewModel(job, _chat!.Session));
+        }
+
+        OnPropertyChanged(nameof(HasJobs));
     }
 
     private void Decide(string request, Decision decision) => _chat?.Session.Decide(request, decision);

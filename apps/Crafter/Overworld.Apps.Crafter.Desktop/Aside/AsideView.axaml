@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:aside="using:Overworld.Apps.Crafter.Presentation.Aside"
              xmlns:library="using:Overworld.Apps.Crafter.Library"
+             xmlns:jobs="using:Overworld.Apps.Crafter.Presentation.Jobs"
              x:Class="Overworld.Apps.Crafter.Desktop.Aside.AsideView"
              x:DataType="aside:AsideViewModel">
   <UserControl.Styles>
@@ -59,6 +60,17 @@
           </Button>
           <Button Classes="tab" Classes.chosen="{Binding ShowsSkills}" Command="{Binding ShowSkillsCommand}" Content="Skills" />
           <Button Classes="tab" Classes.chosen="{Binding ShowsAxioms}" Command="{Binding ShowAxiomsCommand}" Content="Axioms" />
+          <Button Classes="tab" Classes.chosen="{Binding ShowsJobs}" Command="{Binding ShowJobsCommand}" IsVisible="{Binding Conversation.HasJobs, FallbackValue=False}" ToolTip.Tip="Ctrl+J">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="Jobs" />
+              <TextBlock Classes="mono"
+                         Text="{Binding Conversation.Jobs.Count, FallbackValue=0}"
+                         FontFamily="{DynamicResource MonoFont}"
+                         FontSize="{StaticResource FontSizeFootnote}"
+                         Foreground="{DynamicResource SubtleBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Border>
 
@@ -178,6 +190,45 @@
             <TextBlock Classes="empty" Text="No axioms yet." IsVisible="{Binding !HasAxioms}" Margin="14,0" />
           </Panel>
         </DockPanel>
+        <!-- Jobs: what the open chat's agent left running, to read and to stop. -->
+        <Panel IsVisible="{Binding ShowsJobs}">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Conversation.Jobs, FallbackValue={x:Null}}" Margin="12">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="8" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="jobs:JobViewModel">
+                  <Border Padding="10,8"
+                          CornerRadius="{StaticResource RadiusPanel}"
+                          BorderThickness="1"
+                          BorderBrush="{DynamicResource DividerBrush}"
+                          Background="{DynamicResource BackgroundBrush}">
+                    <StackPanel Spacing="6">
+                      <DockPanel>
+                        <Ellipse DockPanel.Dock="Left" Width="7" Height="7" Margin="0,0,8,0" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Kind}" Margin="8,0,0,0" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource SubtleBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeCallout}" />
+                      </DockPanel>
+                      <Border IsVisible="{Binding IsOpen}" Padding="8,6" CornerRadius="{StaticResource RadiusSmall}" Background="{DynamicResource RaisedBrush}">
+                        <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Auto">
+                          <SelectableTextBlock Text="{Binding Output}" FontFamily="{DynamicResource MonoFont}" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource TextSoftBrush}" />
+                        </ScrollViewer>
+                      </Border>
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Classes="chip" Classes.chosen="{Binding IsOpen}" Content="Output" Command="{Binding ToggleCommand}" />
+                        <Button Classes="chip" Content="Refresh" Command="{Binding RefreshCommand}" IsVisible="{Binding IsOpen}" />
+                        <Button Classes="chip" Content="Stop" Command="{Binding StopCommand}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Panel>
         </Panel>
       </Panel>
     </DockPanel>
