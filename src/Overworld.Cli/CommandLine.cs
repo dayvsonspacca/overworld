@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -15,7 +16,7 @@ public static class CommandLine
         {
             throw new NotSupportedException(
                 $"{inputType.Name}.{property.Name} is a {property.PropertyType.Name}, "
-                + "but the CLI reads only strings and lists of strings for now.");
+                + "but the CLI reads only text, whole numbers, true or false, choices and lists of text for now.");
         }
 
         var options = properties.ToDictionary(OptionName);
@@ -44,7 +45,14 @@ public static class CommandLine
                 return new Error("cli.missing_value", $"{arg} needs a value.");
             }
 
-            json[key] = Value(property.PropertyType, args[++i]);
+            var value = Value(property.PropertyType, args[++i]);
+
+            if (value is null)
+            {
+                return new Error("cli.invalid_value", $"{arg} takes {Placeholder(property)}, not '{args[i]}'.");
+            }
+
+            json[key] = value;
         }
 
         var missing = properties.FirstOrDefault(property =>
@@ -58,8 +66,19 @@ public static class CommandLine
     public static string OptionName(PropertyInfo property) =>
         "--" + JsonNamingPolicy.KebabCaseLower.ConvertName(property.Name);
 
-    public static string Placeholder(PropertyInfo property) =>
-        IsListOfStrings(property.PropertyType) ? "<item,item,...>" : "<text>";
+    public static string Placeholder(PropertyInfo property)
+    {
+        var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+        return type switch
+        {
+            _ when IsListOfStrings(type) => "<item,item,...>",
+            _ when type == typeof(int) => "<number>",
+            _ when type == typeof(bool) => "<true|false>",
+            { IsEnum: true } => $"<{string.Join('|', Enum.GetNames(type).Select(name => name.ToLowerInvariant()))}>",
+            _ => "<text>",
+        };
+    }
 
     public static bool IsRequired(PropertyInfo property) =>
         property.DeclaringType!.GetConstructors()
@@ -68,13 +87,27 @@ public static class CommandLine
                 string.Equals(parameter.Name, property.Name, StringComparison.OrdinalIgnoreCase)
                 && !parameter.HasDefaultValue);
 
-    private static bool IsSupported(Type type) => type == typeof(string) || IsListOfStrings(type);
+    private static bool IsSupported(Type type)
+    {
+        var underlying = Nullable.GetUnderlyingType(type) ?? type;
+
+        return underlying == typeof(string) || underlying == typeof(int) || underlying == typeof(bool) || underlying.IsEnum || IsListOfStrings(underlying);
+    }
 
     private static bool IsListOfStrings(Type type) =>
         type != typeof(string) && typeof(IEnumerable<string>).IsAssignableFrom(type);
 
-    private static JsonNode Value(Type type, string text) =>
-        IsListOfStrings(type)
-            ? new JsonArray([.. text.Split(',', StringSplitOptions.TrimEntries).Select(item => JsonValue.Create(item))])
-            : JsonValue.Create(text);
+    private static JsonNode? Value(Type type, string text)
+    {
+        var underlying = Nullable.GetUnderlyingType(type) ?? type;
+
+        return underlying switch
+        {
+            _ when IsListOfStrings(underlying) => new JsonArray([.. text.Split(',', StringSplitOptions.TrimEntries).Select(item => JsonValue.Create(item))]),
+            _ when underlying == typeof(int) => int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? JsonValue.Create(number) : null,
+            _ when underlying == typeof(bool) => bool.TryParse(text, out var flag) ? JsonValue.Create(flag) : null,
+            { IsEnum: true } => Enum.GetNames(underlying).FirstOrDefault(name => string.Equals(name, text, StringComparison.OrdinalIgnoreCase)) is { } name ? JsonValue.Create(name) : null,
+            _ => JsonValue.Create(text),
+        };
+    }
 }

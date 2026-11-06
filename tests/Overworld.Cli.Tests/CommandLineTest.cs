@@ -8,6 +8,16 @@ public sealed class CommandLineTest
 
     public sealed record Count(int Times);
 
+    public enum Speed
+    {
+        Slow,
+        Fast,
+    }
+
+    public sealed record Run(int Laps, bool Warm = false, Speed? Pace = null);
+
+    public sealed record Odd(DateTime When);
+
     [Fact]
     public void ReadsEachOptionIntoItsCamelCaseKey()
     {
@@ -74,10 +84,39 @@ public sealed class CommandLineTest
     }
 
     [Fact]
+    public void ReadsNumbersFlagsAndChoicesAsTheirKinds()
+    {
+        var options = CommandLine.ReadOptions(typeof(Run), ["--laps", "3", "--warm", "true", "--pace", "fast"]).Value;
+
+        Assert.Equal(3, options["laps"]!.GetValue<int>());
+        Assert.True(options["warm"]!.GetValue<bool>());
+        Assert.Equal("Fast", options["pace"]!.GetValue<string>());
+    }
+
+    [Theory]
+    [InlineData("--laps", "three")]
+    [InlineData("--warm", "yes")]
+    [InlineData("--pace", "sprint")]
+    public void RefusesAValueOfTheWrongKind(string option, string value)
+    {
+        string[] args = option == "--laps" ? [option, value] : ["--laps", "1", option, value];
+
+        Assert.Equal("cli.invalid_value", CommandLine.ReadOptions(typeof(Run), args).Error.Code);
+    }
+
+    [Fact]
+    public void ShowsWhatEachKindTakes()
+    {
+        Assert.Equal("<number>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Laps))!));
+        Assert.Equal("<true|false>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Warm))!));
+        Assert.Equal("<slow|fast>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Pace))!));
+    }
+
+    [Fact]
     public void RefusesAnInputItCannotRead()
     {
-        var thrown = Assert.Throws<NotSupportedException>(() => CommandLine.ReadOptions(typeof(Count), []));
+        var thrown = Assert.Throws<NotSupportedException>(() => CommandLine.ReadOptions(typeof(Odd), []));
 
-        Assert.Contains("Count.Times", thrown.Message);
+        Assert.Contains("Odd.When", thrown.Message);
     }
 }
