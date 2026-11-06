@@ -15,8 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Overworld.Allay/Overworld.Allay.csproj" />
-    <ProjectReference Include="../Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
     <ProjectReference Include="../Overworld.Beacon/Overworld.Beacon.csproj" />
     <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <ProjectReference Include="../Overworld.Chest/Overworld.Chest.csproj" />

@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Overworld.Allay.ClaudeCode;
-using Overworld.Allay.Hiring;
 using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
@@ -38,9 +36,6 @@ internal static class Program
             ["taskbar"] = new(Path.Combine(pins, "taskbar.json")),
         });
 
-        var allay = DataDirectory.For("allay");
-        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
-
         return
         [
             Operation.From(new PingOp()),
@@ -48,10 +43,6 @@ internal static class Program
             Operation.From(new ListPinsOp(places)),
             Operation.From(new AddPinOp(places, beam)),
             Operation.From(new RemovePinOp(places, beam)),
-            Operation.From(new ListAgentsOp(crew)),
-            Operation.From(new CheckAgentOp(crew)),
-            Operation.From(new HireAgentOp(crew)),
-            Operation.From(new ConfigureAgentOp(crew)),
         ];
     }
 
