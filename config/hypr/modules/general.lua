@@ -1,3 +1,7 @@
+local theme = require("modules.theme")
+
+local light, accent, border = theme.color("accentLight"), theme.color("accent"), theme.color("border")
+
 hl.config({
     general = {
         gaps_in          = 5,
@@ -7,10 +11,10 @@ hl.config({
         allow_tearing    = false,
         layout           = "dwindle",
 
-        col = {
-            active_border   = { colors = { "rgba(c9a5f2ff)", "rgba(8e62d1ff)" }, angle = 45 },
-            inactive_border = "rgba(4a4952ff)",
-        },
+        col = light and accent and border and {
+            active_border   = { colors = { light, accent }, angle = 45 },
+            inactive_border = border,
+        } or nil,
     },
 
     decoration = {

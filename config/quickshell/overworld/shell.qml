@@ -4,6 +4,7 @@ import qs.capture
 import qs.display
 import qs.lock
 import qs.taskbar
+import qs.theme
 import qs.wallpaper
 
 ShellRoot {
@@ -24,4 +25,6 @@ ShellRoot {
     LockScreen {}
 
     CaptureLayer {}
+
+    Borders {}
 }
