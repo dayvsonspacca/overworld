@@ -4,7 +4,7 @@
              xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
              x:Class="Overworld.Apps.Crafter.Desktop.Conversations.PictureViewer"
              x:DataType="conversations:ViewerViewModel"
-             IsVisible="{Binding IsOpen}"
+             IsVisible="{Binding IsOpen, FallbackValue=False}"
              Focusable="True">
   <UserControl.Styles>
     <Style Selector="Button.round">
