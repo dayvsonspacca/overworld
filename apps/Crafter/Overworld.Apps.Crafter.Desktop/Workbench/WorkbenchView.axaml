@@ -5,6 +5,7 @@
              xmlns:conversations="using:Overworld.Apps.Crafter.Desktop.Conversations"
              xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
              xmlns:projects="using:Overworld.Apps.Crafter.Presentation.Projects"
+             xmlns:pages="using:Overworld.Apps.Crafter.Desktop.Projects"
              xmlns:workbench="using:Overworld.Apps.Crafter.Presentation.Workbench"
              x:Class="Overworld.Apps.Crafter.Desktop.Workbench.WorkbenchView"
              x:DataType="workbench:WorkbenchViewModel">
@@ -52,6 +53,17 @@
           <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
         </Animation>
       </Style.Animations>
+    </Style>
+
+    <Style Selector="Button.project-name">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.project-name:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverTintBrush}" />
     </Style>
 
     <Style Selector="ListBox.chats ListBoxItem">
@@ -118,13 +130,22 @@
       <DockPanel DataContext="{Binding Project}" x:DataType="projects:ProjectViewModel">
         <Border DockPanel.Dock="Top"
                 Height="{StaticResource HeaderHeight}"
-                Padding="14,0"
+                Padding="6,0"
                 BorderBrush="{DynamicResource DividerBrush}"
                 BorderThickness="0,0,0,1">
-          <TextBlock Text="{Binding Name}"
-                     VerticalAlignment="Center"
-                     FontWeight="SemiBold"
-                     TextTrimming="CharacterEllipsis" />
+          <DockPanel>
+            <Button DockPanel.Dock="Right"
+                    Classes="icon"
+                    ToolTip.Tip="New chat · Ctrl+T"
+                    Command="{Binding $parent[UserControl].((workbench:WorkbenchViewModel)DataContext).NewChatCommand}">
+              <Path Data="M8,3 V13 M3,8 H13" />
+            </Button>
+            <Button Classes="project-name"
+                    ToolTip.Tip="The project's page"
+                    Command="{Binding $parent[UserControl].((workbench:WorkbenchViewModel)DataContext).OpenOverviewCommand}">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+            </Button>
+          </DockPanel>
         </Border>
         <TextBox Name="Search"
                  DockPanel.Dock="Top"
@@ -173,6 +194,9 @@
     <Panel Grid.Column="2" Background="{DynamicResource BackgroundBrush}">
       <Panel IsVisible="{Binding Project.Chat, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
         <conversations:ConversationView Name="Conversation" DataContext="{Binding Project.Chat.Conversation, FallbackValue={x:Null}}" />
+      </Panel>
+      <Panel IsVisible="{Binding Project.ShowsOverview, FallbackValue=False}" Background="{DynamicResource BackgroundBrush}">
+        <pages:OverviewView DataContext="{Binding Project.Overview, FallbackValue={x:Null}}" />
       </Panel>
       <StackPanel IsVisible="{Binding Project.Chat, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=True}"
                   HorizontalAlignment="Center"

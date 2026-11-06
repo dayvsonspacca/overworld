@@ -99,6 +99,15 @@ public sealed class Bench : IDisposable
         return folder;
     }
 
+    public void Skill(string id, string description)
+    {
+        Directory.CreateDirectory(PathTo("data"));
+        File.WriteAllText(PathTo("data", "preferences.json"), """{ "library": "git@example.org:skills.git" }""");
+        var place = Directory.CreateDirectory(PathTo("data", "library", "skills", id)).FullName;
+        File.WriteAllText(Path.Combine(place, "skill.json"), $$"""{ "name": "{{id}}", "description": "{{description}}" }""");
+        File.WriteAllText(Path.Combine(place, "instructions.md"), "Do it well.");
+    }
+
     public async Task HireAsync() => Assert.True((await Crew.HireAsync(Scripted.Value, true, Cancellation)).IsSuccess);
 
     public async Task ChatsAsync(string folder, params ChatRecord[] chats) =>

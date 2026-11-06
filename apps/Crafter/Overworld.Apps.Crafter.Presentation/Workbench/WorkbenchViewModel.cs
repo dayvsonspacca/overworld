@@ -28,9 +28,14 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
 
     public Task Opening { get; private set; } = Task.CompletedTask;
 
-    public string Title => Project?.Chat?.Title ?? Project?.Name ?? "Crafter";
+    public string Title => Project is { ShowsOverview: false, Chat: { } chat } ? chat.Title : Project?.Name ?? "Crafter";
 
-    public string? Subtitle => Project?.Chat is null ? null : Project.Name;
+    public string? Subtitle => Project switch
+    {
+        { ShowsOverview: true } => "Project",
+        { Chat: not null } project => project.Name,
+        _ => null,
+    };
 
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
@@ -48,7 +53,7 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
 
         foreach (var project in listed.Value)
         {
-            Projects.Add(new ProjectViewModel(project, abilities));
+            Projects.Add(Shown(project));
         }
 
         Project = Projects.FirstOrDefault();
@@ -66,6 +71,43 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
 
     [RelayCommand]
     public void Open(ProjectViewModel project) => Project = project;
+
+    [RelayCommand]
+    public Task OpenOverviewAsync() => Project?.OpenOverviewAsync(CancellationToken.None) ?? Task.CompletedTask;
+
+    [RelayCommand]
+    public async Task RenameAsync()
+    {
+        if (Project is { } project)
+        {
+            await project.OpenOverviewAsync(CancellationToken.None);
+            project.Overview.StartRename();
+        }
+    }
+
+    private ProjectViewModel Shown(Project project)
+    {
+        var shown = new ProjectViewModel(project, abilities);
+        shown.Overview.Removed += (_, _) => Remove(shown);
+
+        return shown;
+    }
+
+    private void Remove(ProjectViewModel project)
+    {
+        foreach (var chat in project.Chats)
+        {
+            chat.Close();
+        }
+
+        var at = Projects.IndexOf(project);
+        Projects.Remove(project);
+
+        if (Project == project)
+        {
+            Project = Projects.Count == 0 ? null : Projects[Math.Min(at, Projects.Count - 1)];
+        }
+    }
 
     [RelayCommand]
     public Task NewChatAsync() => Project?.NewChatAsync(CancellationToken.None) ?? Task.CompletedTask;
@@ -113,9 +155,14 @@ public sealed partial class WorkbenchViewModel(Abilities abilities) : Observable
 
     private void ProjectChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ProjectViewModel.Chat))
+        switch (e.PropertyName)
         {
-            Watch(Project?.Chat);
+            case nameof(ProjectViewModel.Chat):
+                Watch(Project?.Chat);
+                break;
+            case nameof(ProjectViewModel.ShowsOverview) or nameof(ProjectViewModel.Name):
+                Retitle();
+                break;
         }
     }
 

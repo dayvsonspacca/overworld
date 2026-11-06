@@ -30,6 +30,9 @@ public static class Shortcuts
         book.Add("Previous chat", Chats, workbench.PreviousChat, "Ctrl+Shift+Tab");
         book.Add("Search chats", Chats, view.FocusSearch, "Ctrl+F");
 
+        book.Add("Open the project's page", Projects, () => _ = workbench.OpenOverviewAsync());
+        book.Add("Rename the project", Projects, () => _ = workbench.RenameAsync(), "F2");
+
         for (var slot = 0; slot < WorkbenchViewModel.Slots; slot++)
         {
             var at = slot;

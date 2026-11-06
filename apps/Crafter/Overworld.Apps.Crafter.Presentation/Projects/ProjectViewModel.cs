@@ -19,6 +19,7 @@ public sealed partial class ProjectViewModel : ObservableObject
     {
         _abilities = abilities;
         Project = project;
+        Overview = new OverviewViewModel(this, abilities);
         Aside = new AsideViewModel(project.Folder, abilities);
         Aside.Axioms.Changed += (_, _) => _ = abilities.Workshop.RebriefAsync(project.Folder, CancellationToken.None);
         abilities.Workshop.Changed += (_, folder) =>
@@ -30,7 +31,14 @@ public sealed partial class ProjectViewModel : ObservableObject
         };
     }
 
-    public Project Project { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Name), nameof(Letter), nameof(IconFile), nameof(HasIcon))]
+    public partial Project Project { get; private set; }
+
+    public OverviewViewModel Overview { get; }
+
+    [ObservableProperty]
+    public partial bool ShowsOverview { get; private set; }
 
     public string Name => Project.Name;
 
@@ -110,6 +118,14 @@ public sealed partial class ProjectViewModel : ObservableObject
         Chat = chat;
     }
 
+    public void Renamed(Project project) => Project = project;
+
+    public async Task OpenOverviewAsync(CancellationToken cancellationToken)
+    {
+        ShowsOverview = true;
+        await Overview.LoadAsync(cancellationToken);
+    }
+
     public void Step(int by)
     {
         if (Chats.Count == 0)
@@ -136,6 +152,11 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
 
         Aside.Conversation = newValue?.Conversation;
+
+        if (newValue is not null)
+        {
+            ShowsOverview = false;
+        }
     }
 
     partial void OnIsCurrentChanged(bool value)
