@@ -213,7 +213,13 @@ public sealed class ListDrag
     private static Control? Part(Control container, string name) =>
         container.GetVisualDescendants().OfType<Control>().FirstOrDefault(part => part.Classes.Contains(name));
 
-    private static TransformOperations Moved(double x, double y) => TransformOperations.Parse($"translate({x}px, {y}px)");
+    private static TransformOperations Moved(double x, double y)
+    {
+        var moved = TransformOperations.CreateBuilder(1);
+        moved.AppendTranslate(x, y);
+
+        return moved.Build();
+    }
 
     private enum Kind
     {
