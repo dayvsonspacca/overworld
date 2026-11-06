@@ -1,6 +1,7 @@
 using Overworld.Apps.Dye.Desktop;
 using Overworld.Apps.Dye.Palettes;
 using Overworld.Apps.Dye.Presentation;
+using Overworld.Apps.Dye.Presentation.Themes;
 using Overworld.Apps.Dye.Themes;
 using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
@@ -18,6 +19,8 @@ var beacon = new BeaconClient(new RedstoneClient(SocketPath.Resolve()));
 
 var save = Operation.From(new SavePaletteOp(store));
 var list = Operation.From(new ListPalettesOp(store));
+var listThemes = Operation.From(new ListThemesOp(themes));
+var applyTheme = Operation.From(new ApplyThemeOp(themes, beacon));
 
 return await AppHost.RunAsync(
     app.Command,
@@ -25,16 +28,19 @@ return await AppHost.RunAsync(
         save,
         list,
         Operation.From(new ShowPaletteOp(store)),
-        Operation.From(new ListThemesOp(themes)),
+        listThemes,
         Operation.From(new ShowThemeOp(themes)),
         Operation.From(new SaveThemeOp(themes)),
-        Operation.From(new ApplyThemeOp(themes, beacon)),
+        applyTheme,
     ],
     args,
-    withoutArgs: () => Task.FromResult(DesktopHost.Run(app, () =>
+    withoutArgs: () => Task.FromResult(DesktopHost.Run(app, frame =>
     {
-        var palettes = new PalettesViewModel(list, save);
-        _ = palettes.LoadAsync(CancellationToken.None);
+        var dye = new DyeViewModel(new PalettesViewModel(list, save), new ThemesViewModel(listThemes, applyTheme));
+        _ = dye.LoadAsync(CancellationToken.None);
 
-        return new PalettesView { DataContext = palettes };
+        var view = new DyeView { DataContext = dye };
+        DyeView.Dress(frame, dye);
+
+        return view;
     }, args)));
