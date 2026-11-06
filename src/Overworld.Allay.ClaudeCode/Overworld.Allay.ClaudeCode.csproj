@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <InternalsVisibleTo Include="Overworld.Allay.ClaudeCode.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Allay/Overworld.Allay.csproj" />
+  </ItemGroup>
+</Project>

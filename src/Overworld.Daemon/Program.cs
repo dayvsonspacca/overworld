@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
@@ -36,7 +37,8 @@ internal static class Program
             ["taskbar"] = new(Path.Combine(pins, "taskbar.json")),
         });
 
-        var crew = new Crew([], new StaffFile(DataDirectory.For("allay")));
+        var allay = DataDirectory.For("allay");
+        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
 
         return
         [

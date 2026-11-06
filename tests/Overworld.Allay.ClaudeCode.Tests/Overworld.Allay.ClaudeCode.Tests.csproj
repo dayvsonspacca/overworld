@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
+  </ItemGroup>
+</Project>
