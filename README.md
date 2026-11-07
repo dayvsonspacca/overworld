@@ -2,15 +2,15 @@
 
 A Linux desktop of its own, with AI agents woven through all of it. One look across the shell and every app, and agents that work alongside you and ask when they need you.
 
-![Allay and Dye side by side on Overworld](docs/screenshots/desktop.png)
+![Allay and Dye side by side on Overworld](.github/assets/screenshots/desktop.png)
 
 ## The shell
 
 The desktop itself: taskbar, start menu, control center, notifications, lock screen and screen captures.
 
-![The start menu with the pinned apps](docs/screenshots/start-menu.png)
+![The start menu with the pinned apps](.github/assets/screenshots/start-menu.png)
 
-![The control center](docs/screenshots/control-center.png)
+![The control center](.github/assets/screenshots/control-center.png)
 
 ## The apps
 
@@ -22,13 +22,13 @@ An app for coding with AI. Each project keeps the rules its agent follows, a sum
 
 Where you hire the agents every app can use: see whether each is ready, choose how it starts and how much of your plan is used.
 
-![Allay with Claude Code hired](docs/screenshots/allay.png)
+![Allay with Claude Code hired](.github/assets/screenshots/allay.png)
 
 ### Dye
 
 Color palettes as swatches, and Overworld's themes: each one previewed in an app and the shell, and applied to the whole desktop in a click.
 
-![Dye showing the warden theme](docs/screenshots/dye.png)
+![Dye showing the warden theme](.github/assets/screenshots/dye.png)
 
 ## Install
 
