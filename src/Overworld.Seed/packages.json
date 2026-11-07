@@ -29,7 +29,8 @@
     "zsh-autosuggestions",
     "atuin",
     "nautilus",
-    "quickshell"
+    "quickshell",
+    "webkit2gtk-4.1"
   ],
   "aur": []
 }

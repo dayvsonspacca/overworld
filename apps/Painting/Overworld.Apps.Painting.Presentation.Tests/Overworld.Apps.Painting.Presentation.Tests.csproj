@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Apps.Painting.Presentation/Overworld.Apps.Painting.Presentation.csproj" />
+  </ItemGroup>
+</Project>

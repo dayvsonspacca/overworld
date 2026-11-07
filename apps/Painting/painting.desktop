@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Painting
+Comment=See the pages agents paint
+Exec="@APPS@/painting/painting"
+Path=@APPS@/painting
+Icon=@APPS@/painting/@ICON@
+StartupWMClass=painting
+Categories=Graphics;
+Terminal=false

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>painting</AssemblyName>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="../icon.png" Link="icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.WebView" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Apps.Painting/Overworld.Apps.Painting.csproj" />
+    <ProjectReference Include="../Overworld.Apps.Painting.Presentation/Overworld.Apps.Painting.Presentation.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
+  </ItemGroup>
+</Project>
