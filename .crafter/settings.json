@@ -6,7 +6,6 @@
     "Keep an app's logic in one place, apart from the ways the app is reached.",
     "Name every app's CLI command overworld:<app>, like overworld:dye list.",
     "Never let an app or the shell define its own theme; all of them take the one Overworld theme.",
-    "Open the design of each new UI component in the user's browser for review before building it.",
     "Write the Hyprland config in Lua (hyprland.lua with the hl.* API), never in the legacy hyprlang format.",
     "Never tie code or config to the current machine (monitors, hardware, paths, hostnames); detect it at runtime, and keep anything truly local in untracked files.",
     "Follow SOLID principles and idiomatic modern C# conventions.",
@@ -16,6 +15,7 @@
     "Keep UI components that only one app needs inside that app; put in Overworld.Desktop only what more than one app can use.",
     "Build the basics every desktop app has (keyboard shortcuts, text selection, copying) once in Overworld.Desktop for all apps; never add them app by app.",
     "Write operations (their input records and Op classes) without showing them for review",
-    "Write AXAML views and view models without showing them for review"
+    "Write AXAML views and view models without showing them for review",
+    "Paint the design of each new UI component in Painting (overworld:painting paint) for review before building it."
   ]
 }
