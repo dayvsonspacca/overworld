@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
+using Overworld.Bell;
 using Overworld.Chest;
 using Overworld.Daemon.Lifetime;
 using Overworld.Daemon.Logging;
@@ -35,6 +36,7 @@ internal static class Program
             ["menu"] = new(Path.Combine(pins, "menu.json")),
             ["taskbar"] = new(Path.Combine(pins, "taskbar.json")),
         });
+        var board = new NoticeBoard(Path.Combine(DataDirectory.For("bell"), "notices.json"));
 
         return
         [
@@ -43,6 +45,12 @@ internal static class Program
             Operation.From(new ListPinsOp(places)),
             Operation.From(new AddPinOp(places, beam)),
             Operation.From(new RemovePinOp(places, beam)),
+            Operation.From(new RingBellOp(board, beam, TimeProvider.System)),
+            Operation.From(new ListNoticesOp(board)),
+            Operation.From(new AnswerNoticeOp(board, beam)),
+            Operation.From(new OpenNoticeOp(board, beam)),
+            Operation.From(new WithdrawNoticeOp(board, beam)),
+            Operation.From(new CollectNoticesOp(board)),
         ];
     }
 
