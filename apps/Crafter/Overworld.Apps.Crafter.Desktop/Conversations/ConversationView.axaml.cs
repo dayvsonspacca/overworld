@@ -265,6 +265,8 @@ public sealed partial class ConversationView : UserControl
                 Page.UpdateLayout();
                 Page.Offset = Page.Offset.WithY(Page.Extent.Height - below);
             }
+
+            PutAway();
         }
         finally
         {
@@ -272,9 +274,35 @@ public sealed partial class ConversationView : UserControl
         }
     }
 
+    // Back at the end, what was brought back from earlier is put away again, so a long chat doesn't keep
+    // laying out entries no one is reading; enough stays above that it doesn't come straight back.
+    private void PutAway()
+    {
+        if (_shown is not { } shown || shown.Timeline.Shown.Count <= Timeline.Page || !AtTheEnd())
+        {
+            return;
+        }
+
+        var room = Page.Offset.Y - (2 * NearTheTop);
+        var fewer = 0;
+
+        while (Entries.ContainerFromIndex(fewer) is { } entry && entry.DesiredSize.Height <= room)
+        {
+            room -= entry.DesiredSize.Height;
+            fewer++;
+        }
+
+        if (shown.Timeline.ShowFewer(fewer) > 0)
+        {
+            Page.ScrollToEnd();
+        }
+    }
+
+    private bool AtTheEnd() => Page.Offset.Y >= Page.Extent.Height - Page.Viewport.Height - NearTheEnd;
+
     private void Grew(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (Page.Offset.Y >= Page.Extent.Height - Page.Viewport.Height - NearTheEnd)
+        if (AtTheEnd())
         {
             Dispatcher.UIThread.Post(Page.ScrollToEnd, DispatcherPriority.Background);
         }

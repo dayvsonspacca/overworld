@@ -64,6 +64,27 @@ public sealed class TimelineTest
     }
 
     [Fact]
+    public void PutsEarlierEntriesAwayAgainButNeverBelowAPage()
+    {
+        for (var at = 0; at < (Timeline.Page * 2) + 3; at++)
+        {
+            _timeline.Add(new Act($"{at}", ActKind.Command, $"step {at}"));
+        }
+
+        Assert.Equal(5, _timeline.ShowFewer(5));
+        Assert.Equal(_timeline.Entries.TakeLast((Timeline.Page * 2) - 2), _timeline.Shown);
+
+        Assert.Equal(Timeline.Page - 2, _timeline.ShowFewer(100));
+        Assert.Equal(_timeline.Entries.TakeLast(Timeline.Page), _timeline.Shown);
+        Assert.Equal(0, _timeline.ShowFewer(1));
+
+        _timeline.Add(new Speech("Done."));
+
+        Assert.IsType<SpeechEntry>(_timeline.Shown[^1]);
+        Assert.Equal(_timeline.Entries.TakeLast(Timeline.Page + 1), _timeline.Shown);
+    }
+
+    [Fact]
     public void ShowsWhatArrivesWhileOnlyTheLatestAreShown()
     {
         for (var at = 0; at < Timeline.Page + 5; at++)

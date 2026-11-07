@@ -57,6 +57,19 @@ public sealed class Timeline
         return more;
     }
 
+    // Puts earlier entries away again, never below a page; what is left is still the latest.
+    public int ShowFewer(int count)
+    {
+        var fewer = Math.Clamp(count, 0, Math.Max(0, Shown.Count - Page));
+
+        for (var at = 0; at < fewer; at++)
+        {
+            Shown.RemoveAt(0);
+        }
+
+        return fewer;
+    }
+
     public void Add(Turn turn)
     {
         switch (turn)
