@@ -138,7 +138,7 @@ public sealed class ProjectViewModelTest : IDisposable
         await project.NewChatAsync(Bench.Cancellation);
 
         Assert.Null(project.Chat);
-        Assert.Contains("agents-hire", project.Problem, StringComparison.Ordinal);
+        Assert.Contains("overworld:allay agents hire", project.Problem, StringComparison.Ordinal);
     }
 
     [Fact]

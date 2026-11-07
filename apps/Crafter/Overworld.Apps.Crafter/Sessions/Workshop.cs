@@ -26,7 +26,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
 
         return hired.Value is [var agent, ..]
             ? new ChatRecord(ChatId.New(), agent.Id, ChatTitle.Untitled, null, [])
-            : new Error("crafter.no_agent", "No agent is hired yet. Hire one with: overworld agents-hire claude-code");
+            : new Error("crafter.no_agent", "No agent is hired yet. Hire one in Allay, or with: overworld:allay agents hire --agent claude-code");
     }
 
     public async Task<Result<Desk>> DeskAsync(ChatRecord chat, CancellationToken cancellationToken)
