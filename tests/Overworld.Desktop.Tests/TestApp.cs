@@ -47,7 +47,7 @@ public sealed class TestApp : Application
     public override void Initialize()
     {
         _ = typeof(OverworldApplication).Assembly;
-        RequestedThemeVariant = OverworldApplication.Variant;
+        RequestedThemeVariant = OverworldApplication.Dark;
         Resources.MergedDictionaries.Add(new ThemeResources(Theme));
 
         foreach (var dictionary in Dictionaries)
@@ -55,7 +55,7 @@ public sealed class TestApp : Application
             Resources.MergedDictionaries.Add(new ResourceInclude(Desktop) { Source = new Uri($"avares://Overworld.Desktop/Themes/{dictionary}.axaml") });
         }
 
-        Resources.ThemeDictionaries[OverworldApplication.Variant] = new ResourceInclude(Desktop) { Source = new Uri("avares://Overworld.Desktop/Themes/Fluent.axaml") };
+        Resources.ThemeDictionaries[OverworldApplication.Dark] = new ResourceInclude(Desktop) { Source = new Uri("avares://Overworld.Desktop/Themes/Fluent.axaml") };
         Styles.Add(new FluentTheme());
         Styles.Add(new StyleInclude(Desktop) { Source = new Uri("avares://Overworld.Desktop/Themes/Controls.axaml") });
     }

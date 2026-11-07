@@ -11,9 +11,19 @@ namespace Overworld.Desktop;
 
 public sealed partial class OverworldApplication(Func<Window> mainWindow) : Application
 {
-    public static readonly ThemeVariant Variant = new("Overworld", ThemeVariant.Dark);
+    public static readonly ThemeVariant Dark = new("OverworldDark", ThemeVariant.Dark);
 
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public static readonly ThemeVariant Light = new("OverworldLight", ThemeVariant.Light);
+
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+
+        if (Resources.MergedDictionaries.OfType<ThemeResources>().FirstOrDefault() is { } theme)
+        {
+            Wear(theme);
+        }
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -30,7 +40,9 @@ public sealed partial class OverworldApplication(Func<Window> mainWindow) : Appl
         base.OnFrameworkInitializationCompleted();
     }
 
-    private static async Task WearAsync(ThemeResources theme)
+    private void Wear(ThemeResources theme) => RequestedThemeVariant = theme.IsLight ? Light : Dark;
+
+    private async Task WearAsync(ThemeResources theme)
     {
         var beacon = new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName));
 
@@ -39,6 +51,7 @@ public sealed partial class OverworldApplication(Func<Window> mainWindow) : Appl
             if (signal == "theme")
             {
                 theme.Reload();
+                Wear(theme);
             }
         }
     }

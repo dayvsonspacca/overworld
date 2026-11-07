@@ -2,8 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:desktop="using:Overworld.Desktop"
              xmlns:theming="using:Overworld.Desktop.Theming"
-             x:Class="Overworld.Desktop.OverworldApplication"
-             RequestedThemeVariant="{x:Static desktop:OverworldApplication.Variant}">
+             x:Class="Overworld.Desktop.OverworldApplication">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -18,7 +17,8 @@
         <ResourceInclude Source="/Themes/CommandPalette.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
-        <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Variant}" Source="/Themes/Fluent.axaml" />
+        <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Dark}" Source="/Themes/Fluent.axaml" />
+        <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Light}" Source="/Themes/Fluent.axaml" />
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
   </Application.Resources>

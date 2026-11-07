@@ -105,6 +105,22 @@ public sealed class ThemeResourcesTest : IDisposable
     }
 
     [Fact]
+    public void TellsALightThemeByItsBackground()
+    {
+        TestApp.Run(() =>
+        {
+            var theme = Read(Theme.Replace("\"accent\"", "\"background\": \"#1C1B21\", \"accent\""));
+
+            Assert.False(theme.IsLight);
+
+            File.WriteAllText(_path, Theme.Replace("\"accent\"", "\"background\": \"#F3F2F6\", \"accent\""));
+            theme.Reload();
+
+            Assert.True(theme.IsLight);
+        });
+    }
+
+    [Fact]
     public void KeepsItsColorsWhenTheThemeCannotBeRead()
     {
         TestApp.Run(() =>

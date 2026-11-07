@@ -10,6 +10,8 @@ public sealed class ThemeResources : ResourceDictionary
 {
     private readonly string _path;
 
+    public bool IsLight { get; private set; }
+
     public ThemeResources()
         : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "overworld", "theme.json"))
     {
@@ -79,6 +81,10 @@ public sealed class ThemeResources : ResourceDictionary
             this[$"{name}Color"] = color;
             this[$"{name}Brush"] = new SolidColorBrush(color);
         }
+
+        IsLight = TryGetValue("BackgroundColor", out var found)
+            && found is Color background
+            && (0.2126 * background.R) + (0.7152 * background.G) + (0.0722 * background.B) > 127.5;
 
         var accent = (Color)this["AccentColor"]!;
 
