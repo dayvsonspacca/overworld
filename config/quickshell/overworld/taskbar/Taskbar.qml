@@ -5,6 +5,7 @@ import QtQuick
 import qs.control
 import qs.menu
 import qs.notifications
+import qs.osd
 import qs.session
 import qs.theme
 
@@ -102,6 +103,10 @@ PanelWindow {
 
     Toasts {
         bar: root
+        suppressed: control.active
+    }
+
+    Osd {
         suppressed: control.active
     }
 

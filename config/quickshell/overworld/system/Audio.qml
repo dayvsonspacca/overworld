@@ -12,6 +12,8 @@ Singleton {
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property real volume: sink?.audio?.volume ?? 0
     readonly property bool muted: sink?.audio?.muted ?? false
+    readonly property PwNode source: Pipewire.defaultAudioSource
+    readonly property bool micMuted: source?.audio?.muted ?? false
     readonly property list<PwNode> sinks: Pipewire.nodes.values.filter(n => n.audio && n.isSink && !n.isStream)
     readonly property list<PwNode> streams: Pipewire.nodes.values.filter(n => n.audio && n.isSink && n.isStream)
     readonly property string glyph: muted ? Glyphs.muted : volume < 0.34 ? Glyphs.volumeLow : Glyphs.volume
@@ -47,6 +49,6 @@ Singleton {
     }
 
     PwObjectTracker {
-        objects: [root.sink, ...root.sinks, ...root.streams]
+        objects: [root.sink, root.source, ...root.sinks, ...root.streams]
     }
 }

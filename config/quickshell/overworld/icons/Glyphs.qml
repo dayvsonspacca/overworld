@@ -15,6 +15,8 @@ Singleton {
     readonly property string bell: "M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z M6.5 14a1.6 1.6 0 0 0 3 0"
     readonly property string calendar: "M2 3h12v11H2z M2 6.5h12 M5.5 1.5v3 M10.5 1.5v3"
     readonly property string tray: "M3 10l5-5 5 5"
+    readonly property string mic: "M6 3.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0z M3.5 7.5a4.5 4.5 0 0 0 9 0 M8 12v2.5"
+    readonly property string micOff: "M6 3.5a2 2 0 0 1 4 0v4a2 2 0 0 1-4 0z M3.5 7.5a4.5 4.5 0 0 0 9 0 M8 12v2.5 M2 2l12 12"
     readonly property string sun: "M5 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M8 1.5v1.5 M8 13v1.5 M1.5 8H3 M13 8h1.5 M3.4 3.4l1 1 M11.6 11.6l1 1 M3.4 12.6l1-1 M11.6 4.4l1-1"
     readonly property string left: "M10 3L5 8l5 5"
     readonly property string right: "M6 3l5 5-5 5"
