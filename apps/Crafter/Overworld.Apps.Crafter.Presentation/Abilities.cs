@@ -1,8 +1,10 @@
 using Overworld.Apps.Crafter.Axioms;
+using Overworld.Apps.Crafter.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
+using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
@@ -62,4 +64,8 @@ public sealed class Abilities
     public required PictureStore Pictures { get; init; }
 
     public required Workshop Workshop { get; init; }
+
+    public required Ringer Ringer { get; init; }
+
+    public required Attention Attention { get; init; }
 }

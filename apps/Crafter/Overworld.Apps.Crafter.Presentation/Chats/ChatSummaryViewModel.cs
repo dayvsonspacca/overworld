@@ -24,7 +24,7 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
         {
             if (_conversation is null)
             {
-                _conversation = new ConversationViewModel(folder, record, abilities);
+                _conversation = new ConversationViewModel(folder, record, abilities) { IsShown = IsOpen };
                 _conversation.PropertyChanged += Changed;
                 _conversation.Answered += (_, _) => Heard();
                 _ = _conversation.LoadDeskAsync(CancellationToken.None);
@@ -65,6 +65,11 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
 
     partial void OnIsOpenChanged(bool value)
     {
+        if (_conversation is not null)
+        {
+            _conversation.IsShown = value;
+        }
+
         if (value && State == ChatState.Unread)
         {
             State = ChatState.Idle;

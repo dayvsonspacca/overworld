@@ -88,7 +88,7 @@ public sealed class WorkshopTest : IDisposable
 
         var desk = (await _workshop.DeskAsync(new ChatRecord(ChatId.New(), new AgentId("scripted"), ChatTitle.Untitled, null, []), Token)).Value;
 
-        Assert.Equal(new Desk("Scripted", new Setup(Mode.Plan, null, Effort.Max), [new ModelOption("fast", "Fast")]), desk);
+        Assert.Equal(new Desk("Scripted", "#5FD3F3", new Setup(Mode.Plan, null, Effort.Max), [new ModelOption("fast", "Fast")]), desk);
     }
 
     [Fact]

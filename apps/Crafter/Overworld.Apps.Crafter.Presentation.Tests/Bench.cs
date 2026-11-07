@@ -2,18 +2,22 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
+using Overworld.Apps.Crafter.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Tests.Fakes;
+using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
 using Overworld.Bedrock.Operations;
+using Overworld.Bell;
 using Overworld.Mcp;
+using Overworld.Redstone;
 
 namespace Overworld.Apps.Crafter.Presentation.Tests;
 
@@ -70,6 +74,8 @@ public sealed class Bench : IDisposable
             Chats = Chats,
             Pictures = Pictures,
             Workshop = Workshop,
+            Ringer = new Ringer(new BellClient(new RedstoneClient(PathTo("overworld.sock")))),
+            Attention = new Attention(),
         };
     }
 

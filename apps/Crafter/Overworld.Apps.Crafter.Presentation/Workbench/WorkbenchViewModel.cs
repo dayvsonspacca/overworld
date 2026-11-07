@@ -25,6 +25,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject
         };
         Preferences = new PreferencesViewModel(abilities);
         Preferences.Changed += (_, _) => _ = RebriefAllAsync();
+        abilities.Attention.Summoned += (_, summons) => Summon(summons);
     }
 
     public PreferencesViewModel Preferences { get; }
@@ -93,6 +94,17 @@ public sealed partial class WorkbenchViewModel : ObservableObject
         {
             Open(Projects[slot]);
         }
+    }
+
+    private void Summon(Summons summons)
+    {
+        if (Projects.FirstOrDefault(each => each.Project.Folder == summons.Folder) is not { } project)
+        {
+            return;
+        }
+
+        Open(project);
+        project.Show(summons.Chat);
     }
 
     [RelayCommand]

@@ -28,6 +28,8 @@ public sealed class Timeline
 
     public ObservableCollection<Entry> Entries { get; } = [];
 
+    public RequestEntry? Request(string id) => _requests.GetValueOrDefault(id);
+
     public ObservableCollection<Entry> Shown { get; } = [];
 
     public bool HasEarlier => Shown.Count < Entries.Count;

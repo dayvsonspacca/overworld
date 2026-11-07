@@ -64,4 +64,17 @@ public sealed class RequestsTest
         Assert.Equal("Change a file?", permission.Asks);
         Assert.Empty(_decided);
     }
+
+    [Fact]
+    public void SettlesARequestDecidedOnTheDesktop()
+    {
+        _timeline.Add(new Permission("p-1", ActKind.Command, "just test", null, []));
+
+        var entry = _timeline.Request("p-1")!;
+        entry.Settle(new AllowOnce());
+        entry.Settle(new Deny());
+
+        Assert.IsType<AllowOnce>(Assert.Single(_decided).Decision);
+        Assert.Equal("Allowed once", entry.Answer);
+    }
 }

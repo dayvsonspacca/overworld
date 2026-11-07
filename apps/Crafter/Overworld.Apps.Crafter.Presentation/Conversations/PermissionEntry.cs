@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Conversations;
+using Overworld.Apps.Crafter.Bells;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
@@ -7,15 +8,7 @@ public sealed partial class PermissionEntry(Permission permission, Action<string
 {
     public string Glyph { get; } = Glyphs.Of(permission.Kind);
 
-    public string Asks { get; } = permission.Kind switch
-    {
-        ActKind.Command => "Run a command?",
-        ActKind.Change => "Change a file?",
-        ActKind.Create => "Create a file?",
-        ActKind.Read => "Read a file?",
-        ActKind.Browse => "Open a page?",
-        _ => "Go ahead?",
-    };
+    public string Asks { get; } = RequestBell.Asks(permission.Kind);
 
     public string Subject { get; } = permission.Subject;
 

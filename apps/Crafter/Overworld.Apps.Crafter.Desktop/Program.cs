@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
+using Overworld.Apps.Crafter.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Desktop.Gate;
 using Overworld.Apps.Crafter.Desktop.Workbench;
@@ -22,6 +23,7 @@ using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
 using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
+using Overworld.Bell;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
 using Overworld.Desktop;
@@ -60,6 +62,8 @@ var toolbox = new Toolbox(
     axioms,
     summaries);
 var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), toolbox, chats);
+var ringer = new Ringer(new BellClient(new RedstoneClient(SocketPath.Resolve())));
+var attention = new Attention();
 
 var abilities = new Abilities
 {
@@ -88,6 +92,8 @@ var abilities = new Abilities
     Chats = chats,
     Pictures = pictures,
     Workshop = workshop,
+    Ringer = ringer,
+    Attention = attention,
 };
 
 return await AppHost.RunAsync(
@@ -133,10 +139,24 @@ return await AppHost.RunAsync(
             view.Bind(InputElement.IsEnabledProperty, new Binding(nameof(GateViewModel.IsShut)) { Source = gate, Converter = BoolConverters.Not });
             _ = gate.LoadAsync(CancellationToken.None);
             _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
+            _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
 
-            return new Panel { Children = { view, new GateView { DataContext = gate } } };
+            var shown = new Panel { Children = { view, new GateView { DataContext = gate } } };
+            shown.AttachedToVisualTree += (_, _) =>
+            {
+                if (TopLevel.GetTopLevel(shown) is Window window)
+                {
+                    attention.IsActive = window.IsActive;
+                    window.Activated += (_, _) => attention.IsActive = true;
+                    window.Deactivated += (_, _) => attention.IsActive = false;
+                    attention.Summoned += (_, _) => window.Activate();
+                }
+            };
+
+            return shown;
         }, args);
 
+        ringer.WithdrawAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         workshop.CloseAll();
 
         return Task.FromResult(code);

@@ -41,7 +41,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
         var setup = await crew.SetupOfAsync(chat.Agent.Value, cancellationToken);
 
         return setup.IsSuccess
-            ? new Desk(agent.Value.Name, setup.Value, await agent.Value.ModelsAsync(cancellationToken))
+            ? new Desk(agent.Value.Name, agent.Value.Color, setup.Value, await agent.Value.ModelsAsync(cancellationToken))
             : setup.Error;
     }
 

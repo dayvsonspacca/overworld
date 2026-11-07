@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
+using Overworld.Apps.Crafter.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Library;
@@ -26,6 +27,10 @@ public sealed partial class ConversationViewModel : ObservableObject
     private readonly string _folder;
 
     private readonly ChatRecord _record;
+
+    private readonly Dictionary<string, string> _rung = [];
+
+    private string? _color;
 
     private readonly Workshop _workshop;
 
@@ -68,6 +73,8 @@ public sealed partial class ConversationViewModel : ObservableObject
     }
 
     public event EventHandler? Answered;
+
+    public bool IsShown { get; set; }
 
     public Timeline Timeline { get; }
 
@@ -169,10 +176,15 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         (Mode, Model, Effort) = (desk.Value.Setup.Mode, desk.Value.Setup.Model, desk.Value.Setup.Effort);
         Agent = desk.Value.Agent;
+        _color = desk.Value.Color;
         OnPropertyChanged(nameof(ModelLabel));
     }
 
-    public void Close() => _workshop.Close(_record.Id);
+    public void Close()
+    {
+        Unring();
+        _workshop.Close(_record.Id);
+    }
 
     public void Forget()
     {
@@ -336,6 +348,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             await foreach (var moment in moments)
             {
                 Timeline.Add(moment);
+                Ring(moment);
             }
         }
         catch (Exception broken) when (broken is not OperationCanceledException)
@@ -402,7 +415,62 @@ public sealed partial class ConversationViewModel : ObservableObject
         OnPropertyChanged(nameof(HasJobs));
     }
 
-    private void Decide(string request, Decision decision) => _chat?.Session.Decide(request, decision);
+    private void Decide(string request, Decision decision)
+    {
+        _chat?.Session.Decide(request, decision);
+
+        if (_rung.Remove(request, out var notice))
+        {
+            _ = _abilities.Ringer.WithdrawAsync(notice, CancellationToken.None);
+        }
+    }
+
+    private void Ring(Moment moment)
+    {
+        switch (moment)
+        {
+            case Request request when Timeline.Request(request.Id) is { IsOpen: true } entry:
+                _ = RingAsync(request, entry);
+                break;
+            case Withdrawn withdrawn when _rung.Remove(withdrawn.Id, out var notice):
+                _ = _abilities.Ringer.WithdrawAsync(notice, CancellationToken.None);
+                break;
+        }
+    }
+
+    private async Task RingAsync(Request request, RequestEntry entry)
+    {
+        var ringing = new Ringing(
+            $"{Path.GetFileName(_folder)} · {Title}",
+            _color,
+            IsShown && _abilities.Attention.IsActive,
+            decision => OnUi(() => entry.Settle(decision)),
+            () => OnUi(() => _abilities.Attention.Summon(_folder, _record.Id)));
+
+        if (await _abilities.Ringer.RingAsync(request, ringing, CancellationToken.None) is not { } notice)
+        {
+            return;
+        }
+
+        if (entry.IsOpen)
+        {
+            _rung[request.Id] = notice;
+        }
+        else
+        {
+            await _abilities.Ringer.WithdrawAsync(notice, CancellationToken.None);
+        }
+    }
+
+    private void Unring()
+    {
+        foreach (var notice in _rung.Values)
+        {
+            _ = _abilities.Ringer.WithdrawAsync(notice, CancellationToken.None);
+        }
+
+        _rung.Clear();
+    }
 
     private void OnUi(Action act)
     {

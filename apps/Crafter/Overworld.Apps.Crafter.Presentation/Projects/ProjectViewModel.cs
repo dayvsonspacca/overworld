@@ -209,6 +209,17 @@ public sealed partial class ProjectViewModel : ObservableObject
         await Overview.LoadAsync(cancellationToken);
     }
 
+    public void Show(ChatId id)
+    {
+        Query = string.Empty;
+
+        if (_chats.FirstOrDefault(chat => chat.Id == id) is { } chat)
+        {
+            Chat = chat;
+            ShowsOverview = false;
+        }
+    }
+
     public void Step(int by)
     {
         if (Chats.Count == 0)

@@ -15,6 +15,15 @@ public abstract partial class RequestEntry(string id, Action<string, Decision> d
 
     public void Withdraw() => Answer ??= "Withdrawn";
 
+    public void Settle(Decision decision) => Decide(decision, decision switch
+    {
+        AllowOnce => "Allowed once",
+        AllowAlways => "Always allowed",
+        Deny => "Denied",
+        Answers => "Answered",
+        _ => "Skipped",
+    });
+
     protected void Decide(Decision decision, string answer)
     {
         if (!IsOpen)
