@@ -38,6 +38,7 @@ public sealed class PublishStep(string project, string destination) : IStep
                 "--use-current-runtime",
                 "--self-contained", "false",
                 "-p:PublishSingleFile=true",
+                "-p:PublishReadyToRun=true",
                 "-o", output,
             ],
             cancellationToken);
