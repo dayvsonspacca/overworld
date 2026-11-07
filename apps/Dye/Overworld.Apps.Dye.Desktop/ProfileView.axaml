@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:imaging="using:Overworld.Desktop.Imaging"
+             xmlns:text="using:Overworld.Desktop.Text"
+             xmlns:profiles="using:Overworld.Apps.Dye.Presentation.Profiles"
+             x:Class="Overworld.Apps.Dye.Desktop.ProfileView"
+             x:DataType="profiles:ProfileViewModel">
+  <text:TextPage>
+    <StackPanel Width="560" Margin="28,22,28,28" Spacing="22" HorizontalAlignment="Center">
+      <TextBlock Text="Profile" FontSize="{StaticResource FontSizeTitle1}" FontWeight="SemiBold" />
+
+      <Border Padding="20"
+              CornerRadius="{StaticResource RadiusContainer}"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource DividerBrush}"
+              Background="{DynamicResource RaisedBrush}">
+        <DockPanel>
+          <Border DockPanel.Dock="Left"
+                  Width="112"
+                  Height="112"
+                  Margin="0,0,22,0"
+                  CornerRadius="56"
+                  ClipToBounds="True"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource EdgeBrush}">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Offset="0" Color="{DynamicResource AccentLightColor}" />
+                <GradientStop Offset="1" Color="{DynamicResource AccentDeepColor}" />
+              </LinearGradientBrush>
+            </Border.Background>
+            <Panel>
+              <TextBlock Text="{Binding Initial}"
+                         IsVisible="{Binding !HasPicture}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="49"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource BackgroundBrush}" />
+              <Image Source="{Binding Picture, Converter={x:Static imaging:FileImage.Instance}}"
+                     IsVisible="{Binding HasPicture}"
+                     Stretch="UniformToFill" />
+            </Panel>
+          </Border>
+          <StackPanel Spacing="6" VerticalAlignment="Center">
+            <TextBlock Text="Picture" FontSize="{StaticResource FontSizeTitle3}" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Hint}"
+                       TextWrapping="Wrap"
+                       FontSize="{StaticResource FontSizeCallout}"
+                       Foreground="{DynamicResource SubtleBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+              <Button Name="Choose" Classes="primary" Content="Choose picture…" />
+              <Button Classes="ghost" Command="{Binding RemovePictureCommand}" IsVisible="{Binding HasPicture}">
+                <TextBlock Text="Remove" Foreground="{DynamicResource DangerBrush}" />
+              </Button>
+            </StackPanel>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <TextBlock Text="{Binding Problem}"
+                 IsVisible="{Binding Problem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource DangerBrush}" />
+
+      <StackPanel Spacing="8">
+        <Border Height="64"
+                Padding="20,0"
+                CornerRadius="{StaticResource RadiusContainer}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource DividerBrush}"
+                Background="{DynamicResource RaisedBrush}">
+          <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <Border Width="32" Height="32" CornerRadius="16" ClipToBounds="True">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                  <GradientStop Offset="0" Color="{DynamicResource AccentLightColor}" />
+                  <GradientStop Offset="1" Color="{DynamicResource AccentDeepColor}" />
+                </LinearGradientBrush>
+              </Border.Background>
+              <Panel>
+                <TextBlock Text="{Binding Initial}"
+                           IsVisible="{Binding !HasPicture}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource BackgroundBrush}" />
+                <Image Source="{Binding Picture, Converter={x:Static imaging:FileImage.Instance}}"
+                       IsVisible="{Binding HasPicture}"
+                       Stretch="UniformToFill" />
+              </Panel>
+            </Border>
+            <TextBlock Text="{Binding User}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+        <TextBlock Text="The start menu with this picture."
+                   FontSize="{StaticResource FontSizeFootnote}"
+                   Foreground="{DynamicResource SubtleBrush}" />
+      </StackPanel>
+    </StackPanel>
+  </text:TextPage>
+</UserControl>

@@ -111,7 +111,7 @@ public sealed class ThemesViewModelTest
     public async Task ShowsThemesAfterReloadingThem()
     {
         var shelf = new Shelf();
-        var dye = new DyeViewModel(null!, shelf.ViewModel());
+        var dye = new DyeViewModel(null!, shelf.ViewModel(), null!);
         shelf.Themes.Add(new Theme("ember", false, new Dictionary<string, string>()));
 
         await dye.ShowThemesCommand.ExecuteAsync(null);

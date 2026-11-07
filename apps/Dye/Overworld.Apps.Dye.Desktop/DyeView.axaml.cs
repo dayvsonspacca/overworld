@@ -17,6 +17,7 @@ public sealed partial class DyeView : UserControl
     {
         frame.Commands.Add("Palettes", Window, () => dye.ShowPalettesCommand.Execute(null), "Ctrl+1");
         frame.Commands.Add("Themes", Window, () => dye.ShowThemesCommand.Execute(null), "Ctrl+2");
+        frame.Commands.Add("Profile", Window, () => dye.ShowProfileCommand.Execute(null), "Ctrl+3");
 
         frame.Bar.DataContext = dye;
         frame.Bar.Trailing = new StackPanel
@@ -28,6 +29,7 @@ public sealed partial class DyeView : UserControl
             {
                 Chip("Palettes", "Palettes · Ctrl+1", dye.ShowPalettesCommand, nameof(DyeViewModel.ShowsPalettes)),
                 Chip("Themes", "Themes · Ctrl+2", dye.ShowThemesCommand, nameof(DyeViewModel.ShowsThemes)),
+                Chip("Profile", "Profile · Ctrl+3", dye.ShowProfileCommand, nameof(DyeViewModel.ShowsProfile)),
             },
         };
     }

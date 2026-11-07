@@ -11,5 +11,8 @@
     <Panel IsVisible="{Binding ShowsThemes}">
       <local:ThemesView DataContext="{Binding Themes}" />
     </Panel>
+    <Panel IsVisible="{Binding ShowsProfile}">
+      <local:ProfileView DataContext="{Binding Profile}" />
+    </Panel>
   </Panel>
 </UserControl>
