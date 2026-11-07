@@ -16,6 +16,8 @@ public sealed class CommandLineTest
 
     public sealed record Run(int Laps, bool Warm = false, Speed? Pace = null);
 
+    public sealed record Find(Guid? Id = null);
+
     public sealed record Odd(DateTime When);
 
     public sealed record Shape(string Kind, int Sides);
@@ -114,6 +116,23 @@ public sealed class CommandLineTest
         Assert.Equal("<number>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Laps))!));
         Assert.Equal("<true|false>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Warm))!));
         Assert.Equal("<slow|fast>", CommandLine.Placeholder(typeof(Run).GetProperty(nameof(Run.Pace))!));
+    }
+
+    [Fact]
+    public void ReadsAnId()
+    {
+        var id = Guid.NewGuid();
+
+        var options = CommandLine.ReadOptions(typeof(Find), ["--id", id.ToString()]).Value;
+
+        Assert.Equal(id, options["id"]!.GetValue<Guid>());
+        Assert.Equal("<id>", CommandLine.Placeholder(typeof(Find).GetProperty(nameof(Find.Id))!));
+    }
+
+    [Fact]
+    public void RefusesAnIdThatIsNotOne()
+    {
+        Assert.Equal("cli.invalid_value", CommandLine.ReadOptions(typeof(Find), ["--id", "seven"]).Error.Code);
     }
 
     [Fact]

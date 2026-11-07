@@ -16,7 +16,7 @@ public static class CommandLine
         {
             throw new NotSupportedException(
                 $"{inputType.Name}.{property.Name} is a {property.PropertyType.Name}, "
-                + "but the CLI reads only text, whole numbers, true or false, choices, lists of text and JSON objects for now.");
+                + "but the CLI reads only text, whole numbers, true or false, ids, choices, lists of text and JSON objects for now.");
         }
 
         var options = properties.ToDictionary(OptionName);
@@ -75,6 +75,7 @@ public static class CommandLine
             _ when IsListOfStrings(type) => "<item,item,...>",
             _ when type == typeof(int) => "<number>",
             _ when type == typeof(bool) => "<true|false>",
+            _ when type == typeof(Guid) => "<id>",
             _ when IsJson(type) => "<json>",
             { IsEnum: true } => $"<{string.Join('|', Enum.GetNames(type).Select(name => name.ToLowerInvariant()))}>",
             _ => "<text>",
@@ -92,7 +93,7 @@ public static class CommandLine
     {
         var underlying = Nullable.GetUnderlyingType(type) ?? type;
 
-        return underlying == typeof(string) || underlying == typeof(int) || underlying == typeof(bool) || underlying.IsEnum || IsListOfStrings(underlying) || IsJson(underlying);
+        return underlying == typeof(string) || underlying == typeof(int) || underlying == typeof(bool) || underlying == typeof(Guid) || underlying.IsEnum || IsListOfStrings(underlying) || IsJson(underlying);
     }
 
     private static bool IsJson(Type type) =>
@@ -124,6 +125,7 @@ public static class CommandLine
             _ when IsListOfStrings(underlying) => new JsonArray([.. text.Split(',', StringSplitOptions.TrimEntries).Select(item => JsonValue.Create(item))]),
             _ when underlying == typeof(int) => int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? JsonValue.Create(number) : null,
             _ when underlying == typeof(bool) => bool.TryParse(text, out var flag) ? JsonValue.Create(flag) : null,
+            _ when underlying == typeof(Guid) => Guid.TryParse(text, out var id) ? JsonValue.Create(id) : null,
             _ when IsJson(underlying) => Json(text),
             { IsEnum: true } => Enum.GetNames(underlying).FirstOrDefault(name => string.Equals(name, text, StringComparison.OrdinalIgnoreCase)) is { } name ? JsonValue.Create(name) : null,
             _ => JsonValue.Create(text),
