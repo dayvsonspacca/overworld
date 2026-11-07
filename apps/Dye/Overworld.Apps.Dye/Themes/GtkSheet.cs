@@ -41,25 +41,25 @@ public sealed class GtkSheet(string path)
         ("success-color", "added"),
     ];
 
-    public async Task<Result<string>> WriteAsync(Theme theme, CancellationToken cancellationToken)
+    public async Task<Result<string>> WriteAsync(string name, IReadOnlyDictionary<string, string> colors, CancellationToken cancellationToken)
     {
         if (File.Exists(path) && !(await File.ReadAllTextAsync(path, cancellationToken)).StartsWith(Mark, StringComparison.Ordinal))
         {
             return new Error("gtk.taken", $"{path} is not Overworld's; move it away so GTK apps wear the theme.");
         }
 
-        var missing = Variables.Select(variable => variable.Role).Distinct().Where(role => !theme.Colors.ContainsKey(role)).ToList();
+        var missing = Variables.Select(variable => variable.Role).Distinct().Where(role => !colors.ContainsKey(role)).ToList();
 
         if (missing.Count > 0)
         {
-            return new Error("gtk.missing_roles", $"'{theme.Name}' has no {string.Join(", ", missing)}, which GTK apps need.");
+            return new Error("gtk.missing_roles", $"'{name}' has no {string.Join(", ", missing)}, which GTK apps need.");
         }
 
         var sheet = new StringBuilder().AppendLine(Mark).AppendLine(":root {");
 
         foreach (var (variable, role) in Variables)
         {
-            sheet.AppendLine(CultureInfo.InvariantCulture, $"  --{variable}: {Css(theme.Colors[role])};");
+            sheet.AppendLine(CultureInfo.InvariantCulture, $"  --{variable}: {Css(colors[role])};");
         }
 
         sheet.AppendLine("}");

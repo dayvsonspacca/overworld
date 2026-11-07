@@ -40,7 +40,7 @@ public sealed class TestApp : Application
                 folder = folder.Parent;
             }
 
-            return Path.Combine(folder?.FullName ?? throw new DirectoryNotFoundException("The repository holding Overworld.slnx was not found."), "config", "overworld", "themes", "amethyst.json");
+            return Path.Combine(folder?.FullName ?? throw new DirectoryNotFoundException("The repository holding Overworld.slnx was not found."), "config", "overworld", "themes", "amethyst", "dark.json");
         }
     }
 

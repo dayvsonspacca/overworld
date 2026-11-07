@@ -4,6 +4,7 @@ namespace Overworld.Apps.Dye.Presentation.Themes;
 
 public sealed record ThemeLook(
     Theme Theme,
+    Variant Variant,
     string Background,
     string Raised,
     string Surface,
@@ -22,12 +23,15 @@ public sealed record ThemeLook(
 
     public bool Active => Theme.Active;
 
-    public static ThemeLook Of(Theme theme)
+    public string? Wearing => Theme.Worn?.ToString().ToLowerInvariant();
+
+    public static ThemeLook Of(Theme theme, Variant variant)
     {
-        string Color(string role) => theme.Colors.GetValueOrDefault(role, Unset);
+        string Color(string role) => theme.Colors(variant).GetValueOrDefault(role, Unset);
 
         return new ThemeLook(
             theme,
+            variant,
             Color("background"),
             Color("raised"),
             Color("surface"),

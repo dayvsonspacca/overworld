@@ -27,10 +27,13 @@ public sealed class ThemeOpsTest : IDisposable
     public ThemeOpsTest()
     {
         var themes = System.IO.Path.Combine(_root.Path, "themes");
-        Directory.CreateDirectory(themes);
+        Directory.CreateDirectory(System.IO.Path.Combine(themes, "amethyst"));
         File.WriteAllText(
-            System.IO.Path.Combine(themes, "amethyst.json"),
+            System.IO.Path.Combine(themes, "amethyst", "dark.json"),
             """{ "colors": { "background": "#1C1B21", "accent": "#8E62D1", "scrim": "#9E0B0A0E" } }""");
+        File.WriteAllText(
+            System.IO.Path.Combine(themes, "amethyst", "light.json"),
+            """{ "colors": { "background": "#F3F2F6", "accent": "#7B52C4", "scrim": "#66231F2B" } }""");
         _store = new ThemeStore(themes, System.IO.Path.Combine(_root.Path, "theme.json"));
     }
 
@@ -53,20 +56,22 @@ public sealed class ThemeOpsTest : IDisposable
     {
         var theme = await new ShowThemeOp(_store).ExecuteAsync(new ShowTheme(" amethyst "), Token);
 
-        Assert.Equal("#8E62D1", theme.Value.Colors["accent"]);
+        Assert.Equal("#8E62D1", theme.Value.Dark["accent"]);
     }
 
     [Fact]
-    public async Task SavesTheColorChangesInUppercase()
+    public async Task SavesTheColorChangesOfEachVariantInUppercase()
     {
         var saved = await Save().ExecuteAsync(
-            new SaveTheme(" deep-sea ", "amethyst", ["accent=#3a7bd5", " scrim = #CC000000 "]),
+            new SaveTheme(" deep-sea ", "amethyst", ["accent=#3a7bd5", " scrim = #CC000000 "], ["accent=#2f62b0"]),
             Token);
 
         Assert.Equal("deep-sea", saved.Value.Name);
-        Assert.Equal("#3A7BD5", saved.Value.Colors["accent"]);
-        Assert.Equal("#CC000000", saved.Value.Colors["scrim"]);
-        Assert.Equal("#1C1B21", saved.Value.Colors["background"]);
+        Assert.Equal("#3A7BD5", saved.Value.Dark["accent"]);
+        Assert.Equal("#CC000000", saved.Value.Dark["scrim"]);
+        Assert.Equal("#1C1B21", saved.Value.Dark["background"]);
+        Assert.Equal("#2F62B0", saved.Value.Light["accent"]);
+        Assert.Equal("#66231F2B", saved.Value.Light["scrim"]);
     }
 
     [Fact]
@@ -74,7 +79,8 @@ public sealed class ThemeOpsTest : IDisposable
     {
         var saved = await Save().ExecuteAsync(new SaveTheme("copy", "amethyst"), Token);
 
-        Assert.Equal("#8E62D1", saved.Value.Colors["accent"]);
+        Assert.Equal("#8E62D1", saved.Value.Dark["accent"]);
+        Assert.Equal("#7B52C4", saved.Value.Light["accent"]);
     }
 
     [Fact]
@@ -96,7 +102,7 @@ public sealed class ThemeOpsTest : IDisposable
     [InlineData("accent=#GGGGGG")]
     public async Task RefusesAChangeThatIsNotRoleAndHex(string change)
     {
-        var saved = await Save().ExecuteAsync(new SaveTheme("ocean", "amethyst", [change]), Token);
+        var saved = await Save().ExecuteAsync(new SaveTheme("ocean", "amethyst", Light: [change]), Token);
 
         Assert.Equal("theme.color_invalid", saved.Error.Code);
     }

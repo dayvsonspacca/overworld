@@ -28,8 +28,9 @@ public sealed class ApplyThemeOpTest : IDisposable
     public ApplyThemeOpTest()
     {
         var themes = System.IO.Path.Combine(_root.Path, "themes");
-        Directory.CreateDirectory(themes);
-        File.WriteAllText(System.IO.Path.Combine(themes, "amethyst.json"), """{ "colors": { "background": "#1C1B21", "raised": "#25242B", "surface": "#2E2D35", "divider": "#38373E", "text": "#E4E2DC", "accent": "#8E62D1", "accentText": "#AB83E1", "onAccent": "#FFFFFF", "danger": "#E5806F", "added": "#8CC08C" } }""");
+        Directory.CreateDirectory(System.IO.Path.Combine(themes, "amethyst"));
+        File.WriteAllText(System.IO.Path.Combine(themes, "amethyst", "dark.json"), """{ "colors": { "background": "#1C1B21", "raised": "#25242B", "surface": "#2E2D35", "divider": "#38373E", "text": "#E4E2DC", "accent": "#8E62D1", "accentText": "#AB83E1", "onAccent": "#FFFFFF", "danger": "#E5806F", "added": "#8CC08C" } }""");
+        File.WriteAllText(System.IO.Path.Combine(themes, "amethyst", "light.json"), """{ "colors": { "background": "#F3F2F6", "raised": "#FAF9FC", "surface": "#FFFFFF", "divider": "#E4E2E9", "text": "#1D1B22", "accent": "#7B52C4", "accentText": "#6A44B0", "onAccent": "#FFFFFF", "danger": "#C4513F", "added": "#3F8A48" } }""");
         _store = new ThemeStore(themes, System.IO.Path.Combine(_root.Path, "theme.json"));
         _gtk = new GtkSheet(System.IO.Path.Combine(_root.Path, "gtk-4.0", "gtk.css"));
     }
@@ -81,6 +82,18 @@ public sealed class ApplyThemeOpTest : IDisposable
 
         var sheet = await File.ReadAllTextAsync(System.IO.Path.Combine(_root.Path, "gtk-4.0", "gtk.css"), Token);
         Assert.Contains("--accent-bg-color: #8E62D1;", sheet);
+    }
+
+    [Fact]
+    public async Task DressesGtkAppsInTheVariantApplied()
+    {
+        var daemon = new Daemon(Response.Success(null));
+
+        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst", Variant.Light), Token);
+
+        Assert.Equal(Variant.Light, applied.Value.Worn);
+        var sheet = await File.ReadAllTextAsync(System.IO.Path.Combine(_root.Path, "gtk-4.0", "gtk.css"), Token);
+        Assert.Contains("--window-bg-color: #F3F2F6;", sheet);
     }
 
     [Fact]

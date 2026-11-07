@@ -8,8 +8,10 @@ public sealed class ThemeStepTest : IDisposable
 
     public ThemeStepTest()
     {
-        _folder.File("{}", "themes", "amethyst.json");
-        _folder.File("{}", "themes", "redstone.json");
+        _folder.File("{}", "themes", "amethyst", "dark.json");
+        _folder.File("{}", "themes", "amethyst", "light.json");
+        _folder.File("{}", "themes", "redstone", "dark.json");
+        _folder.File("{}", "themes", "redstone", "light.json");
     }
 
     public void Dispose() => _folder.Dispose();
@@ -19,12 +21,18 @@ public sealed class ThemeStepTest : IDisposable
     private Task<Bedrock.Results.Result<string>> Install(string? theme) =>
         new ThemeStep(_folder.PathTo("themes"), theme, Target).RunAsync(TestContext.Current.CancellationToken);
 
+    private void Wear(params string[] path)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Target)!);
+        File.CreateSymbolicLink(Target, _folder.PathTo(path));
+    }
+
     [Fact]
-    public async Task LinksTheChosenTheme()
+    public async Task LinksTheChosenThemeDark()
     {
         await Install("amethyst");
 
-        Assert.Equal(_folder.PathTo("themes", "amethyst.json"), new FileInfo(Target).LinkTarget);
+        Assert.Equal(_folder.PathTo("themes", "amethyst", "dark.json"), new FileInfo(Target).LinkTarget);
     }
 
     [Fact]
@@ -35,7 +43,17 @@ public sealed class ThemeStepTest : IDisposable
         var switched = await Install("redstone");
 
         Assert.True(switched.IsSuccess);
-        Assert.Equal(_folder.PathTo("themes", "redstone.json"), new FileInfo(Target).LinkTarget);
+        Assert.Equal(_folder.PathTo("themes", "redstone", "dark.json"), new FileInfo(Target).LinkTarget);
+    }
+
+    [Fact]
+    public async Task KeepsTheVariantWornWhenSwitchingTheme()
+    {
+        Wear("themes", "amethyst", "light.json");
+
+        await Install("redstone");
+
+        Assert.Equal(_folder.PathTo("themes", "redstone", "light.json"), new FileInfo(Target).LinkTarget);
     }
 
     [Fact]
@@ -43,18 +61,28 @@ public sealed class ThemeStepTest : IDisposable
     {
         await Install(null);
 
-        Assert.Equal(_folder.PathTo("themes", "amethyst.json"), new FileInfo(Target).LinkTarget);
+        Assert.Equal(_folder.PathTo("themes", "amethyst", "dark.json"), new FileInfo(Target).LinkTarget);
     }
 
     [Fact]
     public async Task KeepsTheThemeWornWhenNoneIsChosen()
     {
-        await Install("redstone");
+        Wear("themes", "redstone", "light.json");
 
         var kept = await Install(null);
 
-        Assert.EndsWith("keeps redstone", kept.Value);
-        Assert.Equal(_folder.PathTo("themes", "redstone.json"), new FileInfo(Target).LinkTarget);
+        Assert.EndsWith("keeps redstone light", kept.Value);
+        Assert.Equal(_folder.PathTo("themes", "redstone", "light.json"), new FileInfo(Target).LinkTarget);
+    }
+
+    [Fact]
+    public async Task MovesAThemeWornBeforeVariantsToItsDarkVariant()
+    {
+        Wear("themes", "redstone.json");
+
+        await Install(null);
+
+        Assert.Equal(_folder.PathTo("themes", "redstone", "dark.json"), new FileInfo(Target).LinkTarget);
     }
 
     [Fact]

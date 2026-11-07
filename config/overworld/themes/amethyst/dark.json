@@ -23,7 +23,8 @@
     "hoverTint": "#0FFFFFFF",
     "edge": "#12FFFFFF",
     "activeTint": "#17FFFFFF",
-    "activeHoverTint": "#1FFFFFFF"
+    "activeHoverTint": "#1FFFFFFF",
+    "track": "#26FFFFFF"
   },
   "font": {
     "mono": ["JetBrainsMono Nerd Font", "JetBrains Mono", "monospace"],

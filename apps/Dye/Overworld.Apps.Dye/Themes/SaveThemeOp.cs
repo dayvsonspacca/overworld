@@ -5,14 +5,40 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Dye.Themes;
 
-[Operation("themes-save", "Saves a new theme made from another with some colors changed, in Overworld's themes kept with its config, and signals that the themes changed.")]
+[Operation("themes-save", "Saves a new theme made from another, dark and light, with some colors changed, in Overworld's themes kept with its config, and signals that the themes changed.")]
 public sealed partial class SaveThemeOp(ThemeStore store, BeaconClient beacon) : IOperation<SaveTheme, Theme>
 {
     public async Task<Result<Theme>> ExecuteAsync(SaveTheme input, CancellationToken cancellationToken)
     {
+        Dictionary<Variant, IReadOnlyDictionary<string, string>> changes = [];
+
+        foreach (var (variant, list) in new[] { (Variant.Dark, input.Dark), (Variant.Light, input.Light) })
+        {
+            var colors = Parse(list ?? []);
+
+            if (!colors.IsSuccess)
+            {
+                return colors.Error;
+            }
+
+            changes[variant] = colors.Value;
+        }
+
+        var saved = await store.SaveAsync(input.Name.Trim(), input.From.Trim(), changes, cancellationToken);
+
+        if (saved.IsSuccess)
+        {
+            await beacon.LightAsync("themes", cancellationToken);
+        }
+
+        return saved;
+    }
+
+    private static Result<IReadOnlyDictionary<string, string>> Parse(IReadOnlyList<string> changes)
+    {
         Dictionary<string, string> colors = [];
 
-        foreach (var change in input.Colors ?? [])
+        foreach (var change in changes)
         {
             var (role, hex) = change.Split('=', 2, StringSplitOptions.TrimEntries) is [var left, var right]
                 ? (left, right)
@@ -29,14 +55,7 @@ public sealed partial class SaveThemeOp(ThemeStore store, BeaconClient beacon) :
             }
         }
 
-        var saved = await store.SaveAsync(input.Name.Trim(), input.From.Trim(), colors, cancellationToken);
-
-        if (saved.IsSuccess)
-        {
-            await beacon.LightAsync("themes", cancellationToken);
-        }
-
-        return saved;
+        return colors;
     }
 
     [GeneratedRegex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")]

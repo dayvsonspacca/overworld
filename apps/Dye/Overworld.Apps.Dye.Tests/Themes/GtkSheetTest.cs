@@ -29,7 +29,7 @@ public sealed class GtkSheetTest : IDisposable
     [Fact]
     public async Task WritesTheThemeAsLibadwaitaColors()
     {
-        var written = await new GtkSheet(Sheet).WriteAsync(new Theme("amethyst", true, Colors), Token);
+        var written = await new GtkSheet(Sheet).WriteAsync("amethyst", Colors, Token);
 
         Assert.Equal(Sheet, written.Value);
         var css = await File.ReadAllTextAsync(Sheet, Token);
@@ -43,9 +43,9 @@ public sealed class GtkSheetTest : IDisposable
     public async Task RewritesItsOwnSheet()
     {
         var gtk = new GtkSheet(Sheet);
-        await gtk.WriteAsync(new Theme("amethyst", true, Colors), Token);
+        await gtk.WriteAsync("amethyst", Colors, Token);
 
-        var written = await gtk.WriteAsync(new Theme("warden", true, new Dictionary<string, string>(Colors) { ["accent"] = "#0FA3A8" }), Token);
+        var written = await gtk.WriteAsync("warden", new Dictionary<string, string>(Colors) { ["accent"] = "#0FA3A8" }, Token);
 
         Assert.True(written.IsSuccess);
         Assert.Contains("--accent-bg-color: #0FA3A8;", await File.ReadAllTextAsync(Sheet, Token));
@@ -54,7 +54,7 @@ public sealed class GtkSheetTest : IDisposable
     [Fact]
     public async Task MovesAlphaToTheEndAsCssReadsIt()
     {
-        await new GtkSheet(Sheet).WriteAsync(new Theme("amethyst", true, new Dictionary<string, string>(Colors) { ["divider"] = "#12FFFFFF" }), Token);
+        await new GtkSheet(Sheet).WriteAsync("amethyst", new Dictionary<string, string>(Colors) { ["divider"] = "#12FFFFFF" }, Token);
 
         Assert.Contains("--headerbar-border-color: #FFFFFF12;", await File.ReadAllTextAsync(Sheet, Token));
     }
@@ -65,7 +65,7 @@ public sealed class GtkSheetTest : IDisposable
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Sheet)!);
         await File.WriteAllTextAsync(Sheet, "window { color: red; }", Token);
 
-        var written = await new GtkSheet(Sheet).WriteAsync(new Theme("amethyst", true, Colors), Token);
+        var written = await new GtkSheet(Sheet).WriteAsync("amethyst", Colors, Token);
 
         Assert.Equal("gtk.taken", written.Error.Code);
         Assert.Equal("window { color: red; }", await File.ReadAllTextAsync(Sheet, Token));
@@ -77,7 +77,7 @@ public sealed class GtkSheetTest : IDisposable
         var colors = new Dictionary<string, string>(Colors);
         colors.Remove("raised");
 
-        var written = await new GtkSheet(Sheet).WriteAsync(new Theme("bare", true, colors), Token);
+        var written = await new GtkSheet(Sheet).WriteAsync("bare", colors, Token);
 
         Assert.Equal("gtk.missing_roles", written.Error.Code);
         Assert.Contains("raised", written.Error.Message);

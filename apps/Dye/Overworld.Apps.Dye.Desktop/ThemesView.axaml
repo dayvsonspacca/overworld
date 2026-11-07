@@ -3,6 +3,7 @@
              xmlns:desktop="using:Overworld.Desktop"
              xmlns:text="using:Overworld.Desktop.Text"
              xmlns:themes="using:Overworld.Apps.Dye.Presentation.Themes"
+             xmlns:dye="using:Overworld.Apps.Dye.Themes"
              x:Class="Overworld.Apps.Dye.Desktop.ThemesView"
              x:DataType="themes:ThemesViewModel">
   <Grid ColumnDefinitions="Auto,*">
@@ -15,7 +16,7 @@
                 <Grid ColumnDefinitions="*,Auto,Auto">
                   <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1"
-                             Text="wearing"
+                             Text="{Binding Wearing, StringFormat='wearing {0}'}"
                              IsVisible="{Binding Active}"
                              Margin="8,0,6,0"
                              VerticalAlignment="Center"
@@ -23,11 +24,11 @@
                              FontWeight="SemiBold"
                              Foreground="{DynamicResource AccentTextBrush}" />
                   <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="3,0,0,0">
-                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="#26FFFFFF" StrokeThickness="1"
+                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="{DynamicResource EdgeBrush}" StrokeThickness="1"
                              Fill="{Binding Background, Converter={x:Static desktop:HexBrushConverter.Instance}}" />
-                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="#26FFFFFF" StrokeThickness="1"
+                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="{DynamicResource EdgeBrush}" StrokeThickness="1"
                              Fill="{Binding Accent, Converter={x:Static desktop:HexBrushConverter.Instance}}" />
-                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="#26FFFFFF" StrokeThickness="1"
+                    <Ellipse Width="10" Height="10" Margin="-3,0,0,0" Stroke="{DynamicResource EdgeBrush}" StrokeThickness="1"
                              Fill="{Binding Text, Converter={x:Static desktop:HexBrushConverter.Instance}}" />
                   </StackPanel>
                 </Grid>
@@ -67,18 +68,25 @@
                   CornerRadius="{StaticResource RadiusPill}"
                   VerticalAlignment="Center"
                   Background="{DynamicResource SelectedBrush}">
-            <TextBlock Text="● Wearing now"
+            <TextBlock Text="{Binding Selected.Wearing, StringFormat='● Wearing now · {0}', FallbackValue={x:Null}}"
                        VerticalAlignment="Center"
                        FontSize="{StaticResource FontSizeCallout}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource AccentTextBrush}" />
           </Border>
-          <Button Grid.Column="3" Classes="primary" Command="{Binding ApplyCommand}">
-            <Panel>
-              <TextBlock Text="Apply" IsVisible="{Binding CanApply}" />
-              <TextBlock Text="Applied" IsVisible="{Binding !CanApply}" />
-            </Panel>
-          </Button>
+          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Button Classes="chip"
+                    Classes.chosen="{Binding ShowsDark}"
+                    Content="Dark"
+                    Command="{Binding ShowCommand}"
+                    CommandParameter="{x:Static dye:Variant.Dark}" />
+            <Button Classes="chip"
+                    Classes.chosen="{Binding ShowsLight}"
+                    Content="Light"
+                    Command="{Binding ShowCommand}"
+                    CommandParameter="{x:Static dye:Variant.Light}" />
+            <Button Classes="primary" Margin="6,0,0,0" Command="{Binding ApplyCommand}" Content="{Binding Applying}" />
+          </StackPanel>
         </Grid>
 
         <TextBlock Text="{Binding Problem}"

@@ -13,8 +13,16 @@ public sealed class ThemesViewModelTest
     {
         public List<Theme> Themes { get; } =
         [
-            new("amethyst", true, new Dictionary<string, string> { ["background"] = "#1C1B21", ["accent"] = "#8E62D1", ["scrim"] = "#9E0B0A0E", ["glow"] = "#FFFFFF" }),
-            new("deep-sea", false, new Dictionary<string, string> { ["background"] = "#101418", ["accent"] = "#3A7BD5" }),
+            new(
+                "amethyst",
+                Variant.Dark,
+                new Dictionary<string, string> { ["background"] = "#1C1B21", ["accent"] = "#8E62D1", ["scrim"] = "#9E0B0A0E", ["glow"] = "#FFFFFF" },
+                new Dictionary<string, string> { ["background"] = "#F3F2F6", ["accent"] = "#7B52C4" }),
+            new(
+                "deep-sea",
+                null,
+                new Dictionary<string, string> { ["background"] = "#101418", ["accent"] = "#3A7BD5" },
+                new Dictionary<string, string> { ["background"] = "#EEF2F6", ["accent"] = "#2F62B0" }),
         ];
 
         public Error? Failure { get; set; }
@@ -35,7 +43,7 @@ public sealed class ThemesViewModelTest
             {
                 for (var i = 0; i < shelf.Themes.Count; i++)
                 {
-                    shelf.Themes[i] = shelf.Themes[i] with { Active = shelf.Themes[i].Name == input.Name };
+                    shelf.Themes[i] = shelf.Themes[i] with { Worn = shelf.Themes[i].Name == input.Name ? input.Variant : null };
                 }
 
                 return Task.FromResult(Result.Success(shelf.Themes.Single(theme => theme.Name == input.Name)));
@@ -52,8 +60,45 @@ public sealed class ThemesViewModelTest
 
         Assert.Equal(["amethyst", "deep-sea"], themes.Themes.Select(theme => theme.Name));
         Assert.Equal("amethyst", themes.Selected!.Name);
+        Assert.Equal(Variant.Dark, themes.Shown);
         Assert.False(themes.CanApply);
+        Assert.Equal("Applied", themes.Applying);
         Assert.False(themes.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task ShowsTheOtherVariantAndOffersToWearIt()
+    {
+        var themes = new Shelf().ViewModel();
+        await themes.LoadAsync(Token);
+
+        themes.ShowCommand.Execute(Variant.Light);
+
+        Assert.True(themes.ShowsLight);
+        Assert.Equal("amethyst", themes.Selected!.Name);
+        Assert.Equal("#F3F2F6", themes.Selected.Background);
+        Assert.Equal("#7B52C4", themes.Groups.SelectMany(group => group.Swatches).Single(swatch => swatch.Role == "accent").Hex);
+        Assert.Equal("Apply light", themes.Applying);
+
+        await themes.ApplyCommand.ExecuteAsync(null);
+
+        Assert.Equal(Variant.Light, themes.Selected!.Theme.Worn);
+        Assert.Equal("light", themes.Selected.Wearing);
+        Assert.Equal("Applied", themes.Applying);
+    }
+
+    [Fact]
+    public async Task FollowsTheVariantWornWhenReloaded()
+    {
+        var shelf = new Shelf();
+        var themes = shelf.ViewModel();
+        await themes.LoadAsync(Token);
+        shelf.Themes[0] = shelf.Themes[0] with { Worn = Variant.Light };
+
+        await themes.LoadAsync(Token);
+
+        Assert.Equal(Variant.Light, themes.Shown);
+        Assert.Equal("#F3F2F6", themes.Themes[0].Background);
     }
 
     [Fact]
@@ -64,6 +109,7 @@ public sealed class ThemesViewModelTest
         themes.Selected = themes.Themes[1];
 
         Assert.True(themes.ApplyCommand.CanExecute(null));
+        Assert.Equal("Apply", themes.Applying);
         await themes.ApplyCommand.ExecuteAsync(null);
 
         Assert.Equal("deep-sea", themes.Selected!.Name);
@@ -92,6 +138,7 @@ public sealed class ThemesViewModelTest
         themes.Selected = themes.Themes[1];
 
         Assert.Contains("--from deep-sea", themes.Saving);
+        Assert.Contains("--light", themes.Saving);
     }
 
     [Fact]
@@ -112,7 +159,7 @@ public sealed class ThemesViewModelTest
     {
         var shelf = new Shelf();
         var dye = new DyeViewModel(null!, shelf.ViewModel(), null!);
-        shelf.Themes.Add(new Theme("ember", false, new Dictionary<string, string>()));
+        shelf.Themes.Add(new Theme("ember", null, new Dictionary<string, string>(), new Dictionary<string, string>()));
 
         await dye.ShowThemesCommand.ExecuteAsync(null);
 

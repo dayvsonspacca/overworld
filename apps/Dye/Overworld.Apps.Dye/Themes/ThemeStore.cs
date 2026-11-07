@@ -19,7 +19,7 @@ public sealed partial class ThemeStore(string folder, string active)
         var current = Current();
         List<Theme> themes = [];
 
-        foreach (var path in Directory.EnumerateFiles(folder, "*.json").Order(StringComparer.Ordinal))
+        foreach (var path in Directory.EnumerateDirectories(folder).Order(StringComparer.Ordinal))
         {
             var theme = await ReadAsync(path, current, cancellationToken);
 
@@ -44,7 +44,7 @@ public sealed partial class ThemeStore(string folder, string active)
     public async Task<Result<Theme>> SaveAsync(
         string name,
         string from,
-        IReadOnlyDictionary<string, string> colors,
+        IReadOnlyDictionary<Variant, IReadOnlyDictionary<string, string>> changes,
         CancellationToken cancellationToken)
     {
         var target = PathOf(name);
@@ -54,7 +54,7 @@ public sealed partial class ThemeStore(string folder, string active)
             return target.Error;
         }
 
-        if (File.Exists(target.Value))
+        if (Directory.Exists(target.Value) || File.Exists(target.Value))
         {
             return new Error("theme.exists", $"A theme named '{name}' already exists.");
         }
@@ -66,39 +66,66 @@ public sealed partial class ThemeStore(string folder, string active)
             return source.Error;
         }
 
-        var document = await ParseAsync(source.Value, cancellationToken);
+        Dictionary<Variant, JsonObject> documents = [];
 
-        if (!document.IsSuccess)
+        foreach (var variant in Enum.GetValues<Variant>())
         {
-            return document.Error;
-        }
+            var document = await ParseAsync(VariantPath(source.Value, variant), cancellationToken);
 
-        var palette = (JsonObject)document.Value["colors"]!;
-
-        foreach (var (role, value) in colors)
-        {
-            if (!palette.ContainsKey(role))
+            if (!document.IsSuccess)
             {
-                return new Error(
-                    "theme.unknown_role",
-                    $"'{from}' has no color '{role}'; its colors are {string.Join(", ", palette.Select(color => color.Key))}.");
+                return document.Error;
             }
 
-            palette[role] = value;
+            var palette = (JsonObject)document.Value["colors"]!;
+
+            foreach (var (role, value) in changes.GetValueOrDefault(variant) ?? new Dictionary<string, string>())
+            {
+                if (!palette.ContainsKey(role))
+                {
+                    return new Error(
+                        "theme.unknown_role",
+                        $"'{from}' has no color '{role}'; its colors are {string.Join(", ", palette.Select(color => color.Key))}.");
+                }
+
+                palette[role] = value;
+            }
+
+            documents[variant] = document.Value;
         }
 
-        await File.WriteAllTextAsync(target.Value, document.Value.ToJsonString(Indented) + "\n", cancellationToken);
+        Directory.CreateDirectory(target.Value);
+
+        foreach (var (variant, document) in documents)
+        {
+            await File.WriteAllTextAsync(VariantPath(target.Value, variant), document.ToJsonString(Indented) + "\n", cancellationToken);
+        }
 
         return await ReadAsync(target.Value, Current(), cancellationToken);
     }
 
-    public async Task<Result<Theme>> ApplyAsync(string name, CancellationToken cancellationToken)
+    public async Task<Result<Theme>> ApplyAsync(string? name, Variant? variant, CancellationToken cancellationToken)
     {
+        var current = Current();
+        name ??= current?.Name;
+
+        if (name is null)
+        {
+            return new Error("theme.none_worn", "No theme is worn yet; name the one to apply.");
+        }
+
         var path = Existing(name);
 
         if (!path.IsSuccess)
         {
             return path.Error;
+        }
+
+        var theme = await ReadAsync(path.Value, current, cancellationToken);
+
+        if (!theme.IsSuccess)
+        {
+            return theme.Error;
         }
 
         var existing = new FileInfo(active);
@@ -111,7 +138,7 @@ public sealed partial class ThemeStore(string folder, string active)
         Directory.CreateDirectory(existing.DirectoryName!);
 
         var swap = $"{active}.{Guid.NewGuid():N}";
-        File.CreateSymbolicLink(swap, Path.Combine(RealFolder(), Path.GetFileName(path.Value)));
+        File.CreateSymbolicLink(swap, VariantPath(Path.Combine(RealFolder(), name), variant ?? current?.Variant ?? Variant.Dark));
         File.Move(swap, active, overwrite: true);
 
         return await ReadAsync(path.Value, Current(), cancellationToken);
@@ -119,7 +146,7 @@ public sealed partial class ThemeStore(string folder, string active)
 
     private Result<string> PathOf(string name) =>
         Name().IsMatch(name)
-            ? Path.Combine(folder, $"{name}.json")
+            ? Path.Combine(folder, name)
             : new Error("theme.name_invalid", $"'{name}' is not a theme name; use lowercase letters, digits and dashes, like deep-sea.");
 
     private Result<string> Existing(string name)
@@ -131,12 +158,12 @@ public sealed partial class ThemeStore(string folder, string active)
 
         var path = PathOf(name);
 
-        return !path.IsSuccess || File.Exists(path.Value)
+        return !path.IsSuccess || Directory.Exists(path.Value)
             ? path
             : new Error("theme.not_found", $"There is no theme named '{name}'.");
     }
 
-    private string? Current()
+    private (string Name, Variant Variant)? Current()
     {
         var link = new FileInfo(active).LinkTarget;
 
@@ -146,29 +173,54 @@ public sealed partial class ThemeStore(string folder, string active)
         }
 
         var target = Path.GetFullPath(link, Path.GetDirectoryName(active)!);
+        var theme = Path.GetDirectoryName(target)!;
 
-        return Path.GetDirectoryName(target) == RealFolder() ? Path.GetFileNameWithoutExtension(target) : null;
+        return Path.GetDirectoryName(theme) == RealFolder()
+            && Enum.TryParse<Variant>(Path.GetFileNameWithoutExtension(target), ignoreCase: true, out var variant)
+            && Path.GetExtension(target) == ".json"
+                ? (Path.GetFileName(theme), variant)
+                : null;
     }
 
     private string RealFolder() =>
         Path.TrimEndingDirectorySeparator(
             new DirectoryInfo(folder).ResolveLinkTarget(returnFinalTarget: true)?.FullName ?? Path.GetFullPath(folder));
 
-    private static async Task<Result<Theme>> ReadAsync(string path, string? current, CancellationToken cancellationToken)
-    {
-        var document = await ParseAsync(path, cancellationToken);
+    private static string VariantPath(string theme, Variant variant) =>
+        Path.Combine(theme, $"{variant.ToString().ToLowerInvariant()}.json");
 
-        if (!document.IsSuccess)
+    private static async Task<Result<Theme>> ReadAsync(
+        string path,
+        (string Name, Variant Variant)? current,
+        CancellationToken cancellationToken)
+    {
+        var name = Path.GetFileName(path);
+        Dictionary<Variant, IReadOnlyDictionary<string, string>> colors = [];
+
+        foreach (var variant in Enum.GetValues<Variant>())
         {
-            return document.Error;
+            var file = VariantPath(path, variant);
+
+            if (!File.Exists(file))
+            {
+                return new Error(
+                    "theme.variant_missing",
+                    $"'{name}' has no {variant.ToString().ToLowerInvariant()} variant; every theme needs {file}.");
+            }
+
+            var document = await ParseAsync(file, cancellationToken);
+
+            if (!document.IsSuccess)
+            {
+                return document.Error;
+            }
+
+            colors[variant] = ((JsonObject)document.Value["colors"]!).ToDictionary(
+                color => color.Key,
+                color => color.Value!.GetValue<string>());
         }
 
-        var name = Path.GetFileNameWithoutExtension(path);
-        var colors = ((JsonObject)document.Value["colors"]!).ToDictionary(
-            color => color.Key,
-            color => color.Value!.GetValue<string>());
-
-        return new Theme(name, name == current, colors);
+        return new Theme(name, current?.Name == name ? current.Value.Variant : null, colors[Variant.Dark], colors[Variant.Light]);
     }
 
     private static async Task<Result<JsonObject>> ParseAsync(string path, CancellationToken cancellationToken)
