@@ -18,13 +18,14 @@ var store = new PaletteStore(DataDirectory.For(app.Name));
 var config = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "overworld");
 var themes = new ThemeStore(Path.Combine(config, "themes"), Path.Combine(config, "theme.json"));
 var gtk = new GtkSheet(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "gtk-4.0", "gtk.css"));
+var kitty = new KittyConf(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "kitty", "overworld.conf"));
 var profile = new ProfileStore(Environment.UserName, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".face"));
 var beacon = new BeaconClient(new RedstoneClient(SocketPath.Resolve()));
 
 var save = Operation.From(new SavePaletteOp(store));
 var list = Operation.From(new ListPalettesOp(store));
 var listThemes = Operation.From(new ListThemesOp(themes));
-var applyTheme = Operation.From(new ApplyThemeOp(themes, gtk, new GsettingsColorScheme(), beacon));
+var applyTheme = Operation.From(new ApplyThemeOp(themes, gtk, new GsettingsColorScheme(), kitty, new SignaledKitty(), beacon));
 var showProfile = Operation.From(new ShowProfileOp(profile));
 var setPicture = Operation.From(new SetPictureOp(profile, beacon));
 var removePicture = Operation.From(new RemovePictureOp(profile, beacon));
