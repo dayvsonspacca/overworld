@@ -1,5 +1,7 @@
 # Overworld
 
+[![CI](https://github.com/dayvsonspacca/overworld/actions/workflows/ci.yml/badge.svg)](https://github.com/dayvsonspacca/overworld/actions/workflows/ci.yml)
+
 A Linux desktop of its own, with AI agents woven through all of it. One look across the shell and every app, and agents that work alongside you and ask when they need you.
 
 ![Allay and Dye side by side on Overworld](.github/assets/screenshots/desktop.png)
