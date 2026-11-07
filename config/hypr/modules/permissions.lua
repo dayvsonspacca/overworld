@@ -5,3 +5,4 @@ hl.config({
 })
 
 hl.permission(".*/quickshell", "screencopy", "allow")
+hl.permission(".*/grim", "screencopy", "allow")
