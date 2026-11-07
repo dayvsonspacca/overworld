@@ -20,6 +20,8 @@
     "networkmanager",
     "upower",
     "power-profiles-daemon",
+    "brightnessctl",
+    "gnome-calculator",
     "kitty",
     "nautilus",
     "quickshell"

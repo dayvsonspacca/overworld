@@ -8,6 +8,7 @@ local ipc = "qs -p " .. shell .. " ipc call "
 hl.bind(mod .. " + Super_L", hl.dsp.exec_cmd(ipc .. "menu toggle"), { release = true })
 hl.bind(mod .. " + A",       hl.dsp.exec_cmd(ipc .. "control toggle"))
 hl.bind(mod .. " + L",       hl.dsp.exec_cmd(ipc .. "lock lock"))
+hl.bind("XF86ScreenSaver",   hl.dsp.exec_cmd(ipc .. "lock lock"))
 
 hl.bind("Print",                   hl.dsp.exec_cmd(ipc .. "capture open"))
 hl.bind("SHIFT + Print",           hl.dsp.exec_cmd(ipc .. "capture screen"))
@@ -15,6 +16,7 @@ hl.bind(mod .. " + SHIFT + S",     hl.dsp.exec_cmd(ipc .. "capture open"))
 
 hl.bind(mod .. " + T", hl.dsp.exec_cmd(programs.terminal))
 hl.bind(mod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
+hl.bind("XF86Calculator", hl.dsp.exec_cmd(programs.calculator))
 
 hl.bind(mod .. " + W", hl.dsp.window.close())
 hl.bind(mod .. " + F", hl.dsp.window.float({ action = "toggle" }))
@@ -42,3 +44,5 @@ hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
 hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true })
 hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true })
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl set 5%+"),       { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set -n1 5%-"),   { locked = true, repeating = true })
