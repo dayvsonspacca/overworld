@@ -6,6 +6,7 @@
     "just",
     "hyprland",
     "xdg-desktop-portal-hyprland",
+    "xdg-desktop-portal-gtk",
     "pipewire",
     "wireplumber",
     "playerctl",

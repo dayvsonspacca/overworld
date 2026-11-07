@@ -19,7 +19,21 @@ public sealed class ApplyThemeOpTest : IDisposable
         }
     }
 
+    private sealed class Scheme(Error? failure = null) : IColorScheme
+    {
+        public List<Variant> Preferred { get; } = [];
+
+        public Task<Result<string>> PreferAsync(Variant variant, CancellationToken cancellationToken)
+        {
+            Preferred.Add(variant);
+
+            return Task.FromResult(failure is null ? Result.Success(variant.ToString()) : Result.Failure<string>(failure));
+        }
+    }
+
     private readonly TemporaryFolder _root = new();
+
+    private readonly Scheme _scheme = new();
 
     private readonly ThemeStore _store;
 
@@ -44,7 +58,7 @@ public sealed class ApplyThemeOpTest : IDisposable
     {
         var daemon = new Daemon(Response.Success(null));
 
-        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme(" amethyst "), Token);
+        var applied = await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme(" amethyst "), Token);
 
         Assert.True(applied.Value.Active);
         var request = Assert.Single(daemon.Requests);
@@ -57,7 +71,7 @@ public sealed class ApplyThemeOpTest : IDisposable
     {
         var daemon = new Daemon(Response.Failure(new Error("daemon.not_running", "Nothing answers.")));
 
-        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
+        var applied = await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
 
         Assert.True(applied.Value.Active);
     }
@@ -67,7 +81,7 @@ public sealed class ApplyThemeOpTest : IDisposable
     {
         var daemon = new Daemon(Response.Success(null));
 
-        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("coral"), Token);
+        var applied = await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("coral"), Token);
 
         Assert.Equal("theme.not_found", applied.Error.Code);
         Assert.Empty(daemon.Requests);
@@ -78,7 +92,7 @@ public sealed class ApplyThemeOpTest : IDisposable
     {
         var daemon = new Daemon(Response.Success(null));
 
-        await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
+        await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
 
         var sheet = await File.ReadAllTextAsync(System.IO.Path.Combine(_root.Path, "gtk-4.0", "gtk.css"), Token);
         Assert.Contains("--accent-bg-color: #8E62D1;", sheet);
@@ -89,11 +103,25 @@ public sealed class ApplyThemeOpTest : IDisposable
     {
         var daemon = new Daemon(Response.Success(null));
 
-        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst", Variant.Light), Token);
+        var applied = await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst", Variant.Light), Token);
 
         Assert.Equal(Variant.Light, applied.Value.Worn);
         var sheet = await File.ReadAllTextAsync(System.IO.Path.Combine(_root.Path, "gtk-4.0", "gtk.css"), Token);
         Assert.Contains("--window-bg-color: #F3F2F6;", sheet);
+        Assert.Equal([Variant.Light], _scheme.Preferred);
+    }
+
+    [Fact]
+    public async Task AppliesTheThemeButSaysWhenGtkAppsCannotLearnItsVariant()
+    {
+        var daemon = new Daemon(Response.Success(null));
+        var scheme = new Scheme(new Error("gtk.no_gsettings", "gsettings is not installed."));
+
+        var applied = await new ApplyThemeOp(_store, _gtk, scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
+
+        Assert.Equal("gtk.no_gsettings", applied.Error.Code);
+        Assert.StartsWith("amethyst is applied", applied.Error.Message);
+        Assert.Single(daemon.Requests);
     }
 
     [Fact]
@@ -104,7 +132,7 @@ public sealed class ApplyThemeOpTest : IDisposable
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(sheet)!);
         File.WriteAllText(sheet, "window { color: red; }");
 
-        var applied = await new ApplyThemeOp(_store, _gtk, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
+        var applied = await new ApplyThemeOp(_store, _gtk, _scheme, new BeaconClient(daemon)).ExecuteAsync(new ApplyTheme("amethyst"), Token);
 
         Assert.Equal("gtk.taken", applied.Error.Code);
         Assert.StartsWith("amethyst is applied", applied.Error.Message);
