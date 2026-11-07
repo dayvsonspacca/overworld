@@ -1,0 +1,64 @@
+# Overworld's prompt. It names only the terminal's sixteen colors, so it wears
+# whatever theme kitty wears.
+
+"$schema" = "https://starship.rs/config-schema.json"
+
+format = """
+$directory$git_branch$git_status$dotnet$nodejs$python$rust$cmd_duration
+$character"""
+
+[directory]
+style = "bold purple"
+read_only = " 󰌾"
+format = "[󰉋 $path]($style)[$read_only]($read_only_style) "
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = " "
+style = "bold green"
+format = "[on](bright-black) [$symbol$branch]($style) "
+
+[git_status]
+style = "yellow"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+conflicted = "=$count"
+ahead = "⇡$count"
+behind = "⇣$count"
+diverged = "⇕⇡$ahead_count⇣$behind_count"
+untracked = "?$count"
+stashed = "≡$count"
+modified = "✚$count"
+staged = "●$count"
+renamed = "»$count"
+deleted = "✖$count"
+
+[dotnet]
+symbol = " "
+style = "blue"
+format = "[$symbol($version)]($style) "
+
+[nodejs]
+symbol = " "
+style = "green"
+format = "[$symbol($version)]($style) "
+
+[python]
+symbol = " "
+style = "yellow"
+format = '[$symbol$pyenv_prefix($version)(\($virtualenv\))]($style) '
+
+[rust]
+symbol = " "
+style = "red"
+format = "[$symbol($version)]($style) "
+
+[cmd_duration]
+min_time = 2000
+style = "yellow"
+format = "[took $duration]($style) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
