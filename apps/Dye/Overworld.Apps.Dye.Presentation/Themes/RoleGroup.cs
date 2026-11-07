@@ -9,6 +9,11 @@ public sealed record RoleGroup(string Title, IReadOnlyList<RoleSwatch> Swatches)
         ("Accent", ["accentDeep", "accentPressed", "accent", "accentHover", "accentText", "accentLight", "onAccent", "selected"]),
         ("States", ["danger", "added"]),
         ("Tints", ["scrim", "hoverTint", "edge", "activeTint", "activeHoverTint", "track"]),
+        ("Terminal",
+        [
+            "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
+            "brightBlack", "brightRed", "brightGreen", "brightYellow", "brightBlue", "brightMagenta", "brightCyan", "brightWhite",
+        ]),
     ];
 
     public static IReadOnlyList<RoleGroup> Of(IReadOnlyDictionary<string, string> colors)

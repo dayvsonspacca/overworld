@@ -24,7 +24,23 @@
     "edge": "#12FFFFFF",
     "activeTint": "#17FFFFFF",
     "activeHoverTint": "#1FFFFFFF",
-    "track": "#26FFFFFF"
+    "track": "#26FFFFFF",
+    "black": "#2B2428",
+    "red": "#E07A73",
+    "green": "#9DAE62",
+    "yellow": "#E3B472",
+    "blue": "#8E9FD6",
+    "magenta": "#D98AB5",
+    "cyan": "#7EBDB4",
+    "white": "#C9B5BA",
+    "brightBlack": "#655459",
+    "brightRed": "#EC9690",
+    "brightGreen": "#B5C47E",
+    "brightYellow": "#EEC993",
+    "brightBlue": "#A9B7E4",
+    "brightMagenta": "#E8A9CB",
+    "brightCyan": "#9DD1C9",
+    "brightWhite": "#F0E4E6"
   },
   "font": {
     "mono": [
