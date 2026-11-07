@@ -1,3 +1,4 @@
+import Quickshell
 import Quickshell.Services.Notifications
 import QtQuick
 import qs.notifications
@@ -72,6 +73,53 @@ Column {
         }
     }
 
+    Column {
+        width: root.width
+        spacing: 8
+        visible: Bell.count > 0
+
+        Row {
+            spacing: 6
+            topPadding: 4
+
+            SectionLabel {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Waiting on you"
+            }
+
+            Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.max(height, waiting.implicitWidth + 8)
+                height: 16
+                radius: height / 2
+                color: Theme.accent
+
+                Text {
+                    id: waiting
+
+                    anchors.centerIn: parent
+                    text: Bell.count
+                    color: Theme.onAccent
+                    font.pixelSize: Theme.fontCallout - 2
+                    font.weight: Font.DemiBold
+                }
+            }
+        }
+
+        Repeater {
+            model: ScriptModel {
+                values: Bell.waiting
+            }
+
+            BellCard {
+                required property var modelData
+
+                width: root.width
+                notice: modelData
+            }
+        }
+    }
+
     Repeater {
         model: root.groups
 
@@ -121,6 +169,6 @@ Column {
         text: "No notifications"
         color: Theme.subtle
         font.pixelSize: Theme.fontCallout
-        visible: Notifications.count === 0
+        visible: Notifications.count === 0 && Bell.count === 0
     }
 }

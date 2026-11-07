@@ -79,13 +79,13 @@ Rectangle {
                 height: 14
                 radius: height / 2
                 color: Theme.accent
-                visible: Notifications.count > 0
+                visible: Notifications.count + Bell.count > 0
 
                 Text {
                     id: count
 
                     anchors.centerIn: parent
-                    text: Notifications.count > 99 ? "99+" : Notifications.count
+                    text: Notifications.count + Bell.count > 99 ? "99+" : Notifications.count + Bell.count
                     color: Theme.onAccent
                     font.pixelSize: 9
                     font.weight: Font.DemiBold

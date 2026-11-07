@@ -35,6 +35,7 @@ Singleton {
     readonly property color bar: Qt.alpha(background, 0.9)
     readonly property bool light: background.hslLightness > 0.5
 
+    readonly property string fontMono: theme.font.mono?.[0] ?? "monospace"
     readonly property int fontCallout: theme.font.sizes.callout
     readonly property int fontContent: theme.font.sizes.content
     readonly property int fontTitle2: theme.font.sizes.title2
