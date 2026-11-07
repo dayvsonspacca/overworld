@@ -28,6 +28,7 @@ IReadOnlyList<IStep> Plan(Install install) =>
     new LinkStep(root.PathTo("config", "quickshell", "overworld"), Path.Combine(config, "quickshell", "overworld")),
     new LinkStep(root.PathTo("config", "kitty", "kitty.conf"), Path.Combine(config, "kitty", "kitty.conf")),
     new LinkStep(root.PathTo("config", "starship", "starship.toml"), Path.Combine(config, "starship.toml")),
+    new LinkStep(root.PathTo("config", "zsh", "zshrc"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".zshrc")),
     new LinkStep(root.PathTo("config", "overworld", "themes"), Path.Combine(config, "overworld", "themes")),
     new ThemeStep(root.PathTo("config", "overworld", "themes"), install.Theme, Path.Combine(config, "overworld", "theme.json")),
     new PublishStep(root.PathTo("src", "Overworld.Daemon"), daemon),

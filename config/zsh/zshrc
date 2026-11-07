@@ -1,0 +1,29 @@
+# Overworld's zsh. Settings for this machine only go in ~/.zshrc.local, untracked.
+
+typeset -U path
+path=(~/.local/bin $path)
+
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt share_history hist_ignore_all_dups hist_reduce_blanks
+setopt autocd interactive_comments
+
+bindkey -e
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[3~' delete-char
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
+autoload -Uz compinit && compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+
+[[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
+    && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+(( $+commands[starship] )) && eval "$(starship init zsh)"
+(( $+commands[atuin] )) && eval "$(atuin init zsh)"
+
+[[ -r ~/.zshrc.local ]] && source ~/.zshrc.local

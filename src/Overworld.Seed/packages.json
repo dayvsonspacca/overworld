@@ -25,6 +25,9 @@
     "gnome-calculator",
     "kitty",
     "starship",
+    "zsh",
+    "zsh-autosuggestions",
+    "atuin",
     "nautilus",
     "quickshell"
   ],
