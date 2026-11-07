@@ -18,6 +18,10 @@ public sealed class CommandLineTest
 
     public sealed record Odd(DateTime When);
 
+    public sealed record Shape(string Kind, int Sides);
+
+    public sealed record Draw(Shape Shape, IReadOnlyList<Shape>? More = null);
+
     [Fact]
     public void ReadsEachOptionIntoItsCamelCaseKey()
     {
@@ -118,5 +122,25 @@ public sealed class CommandLineTest
         var thrown = Assert.Throws<NotSupportedException>(() => CommandLine.ReadOptions(typeof(Odd), []));
 
         Assert.Contains("Odd.When", thrown.Message);
+    }
+
+    [Fact]
+    public void ReadsAnObjectAsJson()
+    {
+        var json = CommandLine.ReadOptions(typeof(Draw), ["--shape", "{\"kind\":\"square\",\"sides\":4}", "--more", "[]"]);
+
+        Assert.True(json.IsSuccess);
+        Assert.True(JsonNode.DeepEquals(
+            JsonNode.Parse("""{"shape":{"kind":"square","sides":4},"more":[]}"""),
+            json.Value));
+    }
+
+    [Fact]
+    public void RefusesAnObjectThatIsNotJson()
+    {
+        var json = CommandLine.ReadOptions(typeof(Draw), ["--shape", "square"]);
+
+        Assert.Equal("cli.invalid_value", json.Error.Code);
+        Assert.Contains("<json>", json.Error.Message);
     }
 }
