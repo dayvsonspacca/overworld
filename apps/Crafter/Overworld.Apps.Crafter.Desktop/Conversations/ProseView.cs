@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Overworld.Apps.Crafter.Presentation.Highlight;
 using Overworld.Desktop.Text;
 using Md = Overworld.Apps.Crafter.Presentation.Markdown;
@@ -32,6 +33,14 @@ public sealed class ProseView : Decorator
         [Shade.Attribute] = "AccentLightBrush",
     };
 
+    private readonly StackPanel _page = new() { Spacing = BlockSpacing };
+
+    private readonly List<Md.Block> _drawn = [];
+
+    private bool _redrawing;
+
+    public ProseView() => Child = _page;
+
     public IReadOnlyList<Md.Block> Blocks
     {
         get => GetValue(BlocksProperty);
@@ -42,11 +51,61 @@ public sealed class ProseView : Decorator
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == BlocksProperty)
+        if (change.Property != BlocksProperty)
         {
-            Child = Stack(Blocks, group: null, depth: 0, BlockSpacing);
+            return;
+        }
+
+        // An answer streams in dozens of times a second; what arrives together is drawn once,
+        // after it has all come in, so the window keeps up instead of falling behind.
+        if (_drawn.Count == 0 || TopLevel.GetTopLevel(this) is null)
+        {
+            Redraw();
+        }
+        else if (!_redrawing)
+        {
+            _redrawing = true;
+            Dispatcher.UIThread.Post(Redraw, DispatcherPriority.Background);
         }
     }
+
+    // Only the blocks that changed are drawn again; as an answer grows, that is just the last few.
+    private void Redraw()
+    {
+        _redrawing = false;
+        var blocks = Blocks;
+        var kept = 0;
+
+        while (kept < _drawn.Count && kept < blocks.Count && Same(_drawn[kept], blocks[kept]))
+        {
+            kept++;
+        }
+
+        _drawn.RemoveRange(kept, _drawn.Count - kept);
+        _page.Children.RemoveRange(kept, _page.Children.Count - kept);
+
+        foreach (var block in blocks.Skip(kept))
+        {
+            _drawn.Add(block);
+            _page.Children.Add(Draw(block, group: null, depth: 0));
+        }
+    }
+
+    private static bool Same(Md.Block one, Md.Block other) => (one, other) switch
+    {
+        (Md.Paragraph a, Md.Paragraph b) => a.Fragments.SequenceEqual(b.Fragments),
+        (Md.Heading a, Md.Heading b) => a.Level == b.Level && a.Fragments.SequenceEqual(b.Fragments),
+        (Md.ItemList a, Md.ItemList b) => a.Ordered == b.Ordered && a.Start == b.Start && a.Items.Count == b.Items.Count
+            && a.Items.Zip(b.Items).All(pair => pair.First.Checked == pair.Second.Checked && Same(pair.First.Blocks, pair.Second.Blocks)),
+        (Md.Quote a, Md.Quote b) => Same(a.Blocks, b.Blocks),
+        (Md.Table a, Md.Table b) => a.Columns.SequenceEqual(b.Columns) && a.Rows.Count == b.Rows.Count
+            && a.Rows.Zip(b.Rows).All(pair => pair.First.IsHeader == pair.Second.IsHeader && pair.First.Cells.Count == pair.Second.Cells.Count
+                && pair.First.Cells.Zip(pair.Second.Cells).All(cell => cell.First.SequenceEqual(cell.Second))),
+        _ => one.Equals(other),
+    };
+
+    private static bool Same(IReadOnlyList<Md.Block> one, IReadOnlyList<Md.Block> other) =>
+        one.Count == other.Count && one.Zip(other).All(pair => Same(pair.First, pair.Second));
 
     private static StackPanel Stack(IReadOnlyList<Md.Block> blocks, object? group, int depth, double spacing)
     {
