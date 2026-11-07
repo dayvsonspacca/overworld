@@ -54,7 +54,7 @@ Item {
 
             anchors.centerIn: parent
             text: root.badge > 99 ? "99+" : root.badge
-            color: "white"
+            color: Theme.onAccent
             font.pixelSize: 10
             font.weight: Font.DemiBold
         }

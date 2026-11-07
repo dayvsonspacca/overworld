@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Shapes
+import qs.theme
 
 Shape {
     id: root
 
-    property color color: "white"
+    property color color: Theme.text
 
     width: 10
     height: 10

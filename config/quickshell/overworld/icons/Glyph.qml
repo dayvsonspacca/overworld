@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Shapes
+import qs.theme
 
 Item {
     id: root
 
     required property string path
-    property color color: "white"
+    property color color: Theme.text
     property real size: 16
     property real weight: 1.4
     property bool filled

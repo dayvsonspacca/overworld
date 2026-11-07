@@ -138,7 +138,7 @@ Rectangle {
                         width: parent.width
                         height: 3
                         radius: 2
-                        color: Qt.alpha("white", 0.15)
+                        color: Theme.track
 
                         Rectangle {
                             width: parent.width * Math.min(1, root.player.position / Math.max(1, root.player.length))

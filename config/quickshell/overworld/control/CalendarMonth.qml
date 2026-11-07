@@ -63,7 +63,7 @@ Column {
                 Text {
                     anchors.centerIn: parent
                     text: cell.modelData.getDate()
-                    color: cell.isToday ? "white" : cell.inMonth ? Theme.text : Qt.alpha(Theme.text, 0.25)
+                    color: cell.isToday ? Theme.onAccent : cell.inMonth ? Theme.text : Qt.alpha(Theme.text, 0.25)
                     font.pixelSize: Theme.fontCallout
                     font.weight: cell.isToday ? Font.DemiBold : Font.Normal
                 }

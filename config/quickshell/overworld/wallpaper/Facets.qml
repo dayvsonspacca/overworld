@@ -8,6 +8,7 @@ Canvas {
     readonly property real jitter: 0.45
     readonly property point glow: Qt.point(0.72, 0.38)
     readonly property real hue: Theme.accent.hslHue
+    readonly property bool lightTheme: Theme.light
 
     function vertices(cols: int, rows: int, random: var): var {
         const w = width / cols;
@@ -29,10 +30,10 @@ Canvas {
         const distance = Math.hypot(cx - glow.x * width, cy - glow.y * height) / width;
         const light = Math.max(0, 1 - distance * 2.1);
         const tone = hue + random() * 0.03;
-        const lightness = 0.1 + light * 0.32 + random() * 0.05;
+        const lightness = lightTheme ? 0.95 - light * 0.2 - random() * 0.04 : 0.1 + light * 0.32 + random() * 0.05;
         return {
             fill: Qt.hsla(tone, 0.18 + light * 0.4, lightness, 1),
-            edge: Qt.hsla(hue, 0.3, lightness + 0.04, 1)
+            edge: Qt.hsla(hue, 0.3, lightness + (lightTheme ? -0.03 : 0.04), 1)
         };
     }
 
@@ -51,6 +52,7 @@ Canvas {
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
     onHueChanged: requestPaint()
+    onLightThemeChanged: requestPaint()
 
     onPaint: {
         let seed = 7;

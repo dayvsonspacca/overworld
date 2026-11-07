@@ -30,7 +30,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         path: root.glyph
         size: 18
-        color: root.on ? "white" : Theme.subtle
+        color: root.on ? Theme.onAccent : Theme.subtle
     }
 
     Column {
@@ -43,7 +43,7 @@ Rectangle {
         Text {
             width: parent.width
             text: root.title
-            color: root.on ? "white" : Theme.text
+            color: root.on ? Theme.onAccent : Theme.text
             font.pixelSize: Theme.fontCallout + 1
             elide: Text.ElideRight
         }
@@ -52,7 +52,7 @@ Rectangle {
             width: parent.width
             text: root.detail
             visible: root.detail !== ""
-            color: root.on ? Qt.alpha("white", 0.75) : Theme.subtle
+            color: root.on ? Qt.alpha(Theme.onAccent, 0.75) : Theme.subtle
             font.pixelSize: Theme.fontCallout - 1
             elide: Text.ElideRight
         }
@@ -92,14 +92,14 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: 1
             height: parent.height - 16
-            color: root.on ? Qt.alpha("white", 0.25) : Theme.divider
+            color: root.on ? Qt.alpha(Theme.onAccent, 0.25) : Theme.divider
         }
 
         Glyph {
             anchors.centerIn: parent
             path: Glyphs.right
             size: 14
-            color: root.on ? "white" : Theme.subtle
+            color: root.on ? Theme.onAccent : Theme.subtle
         }
 
         FocusRing {

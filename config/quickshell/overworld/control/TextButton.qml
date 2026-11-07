@@ -24,7 +24,7 @@ Rectangle {
 
         anchors.centerIn: parent
         text: root.text
-        color: root.primary ? "white" : Theme.text
+        color: root.primary ? Theme.onAccent : Theme.text
         font.pixelSize: Theme.fontCallout
     }
 

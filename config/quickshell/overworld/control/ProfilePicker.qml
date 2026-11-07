@@ -33,7 +33,7 @@ Rectangle {
                 Text {
                     anchors.centerIn: parent
                     text: option.modelData.label
-                    color: option.selected ? "white" : Theme.subtle
+                    color: option.selected ? Theme.onAccent : Theme.subtle
                     font.pixelSize: Theme.fontCallout
                 }
 

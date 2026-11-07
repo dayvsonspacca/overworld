@@ -137,7 +137,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             height: 4
             radius: 2
-            color: Qt.alpha("white", 0.15)
+            color: Theme.track
             visible: !root.mic
 
             Rectangle {

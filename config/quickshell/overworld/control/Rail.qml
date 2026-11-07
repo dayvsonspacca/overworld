@@ -25,7 +25,7 @@ Rectangle {
     }
 
     width: Theme.railWidth
-    color: Qt.alpha("white", 0.02)
+    color: Qt.alpha(Theme.text, 0.02)
 
     Column {
         anchors.top: parent.top

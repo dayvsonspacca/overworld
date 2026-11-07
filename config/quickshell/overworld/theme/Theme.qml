@@ -25,12 +25,15 @@ Singleton {
     readonly property color accentDeep: theme.colors.accentDeep
     readonly property color accent: theme.colors.accent
     readonly property color accentLight: theme.colors.accentLight
+    readonly property color onAccent: theme.colors.onAccent
     readonly property color danger: theme.colors.danger
     readonly property color edge: theme.colors.edge
     readonly property color hoverTint: theme.colors.hoverTint
     readonly property color activeTint: theme.colors.activeTint
     readonly property color activeHoverTint: theme.colors.activeHoverTint
+    readonly property color track: theme.colors.track
     readonly property color bar: Qt.alpha(background, 0.9)
+    readonly property bool light: background.hslLightness > 0.5
 
     readonly property int fontCallout: theme.font.sizes.callout
     readonly property int fontContent: theme.font.sizes.content

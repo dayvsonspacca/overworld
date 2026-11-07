@@ -11,7 +11,7 @@ Rectangle {
     implicitWidth: 36
     implicitHeight: 20
     radius: height / 2
-    color: checked ? Theme.accent : Qt.alpha("white", 0.15)
+    color: checked ? Theme.accent : Theme.track
     activeFocusOnTab: true
     Keys.onReturnPressed: toggled()
     Keys.onSpacePressed: toggled()

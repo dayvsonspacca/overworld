@@ -86,7 +86,7 @@ Rectangle {
 
                     anchors.centerIn: parent
                     text: Notifications.count > 99 ? "99+" : Notifications.count
-                    color: "white"
+                    color: Theme.onAccent
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }

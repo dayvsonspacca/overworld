@@ -37,14 +37,14 @@ Rectangle {
             Glyph {
                 anchors.verticalCenter: parent.verticalCenter
                 path: tool.glyph
-                color: tool.selected ? "white" : Theme.text
+                color: tool.selected ? Theme.onAccent : Theme.text
             }
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: tool.label
                 visible: tool.label !== ""
-                color: tool.selected ? "white" : Theme.text
+                color: tool.selected ? Theme.onAccent : Theme.text
                 font.pixelSize: Theme.fontCallout + 1
             }
         }

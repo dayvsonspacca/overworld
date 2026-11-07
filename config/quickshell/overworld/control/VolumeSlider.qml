@@ -16,7 +16,7 @@ Item {
         width: parent.width
         height: 4
         radius: 2
-        color: Qt.alpha("white", 0.15)
+        color: Theme.track
 
         Rectangle {
             width: root.shown * parent.width

@@ -98,7 +98,7 @@ FocusScope {
             path: Glyphs.enter
             size: 14
             weight: 1.6
-            color: "white"
+            color: Theme.onAccent
         }
 
         MouseArea {
