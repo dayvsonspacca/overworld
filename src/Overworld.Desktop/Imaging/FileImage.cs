@@ -2,7 +2,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 
-namespace Overworld.Apps.Crafter.Desktop.Imaging;
+namespace Overworld.Desktop.Imaging;
 
 public sealed class FileImage : IValueConverter
 {

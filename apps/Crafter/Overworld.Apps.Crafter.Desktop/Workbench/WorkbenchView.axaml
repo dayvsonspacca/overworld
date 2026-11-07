@@ -3,7 +3,7 @@
              xmlns:aside="using:Overworld.Apps.Crafter.Desktop.Aside"
              xmlns:chats="using:Overworld.Apps.Crafter.Presentation.Chats"
              xmlns:conversations="using:Overworld.Apps.Crafter.Desktop.Conversations"
-             xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
+             xmlns:imaging="using:Overworld.Desktop.Imaging"
              xmlns:projects="using:Overworld.Apps.Crafter.Presentation.Projects"
              xmlns:pages="using:Overworld.Apps.Crafter.Desktop.Projects"
              xmlns:settings="using:Overworld.Apps.Crafter.Desktop.Preferences"

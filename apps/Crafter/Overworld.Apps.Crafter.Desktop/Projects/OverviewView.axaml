@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conversations="using:Overworld.Apps.Crafter.Desktop.Conversations"
              xmlns:desktop="using:Overworld.Desktop"
-             xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
+             xmlns:imaging="using:Overworld.Desktop.Imaging"
              xmlns:projects="using:Overworld.Apps.Crafter.Presentation.Projects"
              x:Class="Overworld.Apps.Crafter.Desktop.Projects.OverviewView"
              x:DataType="projects:OverviewViewModel">
