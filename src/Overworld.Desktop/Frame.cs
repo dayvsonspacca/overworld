@@ -3,4 +3,7 @@ using Overworld.Desktop.Windowing;
 
 namespace Overworld.Desktop;
 
-public sealed record Frame(CommandBook Commands, TitleBar Bar);
+public sealed record Frame(CommandBook Commands, TitleBar Bar)
+{
+    public ICollection<Func<CancellationToken, Task>> Leaving { get; } = [];
+}

@@ -19,6 +19,8 @@ public static class DesktopHost
 
     private static readonly KeyGesture Shortcuts = new(Key.OemQuestion, KeyModifiers.Control);
 
+    internal static readonly TimeSpan Patience = TimeSpan.FromSeconds(2);
+
     public static int Run(AppIdentity app, Func<Control> content, string[] args) =>
         Run(app, _ => content(), args);
 
@@ -48,6 +50,7 @@ public static class DesktopHost
         var bar = new TitleBar { Title = app.Title, Icon = icon, [DockPanel.DockProperty] = Dock.Top };
         var keymap = new Keymap(book);
         var palette = new CommandPalette { Book = book };
+        var frame = new Frame(book, bar);
 
         var window = new Window
         {
@@ -61,7 +64,7 @@ public static class DesktopHost
                 Children =
                 {
                     bar,
-                    new Panel { Children = { content(new Frame(book, bar)), palette } },
+                    new Panel { Children = { content(frame), palette } },
                 },
             },
         };
@@ -74,8 +77,32 @@ public static class DesktopHost
             }
         };
         window.AddHandler(InputElement.KeyDownEvent, (_, e) => Pressed(e, window, palette, keymap), RoutingStrategies.Bubble);
+        LeaveBeforeClosing(window, frame);
 
         return window;
+    }
+
+    private static void LeaveBeforeClosing(Window window, Frame frame)
+    {
+        var left = false;
+
+        window.Closing += async (_, e) =>
+        {
+            if (left || frame.Leaving.Count == 0)
+            {
+                return;
+            }
+
+            left = true;
+            e.Cancel = true;
+
+            using var patience = new CancellationTokenSource(Patience);
+            var leaving = Task.WhenAll(frame.Leaving.Select(leave => leave(patience.Token)));
+            await Task.WhenAny(leaving, Task.Delay(Patience, CancellationToken.None));
+            await patience.CancelAsync();
+
+            window.Close();
+        };
     }
 
     private static void Pressed(KeyEventArgs e, Window window, CommandPalette palette, Keymap keymap)
