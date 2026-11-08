@@ -8,11 +8,11 @@ using Overworld.Apps.Crafter.Presentation.Conversations;
 
 namespace Overworld.Apps.Crafter.Desktop.Conversations;
 
-public sealed partial class PaintingStage : UserControl
+public sealed partial class LoanStage : UserControl
 {
     private ConversationViewModel? _shown;
 
-    public PaintingStage() => InitializeComponent();
+    public LoanStage() => InitializeComponent();
 
     protected override void OnDataContextChanged(EventArgs e)
     {
@@ -31,8 +31,6 @@ public sealed partial class PaintingStage : UserControl
         }
     }
 
-    // The page takes the keyboard once clicked, and the composer below may still hold it, where
-    // Esc stops the agent; so Esc is caught on its way down from the window, before either.
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);

@@ -1,15 +1,14 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conversations="using:Overworld.Apps.Crafter.Presentation.Conversations"
-             xmlns:views="using:Overworld.Apps.Painting.Views"
-             x:Class="Overworld.Apps.Crafter.Desktop.Conversations.PaintingStage"
+             x:Class="Overworld.Apps.Crafter.Desktop.Conversations.LoanStage"
              x:DataType="conversations:ConversationViewModel"
              IsVisible="{Binding Spread, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
              Focusable="True">
-  <!-- A painting from the chat spread over the whole conversation; its canvas exists only while it is open. -->
+  <!-- What another app lent the chat, spread over the whole conversation; its view exists only while it is open. -->
   <ContentControl Content="{Binding Spread, FallbackValue={x:Null}}">
     <ContentControl.ContentTemplate>
-      <DataTemplate x:DataType="conversations:PaintingEntry">
+      <DataTemplate x:DataType="conversations:LoanEntry">
         <DockPanel Background="{DynamicResource BackgroundBrush}">
           <Border DockPanel.Dock="Top"
                   Height="{StaticResource HeaderHeight}"
@@ -19,10 +18,10 @@
                   BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
               <Border Padding="8,1" VerticalAlignment="Center" CornerRadius="{StaticResource RadiusPill}" Background="{DynamicResource SelectedBrush}">
-                <TextBlock Text="Painting" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource AccentTextBrush}" />
+                <TextBlock Text="{Binding Loan.Source}" FontSize="{StaticResource FontSizeFootnote}" Foreground="{DynamicResource AccentTextBrush}" />
               </Border>
               <TextBlock Grid.Column="1"
-                         Text="{Binding Title}"
+                         Text="{Binding Loan.Title}"
                          FontSize="{StaticResource FontSizeTitle3}"
                          FontWeight="SemiBold"
                          VerticalAlignment="Center"
@@ -40,7 +39,7 @@
               </Button>
             </Grid>
           </Border>
-          <views:ArtworkCanvas Html="{Binding Html}" />
+          <ContentControl Content="{Binding Loan}" />
         </DockPanel>
       </DataTemplate>
     </ContentControl.ContentTemplate>

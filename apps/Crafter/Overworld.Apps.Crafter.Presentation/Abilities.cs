@@ -4,12 +4,12 @@ using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
-using Overworld.Apps.Crafter.Presentation.Paintings;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
+using Overworld.Bedrock.Lending;
 using Overworld.Bedrock.Operations;
 
 namespace Overworld.Apps.Crafter.Presentation;
@@ -64,7 +64,7 @@ public sealed class Abilities
 
     public required PictureStore Pictures { get; init; }
 
-    public required Gallery Gallery { get; init; }
+    public required IReadOnlyList<ILender> Lenders { get; init; }
 
     public required Workshop Workshop { get; init; }
 

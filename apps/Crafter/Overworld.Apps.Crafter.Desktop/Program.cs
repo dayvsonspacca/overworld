@@ -16,13 +16,16 @@ using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
 using Overworld.Apps.Crafter.Presentation.Gate;
-using Overworld.Apps.Crafter.Presentation.Paintings;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
+using Overworld.Apps.Dye.Palettes;
+using Overworld.Apps.Dye.Presentation.Lending;
+using Overworld.Apps.Dye.Themes;
 using Overworld.Apps.Painting.Artworks;
+using Overworld.Apps.Painting.Presentation.Lending;
 using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
 using Overworld.Bell;
@@ -47,7 +50,10 @@ var skills = new ProjectSkills(shelf, library);
 var pictures = new PictureStore(Path.Combine(data, "pictures"));
 var chats = new ChatStore(Path.Combine(data, "chats"), pictures);
 var artworks = new ArtworkStore(DataDirectory.For("painting"));
-var gallery = new Gallery(Operation.From(new ShowArtworkOp(artworks)));
+var painting = new PaintingLender(Operation.From(new ShowArtworkOp(artworks)));
+var palettes = new PaletteStore(DataDirectory.For("dye"));
+var config = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "overworld");
+var themes = new ThemeStore(Path.Combine(config, "themes"), Path.Combine(config, "theme.json"));
 var paint = Operation.From(new PaintArtworkOp(artworks, new BeaconClient(new RedstoneClient(SocketPath.Resolve())), TimeProvider.System));
 var staff = new StaffFile(allay);
 using var tools = new McpHttpHost(app.Name);
@@ -62,7 +68,18 @@ var showLibrary = Operation.From(new ShowLibraryOp(library));
 var saveSkill = Operation.From(new SaveSkillOp(library));
 var toolbox = new Toolbox(
     tools,
-    [listTodos, showLibrary, Operation.From(new ListChatsOp(chats)), Operation.From(new ReadChatOp(chats)), Operation.From(new ShowPictureOp(pictures)), paint],
+    [
+        listTodos,
+        showLibrary,
+        Operation.From(new ListChatsOp(chats)),
+        Operation.From(new ReadChatOp(chats)),
+        Operation.From(new ShowPictureOp(pictures)),
+        paint,
+        Toolbox.Borrow("dye", Operation.From(new ListPalettesOp(palettes))),
+        Toolbox.Borrow("dye", Operation.From(new ShowPaletteOp(palettes))),
+        Toolbox.Borrow("dye", Operation.From(new ListThemesOp(themes))),
+        Toolbox.Borrow("dye", Operation.From(new ShowThemeOp(themes))),
+    ],
     [addTodo, completeTodo, removeTodo, editProject, giveSkill, saveSkill],
     axioms,
     summaries);
@@ -96,7 +113,7 @@ var abilities = new Abilities
     SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
     Chats = chats,
     Pictures = pictures,
-    Gallery = gallery,
+    Lenders = [painting, new DyeLender()],
     Workshop = workshop,
     Ringer = ringer,
     Attention = attention,
@@ -145,7 +162,7 @@ return await AppHost.RunAsync(
             view.Bind(InputElement.IsEnabledProperty, new Binding(nameof(GateViewModel.IsShut)) { Source = gate, Converter = BoolConverters.Not });
             _ = gate.LoadAsync(CancellationToken.None);
             _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
-            _ = gallery.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
+            _ = painting.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
 
             var shown = new Panel { Children = { view, new GateView { DataContext = gate } } };

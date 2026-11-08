@@ -6,6 +6,5 @@
 
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
-    <ProjectReference Include="../../Painting/Overworld.Apps.Painting/Overworld.Apps.Painting.csproj" />
   </ItemGroup>
 </Project>

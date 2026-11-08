@@ -26,7 +26,8 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             + "save-skill writes one when the user asks to keep a way of working as a skill, and give-skill turns one on or off for the project. "
             + "To show the user a picture, like a screenshot you took, a mockup you rendered or an image you made, call show-picture with its file; it appears in the chat. "
             + "To show the user a page, like a mockup, a chart, a palette's swatches or a table too wide for words, call paint with its HTML and a title; "
-            + "Painting draws it right in the chat, alive. Paint again with the id paint gave to change that same page instead of painting a new one.";
+            + "Painting draws it right in the chat, alive. Paint again with the id paint gave to change that same page instead of painting a new one. "
+            + "Dye keeps the user's color palettes and Overworld's themes: dye-list and dye-themes-list list them, and dye-show shows a palette and dye-themes-show a theme right in the chat, with its colors.";
 
     private const string Naming =
         " Once this chat's subject is clear, give it a short title with rename-chat, a few words like \"Pictures in the conversation\", and rename it when the subject changes.";
@@ -64,6 +65,14 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
     }
 
     public void Release(ToolServer server) => host.Release(server.Token);
+
+    public static Operation Borrow(string app, Operation operation) => new Borrowed($"{app}-{operation.Name}", operation);
+
+    private sealed class Borrowed(string name, Operation operation) : Operation(name, operation.Description, operation.InputType)
+    {
+        public override Task<Result<object?>> ExecuteAsync(object input, CancellationToken cancellationToken) =>
+            operation.ExecuteAsync(input, cancellationToken);
+    }
 
     private sealed class Keeping(Operation write, Action kept) : Operation(write.Name, write.Description, write.InputType)
     {

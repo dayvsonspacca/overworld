@@ -9,8 +9,25 @@
              xmlns:settings="using:Overworld.Apps.Crafter.Desktop.Preferences"
              xmlns:workbench="using:Overworld.Apps.Crafter.Presentation.Workbench"
              xmlns:desktop="using:Overworld.Desktop"
+             xmlns:paintings="using:Overworld.Apps.Painting.Presentation.Lending"
+             xmlns:paintingViews="using:Overworld.Apps.Painting.Views"
+             xmlns:dye="using:Overworld.Apps.Dye.Presentation.Lending"
+             xmlns:dyeViews="using:Overworld.Apps.Dye.Views"
              x:Class="Overworld.Apps.Crafter.Desktop.Workbench.WorkbenchView"
              x:DataType="workbench:WorkbenchViewModel">
+  <!-- What other apps lend Crafter, each drawn by the view of the app that lends it. -->
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="paintings:PaintingLoan">
+      <paintingViews:PaintingLoanView />
+    </DataTemplate>
+    <DataTemplate DataType="dye:PaletteLoan">
+      <dyeViews:PaletteLoanView />
+    </DataTemplate>
+    <DataTemplate DataType="dye:ThemeLoan">
+      <dyeViews:ThemeLoanView />
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
   <UserControl.Styles>
     <!-- A project on the rail: its icon or initial on a rounded tile, the current one marked at the edge. -->
     <Style Selector="Button.project">
@@ -359,7 +376,7 @@
     </Panel>
   </Grid>
 
-  <conversations:PaintingStage DataContext="{Binding Project.Chat.Conversation, FallbackValue={x:Null}}" />
+  <conversations:LoanStage DataContext="{Binding Project.Chat.Conversation, FallbackValue={x:Null}}" />
 
   <Panel IsVisible="{Binding Project.Chat.Conversation.Viewer.IsOpen, FallbackValue=False}">
     <conversations:PictureViewer DataContext="{Binding Project.Chat.Conversation.Viewer, FallbackValue={x:Null}}" />
