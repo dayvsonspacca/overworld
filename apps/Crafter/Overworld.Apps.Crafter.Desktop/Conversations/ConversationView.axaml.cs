@@ -19,11 +19,15 @@ public sealed partial class ConversationView : UserControl
 
     private const double NearTheTop = 400;
 
+    private static readonly TimeSpan Twice = TimeSpan.FromMilliseconds(500);
+
     private ConversationViewModel? _shown;
 
     private bool _settled;
 
     private bool _filling;
+
+    private DateTime _escaped;
 
     public ConversationView()
     {
@@ -109,10 +113,31 @@ public sealed partial class ConversationView : UserControl
 
             e.Handled = true;
         }
-        else if (e.Key == Key.Escape && _shown.IsWorking)
+        else if (e.Key == Key.Escape)
         {
-            _shown.StopCommand.Execute(null);
+            Escaped(_shown);
             e.Handled = true;
+        }
+    }
+
+    private void Escaped(ConversationViewModel shown)
+    {
+        var now = DateTime.UtcNow;
+
+        if (shown.IsWorking)
+        {
+            shown.StopCommand.Execute(null);
+            Composer.CaretIndex = shown.Draft.Length;
+            _escaped = default;
+        }
+        else if (now - _escaped <= Twice)
+        {
+            shown.ClearCommand.Execute(null);
+            _escaped = default;
+        }
+        else
+        {
+            _escaped = now;
         }
     }
 

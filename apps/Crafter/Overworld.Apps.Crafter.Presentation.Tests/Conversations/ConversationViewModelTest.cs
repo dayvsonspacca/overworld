@@ -220,4 +220,43 @@ public sealed class ConversationViewModelTest : IDisposable
         Assert.Equal("/compact", conversation.Draft);
         Assert.Contains("/compact", conversation.Problem, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task BringsBackWhatWasStoppedAheadOfWhatIsBeingTyped()
+    {
+        var (_, conversation) = await ReadyAsync();
+        _bench.Session.Script(new Speech("Long"), new Finished());
+        _bench.Session.Held = new TaskCompletionSource();
+        var picture = new Picture("image/png", [1]);
+        conversation.Draft = "one";
+        conversation.Attach(picture);
+        var talking = conversation.SendCommand.ExecuteAsync(null);
+        conversation.Draft = "two";
+        await conversation.SendCommand.ExecuteAsync(null);
+
+        while (_bench.Session.Heard.Count == 0)
+        {
+            await Task.Delay(10, Bench.Cancellation);
+        }
+
+        conversation.Draft = "three";
+        conversation.StopCommand.Execute(null);
+        await talking.WaitAsync(TimeSpan.FromSeconds(5), Bench.Cancellation);
+
+        Assert.Equal("one\n\ntwo\n\nthree", conversation.Draft);
+        Assert.Equal(picture, Assert.Single(conversation.Attachments).Attachment);
+    }
+
+    [Fact]
+    public async Task ClearsTheMessageBox()
+    {
+        var (_, conversation) = await ReadyAsync();
+        conversation.Draft = "oi";
+        conversation.Attach(new Picture("image/png", [1]));
+
+        conversation.ClearCommand.Execute(null);
+
+        Assert.Equal(string.Empty, conversation.Draft);
+        Assert.False(conversation.HasAttachments);
+    }
 }

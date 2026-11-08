@@ -40,7 +40,9 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
 
-    private readonly Queue<Prompt> _queued = new();
+    private readonly Queue<Sent> _queued = new();
+
+    private Sent? _current;
 
     private Chat? _chat;
 
@@ -229,38 +231,37 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()
     {
-        var asked = Asking.Of(Draft, _folder, [.. _skills.Select(skill => skill.Id)], [.. Attachments.Select(each => each.Attachment)]);
-
-        if (!asked.IsSuccess)
+        if (Ask(Draft, [.. Attachments.Select(each => each.Attachment)]) is not { } sent)
         {
-            Problem = asked.Error.Message;
-
             return;
         }
 
-        var prompt = asked.Value;
+        Clear();
+        await SubmitAsync(sent);
+    }
+
+    [RelayCommand]
+    private void Clear()
+    {
         Problem = null;
         Draft = string.Empty;
         Attachments.Clear();
         Mentions.Close();
-
-        if (IsWorking)
-        {
-            _queued.Enqueue(prompt);
-            Queued = _queued.Count;
-
-            return;
-        }
-
-        await TalkAsync(prompt);
     }
 
     [RelayCommand(CanExecute = nameof(IsWorking))]
     private void Stop()
     {
+        Sent[] dropped = [.. new[] { _current }.OfType<Sent>(), .. _queued];
+        _current = null;
         _queued.Clear();
         Queued = 0;
         _stopping?.Cancel();
+
+        if (!_forgotten)
+        {
+            Restore(dropped.Select(each => each.Draft), dropped.SelectMany(each => each.Attached));
+        }
     }
 
     [RelayCommand]
@@ -279,7 +280,44 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private bool CanSend() => (Draft.Trim().Length > 0 || Attachments.Count > 0) && Agent is not null;
 
-    private async Task TalkAsync(Prompt prompt)
+    private Sent? Ask(string draft, IReadOnlyList<Attachment> attached)
+    {
+        var asked = Asking.Of(draft, _folder, [.. _skills.Select(skill => skill.Id)], attached);
+
+        if (!asked.IsSuccess)
+        {
+            Problem = asked.Error.Message;
+
+            return null;
+        }
+
+        return new Sent(asked.Value, draft, attached);
+    }
+
+    private async Task SubmitAsync(Sent sent)
+    {
+        if (IsWorking)
+        {
+            _queued.Enqueue(sent);
+            Queued = _queued.Count;
+
+            return;
+        }
+
+        await TalkAsync(sent);
+    }
+
+    private void Restore(IEnumerable<string> drafts, IEnumerable<Attachment> attached)
+    {
+        Draft = string.Join("\n\n", drafts.Append(Draft).Select(each => each.Trim()).Where(each => each.Length > 0));
+
+        foreach (var attachment in attached)
+        {
+            Attach(attachment);
+        }
+    }
+
+    private async Task TalkAsync(Sent sent)
     {
         _stopping = new CancellationTokenSource();
         var stopped = _stopping.Token;
@@ -287,8 +325,9 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         try
         {
-            for (var next = prompt; next is not null && !stopped.IsCancellationRequested; next = _queued.TryDequeue(out var queued) ? queued : null)
+            for (var next = sent; next is not null && !stopped.IsCancellationRequested; next = _queued.TryDequeue(out var queued) ? queued : null)
             {
+                _current = next;
                 Queued = _queued.Count;
 
                 if (!await OpenAsync() || stopped.IsCancellationRequested)
@@ -296,14 +335,15 @@ public sealed partial class ConversationViewModel : ObservableObject
                     return;
                 }
 
-                Timeline.Add(next);
-                var reply = _chat!.AskAsync(next, Setup, stopped);
+                Timeline.Add(next.Prompt);
+                var reply = _chat!.AskAsync(next.Prompt, Setup, stopped);
                 Title = _chat.Title.Text;
                 await HearAsync(reply);
             }
         }
         finally
         {
+            _current = null;
             _stopping.Dispose();
             _stopping = null;
             Working(false);
@@ -480,6 +520,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         _rung.Clear();
     }
+
+    private sealed record Sent(Prompt Prompt, string Draft, IReadOnlyList<Attachment> Attached);
 
     private void OnUi(Action act)
     {
