@@ -11,12 +11,12 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
-    <PackageReference Include="Avalonia.Controls.WebView" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Painting/Overworld.Apps.Painting.csproj" />
     <ProjectReference Include="../Overworld.Apps.Painting.Presentation/Overworld.Apps.Painting.Presentation.csproj" />
+    <ProjectReference Include="../Overworld.Apps.Painting.Views/Overworld.Apps.Painting.Views.csproj" />
     <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
   </ItemGroup>
