@@ -30,13 +30,8 @@ public sealed class Ringer(BellClient bell)
         }
     }
 
-    public async Task WithdrawAllAsync(CancellationToken token)
-    {
-        foreach (var notice in _rung.Keys)
-        {
-            await WithdrawAsync(notice, token);
-        }
-    }
+    public Task WithdrawAllAsync(CancellationToken token) =>
+        Task.WhenAll(_rung.Keys.ToList().Select(notice => WithdrawAsync(notice, token)));
 
     public async Task FollowAsync(IAsyncEnumerable<string> signals, CancellationToken token)
     {

@@ -153,6 +153,12 @@ return await AppHost.RunAsync(
 
         var code = DesktopHost.Run(app, frame =>
         {
+            frame.Leaving.Add(async token =>
+            {
+                await ringer.WithdrawAllAsync(token);
+                workshop.CloseAll();
+            });
+
             var workbench = new WorkbenchViewModel(abilities);
             var view = new WorkbenchView { DataContext = workbench };
             Shortcuts.Register(frame, workbench, view);
@@ -180,7 +186,6 @@ return await AppHost.RunAsync(
             return shown;
         }, args);
 
-        ringer.WithdrawAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         workshop.CloseAll();
 
         return Task.FromResult(code);
