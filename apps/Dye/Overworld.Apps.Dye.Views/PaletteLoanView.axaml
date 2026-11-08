@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:desktop="using:Overworld.Desktop"
+             xmlns:lending="using:Overworld.Apps.Dye.Presentation.Lending"
+             xmlns:presentation="using:Overworld.Apps.Dye.Presentation"
+             x:Class="Overworld.Apps.Dye.Views.PaletteLoanView"
+             x:DataType="lending:PaletteLoan">
+  <!-- A palette as Dye's window shows it: a band per color, its hex at the foot in the ink it contrasts with. -->
+  <ItemsControl ItemsSource="{Binding Swatches}">
+    <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+        <UniformGrid Rows="1" />
+      </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+      <DataTemplate x:DataType="presentation:Swatch">
+        <Border Background="{Binding Fill, Converter={x:Static desktop:HexBrushConverter.Instance}}">
+          <Viewbox StretchDirection="DownOnly" VerticalAlignment="Bottom" Margin="10,0,10,18">
+            <TextBlock Text="{Binding Label}"
+                       Foreground="{Binding Ink, Converter={x:Static desktop:HexBrushConverter.Instance}}"
+                       FontSize="{StaticResource FontSizeTitle2}"
+                       FontWeight="SemiBold" />
+          </Viewbox>
+        </Border>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+</UserControl>

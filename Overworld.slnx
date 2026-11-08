@@ -52,6 +52,7 @@
     <Project Path="apps/Dye/Overworld.Apps.Dye.Desktop/Overworld.Apps.Dye.Desktop.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Presentation.Tests/Overworld.Apps.Dye.Presentation.Tests.csproj" />
+    <Project Path="apps/Dye/Overworld.Apps.Dye.Views/Overworld.Apps.Dye.Views.csproj" />
     <Project Path="apps/Dye/Overworld.Apps.Dye.Tests/Overworld.Apps.Dye.Tests.csproj" />
   </Folder>
   <Folder Name="/apps/Painting/">

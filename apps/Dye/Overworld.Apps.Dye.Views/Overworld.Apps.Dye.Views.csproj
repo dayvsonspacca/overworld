@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
+  </ItemGroup>
+</Project>

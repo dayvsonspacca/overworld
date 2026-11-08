@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:desktop="using:Overworld.Desktop"
+             xmlns:lending="using:Overworld.Apps.Dye.Presentation.Lending"
+             xmlns:themes="using:Overworld.Apps.Dye.Presentation.Themes"
+             x:Class="Overworld.Apps.Dye.Views.ThemeLoanView"
+             x:DataType="lending:ThemeLoan">
+  <!-- A theme's colors by role, grouped as Dye's themes page groups them: each a sample and its role's name. -->
+  <ScrollViewer>
+    <ItemsControl ItemsSource="{Binding Groups}" Margin="14,12,14,14">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="12" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="themes:RoleGroup">
+          <StackPanel Spacing="6">
+            <TextBlock Text="{Binding Title}"
+                       FontSize="{StaticResource FontSizeFootnote}"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource SubtleBrush}" />
+            <ItemsControl ItemsSource="{Binding Swatches}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel ItemSpacing="6" LineSpacing="6" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="themes:RoleSwatch">
+                  <Border Padding="3,3,8,3" CornerRadius="{StaticResource RadiusControl}" Background="{DynamicResource SurfaceBrush}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Width="18"
+                              Height="18"
+                              CornerRadius="{StaticResource RadiusSmall}"
+                              BorderThickness="1"
+                              BorderBrush="{DynamicResource EdgeBrush}"
+                              Background="{Binding Hex, Converter={x:Static desktop:HexBrushConverter.Instance}}" />
+                      <TextBlock Text="{Binding Role}"
+                                 VerticalAlignment="Center"
+                                 FontFamily="{DynamicResource MonoFont}"
+                                 FontSize="{StaticResource FontSizeFootnote}"
+                                 Foreground="{DynamicResource TextSoftBrush}" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+</UserControl>
