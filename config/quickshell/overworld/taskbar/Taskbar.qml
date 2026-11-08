@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
@@ -78,6 +79,12 @@ PanelWindow {
         function toggle(): void {
             root.toggleMenu();
         }
+    }
+
+    GlobalShortcut {
+        appid: "overworld"
+        name: "menu"
+        onReleased: root.toggleMenu()
     }
 
     IpcHandler {

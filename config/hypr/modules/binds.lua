@@ -5,7 +5,7 @@ local config = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
 local shell = os.getenv("OVERWORLD_SHELL") or (config .. "/quickshell/overworld")
 local ipc = "qs -p " .. shell .. " ipc call "
 
-hl.bind(mod .. " + Super_L", hl.dsp.exec_cmd(ipc .. "menu toggle"), { release = true })
+hl.bind(mod .. " + Super_L", hl.dsp.global("overworld:menu"), { release = true })
 hl.bind(mod .. " + A",       hl.dsp.exec_cmd(ipc .. "control toggle"))
 hl.bind(mod .. " + L",       hl.dsp.exec_cmd(ipc .. "lock lock"))
 hl.bind("XF86ScreenSaver",   hl.dsp.exec_cmd(ipc .. "lock lock"))
