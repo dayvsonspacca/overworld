@@ -77,6 +77,7 @@ public static class DesktopHost
             }
         };
         window.AddHandler(InputElement.KeyDownEvent, (_, e) => Pressed(e, window, palette, keymap), RoutingStrategies.Bubble);
+        window.AddHandler(InputElement.TextInputEvent, Typed, RoutingStrategies.Tunnel);
         LeaveBeforeClosing(window, frame);
 
         return window;
@@ -122,6 +123,14 @@ public static class DesktopHost
         }
 
         e.Handled = keymap.Handle(e);
+    }
+
+    private static void Typed(object? sender, TextInputEventArgs e)
+    {
+        if (e.Text is { Length: > 0 } text && text.All(char.IsControl))
+        {
+            e.Handled = true;
+        }
     }
 
     private static Bitmap? Icon()
