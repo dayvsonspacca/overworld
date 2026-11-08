@@ -16,16 +16,11 @@ using Avalonia.VisualTree;
 
 namespace Overworld.Desktop.Framing;
 
-// One app's thing shown inside another app: a card naming the app that lends it, the thing's
-// title and a button to expand it, its content on a stage of fixed height below. The content
-// lives only while the frame is seen, so a long list of frames never keeps much alive.
 [TemplatePart("PART_Stage", typeof(ContentPresenter))]
 public sealed class ItemFrame : TemplatedControl
 {
-    // How far out of sight a frame still counts as seen, so it comes alive just before it scrolls in.
     public const double Reach = 240;
 
-    // How far one notch of the wheel scrolls what holds the frame, as far as a scroll viewer scrolls itself.
     private const double Notch = 50;
 
     public static readonly StyledProperty<object?> ItemProperty =
@@ -133,14 +128,12 @@ public sealed class ItemFrame : TemplatedControl
         set => SetValue(ExpandCommandParameterProperty, value);
     }
 
-    // How long a frame stays alive out of sight before letting its content go.
     internal TimeSpan Linger
     {
         get => _lingering.Interval;
         set => _lingering.Interval = value;
     }
 
-    // How long the scrolling pauses before a frame scrolled into sight comes alive, so frames only flicked past never do.
     internal TimeSpan Wake
     {
         get => _waking.Interval;
@@ -214,8 +207,6 @@ public sealed class ItemFrame : TemplatedControl
         {
             _lingering.Stop();
 
-            // Seen where it was first placed, it comes alive at once. Scrolled into sight, it waits
-            // for the scrolling to pause, or, scrolled slowly, for a few moments at most.
             if (first)
             {
                 Show(true);
@@ -235,8 +226,6 @@ public sealed class ItemFrame : TemplatedControl
         {
             _waking.Stop();
 
-            // Scrolled past for a moment, the content stays; only once it has been out of sight
-            // for a while is it let go, so scrolling back and forth doesn't rebuild it each time.
             if (IsSeen && !_lingering.IsEnabled)
             {
                 _lingering.Start();
@@ -244,8 +233,6 @@ public sealed class ItemFrame : TemplatedControl
         }
     }
 
-    // Hidden with what holds it, like a chat put aside, it is out of sight however near it was;
-    // shown again where it was near, it comes alive at once.
     private void Held(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property != IsVisibleProperty)
@@ -269,8 +256,6 @@ public sealed class ItemFrame : TemplatedControl
         }
     }
 
-    // A live page would take the wheel and hold the scrolling of what holds the frame as it passes
-    // under the pointer; the wheel scrolls on past it instead, and the page is scrolled expanded.
     private void Wheeled(object? sender, PointerWheelEventArgs e)
     {
         if (this.FindAncestorOfType<ScrollViewer>() is not { } scroll)
