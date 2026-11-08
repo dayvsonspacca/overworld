@@ -2,10 +2,20 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Seed.Steps;
 
-public sealed class PublishStep(string project, string destination) : IStep
+public sealed class PublishStep(string project, string destination, Fingerprint fingerprint) : IStep
 {
+    public const string Mark = ".fingerprint";
+
     public async Task<Result<string>> RunAsync(CancellationToken cancellationToken)
     {
+        var current = fingerprint.Of(project);
+        var mark = Path.Combine(destination, Mark);
+
+        if (File.Exists(mark) && await File.ReadAllTextAsync(mark, cancellationToken) == current)
+        {
+            return $"kept {Path.GetFileName(project)} in {destination}, unchanged";
+        }
+
         var fresh = destination + ".new";
 
         if (Directory.Exists(fresh))
@@ -17,6 +27,8 @@ public sealed class PublishStep(string project, string destination) : IStep
         {
             return error;
         }
+
+        await File.WriteAllTextAsync(Path.Combine(fresh, Mark), current, cancellationToken);
 
         if (Directory.Exists(destination))
         {
