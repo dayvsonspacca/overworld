@@ -16,6 +16,7 @@
     "Build the basics every desktop app has (keyboard shortcuts, text selection, copying) once in Overworld.Desktop for all apps; never add them app by app.",
     "Write operations (their input records and Op classes) without showing them for review",
     "Write AXAML views and view models without showing them for review",
-    "Paint the design of each new UI component in Painting (overworld:painting paint) for review before building it."
+    "Paint the design of each new UI component in Painting (overworld:painting paint) for review before building it.",
+    "Never write comments in C# code"
   ]
 }
