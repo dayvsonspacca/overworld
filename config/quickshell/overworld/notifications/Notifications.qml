@@ -13,6 +13,7 @@ Singleton {
     property var arrivals: ({})
     readonly property var all: [...server.trackedNotifications.values].reverse()
     readonly property int count: server.trackedNotifications.values.length
+    readonly property string logo: Qt.resolvedUrl("../brand/grass.png").toString()
 
     function hide(n: Notification): void {
         popups = popups.filter(p => p !== n);
@@ -46,6 +47,8 @@ Singleton {
     }
 
     function icon(n: Notification): string {
+        if (n.appName === "Overworld")
+            return logo;
         const name = n.appIcon || app(n)?.icon || "";
         if (name.startsWith("file://"))
             return name;
