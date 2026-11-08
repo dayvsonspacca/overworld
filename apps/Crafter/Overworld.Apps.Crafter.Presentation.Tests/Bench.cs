@@ -8,12 +8,14 @@ using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation.Chats;
+using Overworld.Apps.Crafter.Presentation.Paintings;
 using Overworld.Apps.Crafter.Presentation.Tests.Fakes;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
+using Overworld.Apps.Painting.Artworks;
 using Overworld.Bedrock.Operations;
 using Overworld.Bell;
 using Overworld.Mcp;
@@ -39,6 +41,8 @@ public sealed class Bench : IDisposable
         var book = new AxiomBook(shelf, settings);
         var skills = new ProjectSkills(shelf, new SkillLibrary(new PreferencesStore(data, _root), new Mirror(PathTo("data", "library"))));
         Pictures = new PictureStore(PathTo("data", "pictures"));
+        Artworks = new ArtworkStore(PathTo("painting"));
+        Gallery = new Gallery(Operation.From(new ShowArtworkOp(Artworks)));
         Chats = new ChatStore(PathTo("data", "chats"), Pictures);
         Agent = new ScriptedAgent(Session);
         Crew = new Crew([Agent], new StaffFile(PathTo("allay")));
@@ -73,6 +77,7 @@ public sealed class Bench : IDisposable
             SetProjectsRoot = Operation.From(new SetProjectsRootOp(preferences)),
             Chats = Chats,
             Pictures = Pictures,
+            Gallery = Gallery,
             Workshop = Workshop,
             Ringer = new Ringer(new BellClient(new RedstoneClient(PathTo("overworld.sock")))),
             Attention = new Attention(),
@@ -94,6 +99,10 @@ public sealed class Bench : IDisposable
     public ChatStore Chats { get; }
 
     public PictureStore Pictures { get; }
+
+    public ArtworkStore Artworks { get; }
+
+    public Gallery Gallery { get; }
 
     public Operation<AddProject, Project> AddProject { get; }
 

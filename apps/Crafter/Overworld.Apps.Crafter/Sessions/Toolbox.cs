@@ -24,7 +24,9 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             + "Rename or give the project an icon with edit-project when the user asks. "
             + "Crafter keeps a library of skills: show-library lists them with the folder of each, whose instructions.md holds the skill; "
             + "save-skill writes one when the user asks to keep a way of working as a skill, and give-skill turns one on or off for the project. "
-            + "To show the user a picture, like a screenshot you took, a mockup you rendered or an image you made, call show-picture with its file; it appears in the chat.";
+            + "To show the user a picture, like a screenshot you took, a mockup you rendered or an image you made, call show-picture with its file; it appears in the chat. "
+            + "To show the user a page, like a mockup, a chart, a palette's swatches or a table too wide for words, call paint with its HTML and a title; "
+            + "Painting draws it right in the chat, alive. Paint again with the id paint gave to change that same page instead of painting a new one.";
 
     private const string Naming =
         " Once this chat's subject is clear, give it a short title with rename-chat, a few words like \"Pictures in the conversation\", and rename it when the subject changes.";

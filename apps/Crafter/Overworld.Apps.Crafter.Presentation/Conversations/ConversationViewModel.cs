@@ -60,7 +60,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             OnPropertyChanged(nameof(HasAttachments));
             SendCommand.NotifyCanExecuteChanged();
         };
-        Timeline = new Timeline(Decide, abilities.Pictures.Find);
+        Timeline = new Timeline(Decide, abilities.Pictures.Find, abilities.Gallery);
         Viewer = new ViewerViewModel(picture => abilities.Pictures.Keep(picture) is { } kept ? abilities.Pictures.PathTo(kept) : null);
         Title = record.Title.Text;
 
@@ -96,6 +96,10 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string Title { get; private set; }
+
+    // The painting opened to fill the conversation, over everything else, until it is closed.
+    [ObservableProperty]
+    public partial PaintingEntry? Spread { get; private set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SendCommand))]
@@ -216,6 +220,12 @@ public sealed partial class ConversationViewModel : ObservableObject
                 }),
             ],
             picture);
+
+    [RelayCommand]
+    private void ExpandPainting(PaintingEntry painting) => Spread = painting;
+
+    [RelayCommand]
+    private void CloseSpread() => Spread = null;
 
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()

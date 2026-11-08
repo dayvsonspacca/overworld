@@ -5,6 +5,8 @@
              xmlns:imaging="using:Overworld.Apps.Crafter.Desktop.Imaging"
              xmlns:local="using:Overworld.Apps.Crafter.Desktop.Conversations"
              xmlns:text="using:Overworld.Desktop.Text"
+             xmlns:framing="using:Overworld.Desktop.Framing"
+             xmlns:views="using:Overworld.Apps.Painting.Views"
              x:Class="Overworld.Apps.Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationViewModel">
   <UserControl.Resources>
@@ -324,6 +326,19 @@
             </StackPanel>
           </Button>
         </StackPanel>
+      </local:TimelineNode>
+    </DataTemplate>
+
+    <!-- A painting the agent painted, lent by Painting: alive while seen, expandable over the conversation. -->
+    <DataTemplate DataType="conversations:PaintingEntry">
+      <local:TimelineNode Glyph="▧">
+        <framing:ItemFrame Source="Painting"
+                           Title="{Binding Title}"
+                           IsSeen="{Binding IsLive}"
+                           ExpandCommand="{Binding $parent[local:ConversationView].((conversations:ConversationViewModel)DataContext).ExpandPaintingCommand}"
+                           ExpandCommandParameter="{Binding}">
+          <views:ArtworkCanvas Html="{Binding Html}" />
+        </framing:ItemFrame>
       </local:TimelineNode>
     </DataTemplate>
 

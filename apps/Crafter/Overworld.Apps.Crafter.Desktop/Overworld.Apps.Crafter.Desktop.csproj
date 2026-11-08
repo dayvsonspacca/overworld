@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
     <ProjectReference Include="../Overworld.Apps.Crafter.Presentation/Overworld.Apps.Crafter.Presentation.csproj" />
+    <ProjectReference Include="../../Painting/Overworld.Apps.Painting.Views/Overworld.Apps.Painting.Views.csproj" />
     <ProjectReference Include="../../../src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
     <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />

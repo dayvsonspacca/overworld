@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Text.Json;
 using Overworld.Allay.Conversations;
+using Overworld.Apps.Crafter.Presentation.Paintings;
+using Overworld.Apps.Painting.Artworks;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
@@ -17,12 +19,18 @@ public sealed class Timeline
 
     private readonly Func<string, Picture?> _find;
 
+    private readonly Gallery? _gallery;
+
+    // The paintings already framed: one painted again by its id redraws in its frame, not in a new one.
+    private readonly HashSet<Guid> _framed = [];
+
     private PlanEntry? _plan;
 
-    public Timeline(Action<string, Decision>? decide = null, Func<string, Picture?>? find = null)
+    public Timeline(Action<string, Decision>? decide = null, Func<string, Picture?>? find = null, Gallery? gallery = null)
     {
         _decide = decide ?? ((_, _) => { });
         _find = find ?? (_ => null);
+        _gallery = gallery;
         Entries.CollectionChanged += Follow;
     }
 
@@ -122,7 +130,7 @@ public sealed class Timeline
                 break;
             case ActResult result when _acts.TryGetValue(result.Id, out var done):
                 done.Settle(result);
-                Picture(done, result);
+                Show(done, result);
                 break;
             case Permission permission:
                 Ask(new PermissionEntry(permission, _decide));
@@ -142,9 +150,11 @@ public sealed class Timeline
         }
     }
 
-    private void Picture(ActEntry act, ActResult result)
+    // What an act brought back to be seen right under it: a picture shown in the chat, or a
+    // painting, painted by Crafter's tool or by Painting's own command.
+    private void Show(ActEntry act, ActResult result)
     {
-        if (act.Kind != ActKind.Tool || !result.Succeeded || !result.Output.TrimStart().StartsWith('{'))
+        if (!result.Succeeded || !result.Output.TrimStart().StartsWith('{'))
         {
             return;
         }
@@ -154,19 +164,50 @@ public sealed class Timeline
             using var said = JsonDocument.Parse(result.Output);
             var root = said.RootElement;
 
-            if (root.ValueKind == JsonValueKind.Object
-                && root.TryGetProperty("shownPicture", out var name) && name.GetString() is { } kept
-                && _find(kept) is { } picture)
+            if (root.ValueKind != JsonValueKind.Object)
             {
-                var file = root.TryGetProperty("file", out var named) ? named.GetString() ?? kept : kept;
-                var caption = root.TryGetProperty("caption", out var told) ? told.GetString() : null;
-                Entries.Insert(Entries.IndexOf(act) + 1, new PictureEntry(new PictureView(picture, caption ?? file), file, caption));
+                return;
+            }
+
+            if ((Picture(act, root) as Entry ?? Painting(root)) is { } shown)
+            {
+                if (shown is PaintingEntry framed)
+                {
+                    _framed.Add(framed.Id);
+                }
+
+                Entries.Insert(Entries.IndexOf(act) + 1, shown);
             }
         }
         catch (JsonException)
         {
         }
     }
+
+    private PictureEntry? Picture(ActEntry act, JsonElement root)
+    {
+        if (act.Kind != ActKind.Tool
+            || !root.TryGetProperty("shownPicture", out var name) || name.GetString() is not { } kept
+            || _find(kept) is not { } picture)
+        {
+            return null;
+        }
+
+        var file = root.TryGetProperty("file", out var named) ? named.GetString() ?? kept : kept;
+        var caption = root.TryGetProperty("caption", out var told) ? told.GetString() : null;
+
+        return new PictureEntry(new PictureView(picture, caption ?? file), file, caption);
+    }
+
+    private PaintingEntry? Painting(JsonElement root) =>
+        _gallery is not null
+            && root.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String && id.TryGetGuid(out var painting)
+            && !_framed.Contains(painting)
+            && root.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String
+            && root.TryGetProperty("html", out var html) && html.ValueKind == JsonValueKind.String
+            && root.TryGetProperty("painted", out var painted) && painted.ValueKind == JsonValueKind.String && painted.TryGetDateTimeOffset(out var when)
+                ? new PaintingEntry(new Artwork(painting, title.GetString()!, html.GetString()!, when), _gallery)
+                : null;
 
     private void Follow(object? sender, NotifyCollectionChangedEventArgs change)
     {

@@ -359,6 +359,8 @@
     </Panel>
   </Grid>
 
+  <conversations:PaintingStage DataContext="{Binding Project.Chat.Conversation, FallbackValue={x:Null}}" />
+
   <Panel IsVisible="{Binding Project.Chat.Conversation.Viewer.IsOpen, FallbackValue=False}">
     <conversations:PictureViewer DataContext="{Binding Project.Chat.Conversation.Viewer, FallbackValue={x:Null}}" />
   </Panel>
