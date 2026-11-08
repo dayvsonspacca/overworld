@@ -15,6 +15,7 @@
         <ResourceInclude Source="/Themes/Modal.axaml" />
         <ResourceInclude Source="/Themes/StatusBar.axaml" />
         <ResourceInclude Source="/Themes/CommandPalette.axaml" />
+        <ResourceInclude Source="/Themes/ItemFrame.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceInclude x:Key="{x:Static desktop:OverworldApplication.Dark}" Source="/Themes/Fluent.axaml" />
