@@ -19,6 +19,10 @@ Rectangle {
         input.clear();
     }
 
+    function takeFocus(): void {
+        input.forceActiveFocus();
+    }
+
     implicitHeight: Theme.searchHeight
     radius: height / 2
     color: Theme.accent

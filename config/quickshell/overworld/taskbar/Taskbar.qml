@@ -16,14 +16,20 @@ PanelWindow {
     property string requestedPage: "general"
 
     function dismiss(): void {
-        menu.active = false;
+        menu.visible = false;
         control.active = false;
         preview.hide();
         tasks.close();
     }
 
+    function toggleMenu(): void {
+        control.active = false;
+        tasks.close();
+        menu.visible = !menu.visible;
+    }
+
     function openControl(page: string): void {
-        menu.active = false;
+        menu.visible = false;
         preview.hide();
         tasks.close();
 
@@ -48,13 +54,12 @@ PanelWindow {
         bottom: true
     }
 
-    LazyLoader {
+    StartMenu {
         id: menu
 
-        StartMenu {
-            bar: root
-            onDismissed: menu.active = false
-        }
+        bar: root
+        visible: false
+        onDismissed: menu.visible = false
     }
 
     LazyLoader {
@@ -71,9 +76,7 @@ PanelWindow {
         target: "menu"
 
         function toggle(): void {
-            control.active = false;
-            tasks.close();
-            menu.active = !menu.active;
+            root.toggleMenu();
         }
     }
 
@@ -130,12 +133,10 @@ PanelWindow {
         spacing: Theme.tileSpacing
 
         StartButton {
-            active: menu.active
+            active: menu.visible
             onClicked: {
                 preview.hide();
-                tasks.close();
-                control.active = false;
-                menu.active = !menu.active;
+                root.toggleMenu();
             }
         }
 
@@ -161,7 +162,7 @@ PanelWindow {
                     tasks.open(button);
                 }
                 onHoveredChanged: {
-                    if (hovered && !menu.active && !control.active && !tasks.visible)
+                    if (hovered && !menu.visible && !control.active && !tasks.visible)
                         preview.show(button);
                     else
                         preview.leave();

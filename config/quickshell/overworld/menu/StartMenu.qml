@@ -14,6 +14,13 @@ PanelWindow {
 
     signal dismissed
 
+    function reset(): void {
+        search.clear();
+        inspecting = false;
+        footer.powerOpen = false;
+        list.positionViewAtBeginning();
+    }
+
     function launch(entry: DesktopEntry): void {
         entry.execute();
         dismissed();
@@ -27,6 +34,13 @@ PanelWindow {
     WlrLayershell.namespace: "overworld:menu"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
+    onVisibleChanged: {
+        if (visible)
+            search.takeFocus();
+        else
+            reset();
+    }
+
     anchors {
         left: true
         bottom: true
@@ -38,7 +52,7 @@ PanelWindow {
     }
 
     HyprlandFocusGrab {
-        active: true
+        active: root.visible
         windows: [root, root.bar]
         onCleared: root.dismissed()
     }
