@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Content Include="../../apps/Allay/icon.png" Link="wwwroot/kit/allay.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Kit/**" Link="wwwroot/kit/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Overworld.Web.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Overworld.Beacon/Overworld.Beacon.csproj" />
+    <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
+    <ProjectReference Include="../Overworld.Redstone/Overworld.Redstone.csproj" />
+  </ItemGroup>
+</Project>

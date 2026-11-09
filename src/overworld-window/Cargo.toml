@@ -1,0 +1,17 @@
+[package]
+name = "overworld-window"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+tauri = { version = "2", features = ["image-png"] }
+gtk = "0.18"
+tauri-plugin-dialog = "2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[profile.release]
+strip = true
+lto = "thin"
