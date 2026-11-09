@@ -11,10 +11,13 @@ public sealed class Conversation
 
     private readonly List<Turn> _turns;
 
-    public Conversation(ISession session, IEnumerable<Turn> history)
+    private readonly TimeProvider _clock;
+
+    public Conversation(ISession session, IEnumerable<Turn> history, TimeProvider? clock = null)
     {
         Session = session;
         _turns = [.. history];
+        _clock = clock ?? TimeProvider.System;
         session.Woke += (_, moments) => Woke?.Invoke(this, Recorded(moments));
     }
 
@@ -48,13 +51,14 @@ public sealed class Conversation
         List<Moment> kept = [];
         var flowing = new StringBuilder();
         Moment? flow = null;
+        var since = DateTimeOffset.MinValue;
         Outcome? outcome = null;
 
         void Settle()
         {
             if (flow is not null)
             {
-                kept.Add(flow is Speech ? new Speech(flowing.ToString()) : new Thought(flowing.ToString()));
+                kept.Add(flow is Speech ? new Speech(flowing.ToString()) : new Thought(flowing.ToString(), _clock.GetUtcNow() - since));
                 flowing.Clear();
                 flow = null;
             }
@@ -65,6 +69,11 @@ public sealed class Conversation
             if (flow is not null && flow.GetType() != kind.GetType())
             {
                 Settle();
+            }
+
+            if (flow is null && kind is Thought)
+            {
+                since = _clock.GetUtcNow();
             }
 
             flow = kind;

@@ -22,13 +22,24 @@ public sealed class Timeline
 
     private readonly HashSet<string> _lent = [];
 
+    private readonly TimeProvider _clock;
+
     private PlanEntry? _plan;
 
-    public Timeline(Action<string, Decision>? decide = null, Func<string, Picture?>? find = null, IReadOnlyList<ILender>? lenders = null)
+    private ThoughtEntry? _thinking;
+
+    private DateTimeOffset _since;
+
+    public Timeline(
+        Action<string, Decision>? decide = null,
+        Func<string, Picture?>? find = null,
+        IReadOnlyList<ILender>? lenders = null,
+        TimeProvider? clock = null)
     {
         _decide = decide ?? ((_, _) => { });
         _find = find ?? (_ => null);
         _lenders = lenders ?? [];
+        _clock = clock ?? TimeProvider.System;
         Entries.CollectionChanged += Follow;
     }
 
@@ -86,7 +97,14 @@ public sealed class Timeline
             case Reply reply:
                 foreach (var moment in reply.Moments)
                 {
-                    Add(moment);
+                    if (moment is Thought thought)
+                    {
+                        Entries.Add(new ThoughtEntry(thought.Text, thought.Took));
+                    }
+                    else
+                    {
+                        Add(moment);
+                    }
                 }
 
                 Add(reply.Outcome);
@@ -96,6 +114,7 @@ public sealed class Timeline
 
     public void Add(Prompt prompt)
     {
+        DoneThinking();
         _plan = null;
         _acts.Clear();
         _requests.Clear();
@@ -116,13 +135,23 @@ public sealed class Timeline
 
     public void Add(Moment moment)
     {
+        if (moment is not Thought)
+        {
+            DoneThinking();
+        }
+
         switch (moment)
         {
             case Speech speech:
                 Flow(speech.Text, text => new SpeechEntry(text));
                 break;
+            case Thought thought when _thinking is not null:
+                _thinking.Append(thought.Text);
+                break;
             case Thought thought:
-                Flow(thought.Text, text => new ThoughtEntry(text));
+                _thinking = ThoughtEntry.Thinking(thought.Text);
+                _since = _clock.GetUtcNow();
+                Entries.Add(_thinking);
                 break;
             case Plan plan when _plan is not null:
                 _plan.Steps = plan.Steps;
@@ -233,6 +262,12 @@ public sealed class Timeline
         {
             ShowLatest();
         }
+    }
+
+    private void DoneThinking()
+    {
+        _thinking?.Finish(_clock.GetUtcNow() - _since);
+        _thinking = null;
     }
 
     private void Ask(RequestEntry request)

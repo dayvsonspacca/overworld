@@ -343,11 +343,18 @@
 
     <DataTemplate DataType="conversations:ThoughtEntry">
       <local:TimelineNode Glyph="…">
-        <text:SelectableText Text="{Binding Text}"
-                             TextWrapping="Wrap"
-                             FontStyle="Italic"
-                             LineHeight="20"
-                             Foreground="{DynamicResource SubtleBrush}" />
+        <StackPanel Spacing="2">
+          <TextBlock Text="{Binding Heading}"
+                     Margin="0,1,0,0"
+                     FontSize="{StaticResource FontSizeFootnote}"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource FaintBrush}" />
+          <text:SelectableText Text="{Binding Text}"
+                               TextWrapping="Wrap"
+                               FontStyle="Italic"
+                               LineHeight="20"
+                               Foreground="{DynamicResource SubtleBrush}" />
+        </StackPanel>
       </local:TimelineNode>
     </DataTemplate>
 

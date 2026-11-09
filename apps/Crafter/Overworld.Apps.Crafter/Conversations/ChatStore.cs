@@ -147,7 +147,7 @@ public sealed class ChatStore(string directory, PictureStore pictures)
     private static Moment? Moment(StepEntry step) => step switch
     {
         { Kind: "wrote", Text: { } text } => new Speech(text),
-        { Kind: "thought", Text: { } text } => new Thought(text),
+        { Kind: "thought", Text: { } text } => new Thought(text, step.Seconds is { } seconds ? TimeSpan.FromSeconds(seconds) : null),
         { Kind: "plan", Plan: { } plan } => new Plan([.. plan.Select(item => new PlanStep(item.Text, Enum.TryParse<StepState>(item.State, ignoreCase: true, out var state) ? state : StepState.Pending))]),
         { Kind: "acting", Id: { } id, Tool: { } tool } => Acting(id, tool, step),
         { Kind: "acted", Id: { } id } => new ActResult(id, step.Failed != true, step.Text ?? string.Empty),
@@ -203,7 +203,7 @@ public sealed class ChatStore(string directory, PictureStore pictures)
     private static StepEntry? Step(Moment moment) => moment switch
     {
         Speech speech => new StepEntry("wrote", Text: speech.Text),
-        Thought thought => new StepEntry("thought", Text: thought.Text),
+        Thought thought => new StepEntry("thought", Text: thought.Text, Seconds: thought.Took is { } took ? Math.Round(took.TotalSeconds, 1) : null),
         Plan plan => new StepEntry("plan", Plan: [.. plan.Steps.Select(step => new PlanItemEntry(step.Text, step.State.ToString().ToLowerInvariant()))]),
         Act act => Acting(act),
         ActResult result => new StepEntry("acted", Id: result.Id, Text: result.Output, Failed: result.Succeeded ? null : true),

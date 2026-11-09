@@ -56,7 +56,7 @@ public sealed class ChatStoreTest : IDisposable
                 Ask("Run the tests"),
                 new Reply(
                     [
-                        new Thought("They live under tests/."),
+                        new Thought("They live under tests/.", TimeSpan.FromSeconds(4.2)),
                         new Plan([new PlanStep("Run them", StepState.Doing), new PlanStep("Fix them", StepState.Pending)]),
                         new Speech("Running them."),
                         new Act("t-1", ActKind.Command, "dotnet test"),

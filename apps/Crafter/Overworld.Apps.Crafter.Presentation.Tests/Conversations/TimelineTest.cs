@@ -1,6 +1,7 @@
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Presentation.Conversations;
 using Overworld.Apps.Crafter.Presentation.Markdown;
+using Overworld.Apps.Crafter.Presentation.Tests.Fakes;
 
 namespace Overworld.Apps.Crafter.Presentation.Tests.Conversations;
 
@@ -112,6 +113,34 @@ public sealed class TimelineTest
         var speech = Assert.IsType<SpeechEntry>(_timeline.Entries[1]);
         Assert.Equal("Hello **there**", speech.Text);
         Assert.Contains(Assert.IsType<Paragraph>(Assert.Single(speech.Blocks)).Fragments, fragment => fragment is { Text: "there", Look: Look.Bold });
+    }
+
+    [Fact]
+    public void TellsHowLongTheAgentThoughtOnceItMovesOn()
+    {
+        var clock = new Clock();
+        var timeline = new Timeline(clock: clock);
+
+        timeline.Add(new Thought("Look"));
+        clock.Now += TimeSpan.FromSeconds(4);
+        timeline.Add(new Thought("ing."));
+        var thought = Assert.IsType<ThoughtEntry>(timeline.Entries[0]);
+        Assert.Equal("Thinking…", thought.Heading);
+
+        clock.Now += TimeSpan.FromSeconds(8);
+        timeline.Add(new Speech("Found it."));
+
+        Assert.Equal("Looking.", thought.Text);
+        Assert.Equal("Thought for 12s", thought.Heading);
+    }
+
+    [Fact]
+    public void ReadsBackHowLongTheAgentThought()
+    {
+        _timeline.Add(new Reply([new Thought("Hm.", TimeSpan.FromSeconds(75)), new Thought("Old.")], new Finished()));
+
+        Assert.Equal("Thought for 1m 15s", Assert.IsType<ThoughtEntry>(_timeline.Entries[0]).Heading);
+        Assert.Equal("Thought", Assert.IsType<ThoughtEntry>(_timeline.Entries[1]).Heading);
     }
 
     [Fact]

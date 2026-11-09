@@ -55,12 +55,13 @@ public sealed class RecordingTest
                 new Plan([new PlanStep("Run", StepState.Done)]),
                 new Finished(),
             ]),
-            []);
+            [],
+            new Ticking(TimeSpan.FromSeconds(3)));
 
         await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(
-            new Reply([new Thought("Look first."), new Speech("Ok."), new Plan([new PlanStep("Run", StepState.Done)])], new Finished()),
+            new Reply([new Thought("Look first.", TimeSpan.FromSeconds(3)), new Speech("Ok."), new Plan([new PlanStep("Run", StepState.Done)])], new Finished()),
             conversation.Turns[^1]);
     }
 
