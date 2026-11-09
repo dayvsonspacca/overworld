@@ -3,13 +3,11 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pam
-import Quickshell.Wayland
 import QtQuick
 
 Singleton {
     id: root
 
-    readonly property int idleTimeout: 300
     readonly property int transition: 400
     readonly property string user: Quickshell.env("USER") ?? ""
     readonly property string runtime: Quickshell.env("XDG_RUNTIME_DIR") ?? ""
@@ -104,16 +102,6 @@ Singleton {
             }
         }
         onError: root.error = "Couldn't check the password."
-    }
-
-    IdleMonitor {
-        enabled: !root.locked
-        timeout: root.idleTimeout
-        respectInhibitors: true
-        onIsIdleChanged: {
-            if (isIdle)
-                root.lock();
-        }
     }
 
     FileView {
