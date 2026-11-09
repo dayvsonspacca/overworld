@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -27,6 +26,8 @@ public sealed partial class ConversationView : UserControl
 
     private bool _filling;
 
+    private bool _following = true;
+
     private DateTime _escaped;
 
     public ConversationView()
@@ -50,24 +51,19 @@ public sealed partial class ConversationView : UserControl
     {
         base.OnDataContextChanged(e);
 
-        if (_shown is not null)
-        {
-            _shown.Timeline.Entries.CollectionChanged -= Grew;
-            _shown.Mentions.Close();
-        }
-
+        _shown?.Mentions.Close();
         _shown = DataContext as ConversationViewModel;
         _settled = false;
 
         if (_shown is not null)
         {
-            _shown.Timeline.Entries.CollectionChanged += Grew;
             Dispatcher.UIThread.Post(Settle, DispatcherPriority.Background);
         }
     }
 
     private void Settle()
     {
+        _following = true;
         Page.ScrollToEnd();
         _settled = true;
         Scrolled(null, null);
@@ -279,6 +275,17 @@ public sealed partial class ConversationView : UserControl
             return;
         }
 
+        if (e?.OffsetDelta.Y is not (null or 0))
+        {
+            _following = AtTheEnd();
+        }
+        else if (_following && (e?.ExtentDelta.Y is not (null or 0) || e?.ViewportDelta.Y is not (null or 0)))
+        {
+            Page.ScrollToEnd();
+
+            return;
+        }
+
         _filling = true;
 
         try
@@ -324,12 +331,4 @@ public sealed partial class ConversationView : UserControl
     }
 
     private bool AtTheEnd() => Page.Offset.Y >= Page.Extent.Height - Page.Viewport.Height - NearTheEnd;
-
-    private void Grew(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (AtTheEnd())
-        {
-            Dispatcher.UIThread.Post(Page.ScrollToEnd, DispatcherPriority.Background);
-        }
-    }
 }
