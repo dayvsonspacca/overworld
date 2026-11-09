@@ -40,6 +40,8 @@ IReadOnlyList<IStep> Plan(Install install) =>
     new ThemeStep(root.PathTo("config", "overworld", "themes"), install.Theme, Path.Combine(config, "overworld", "theme.json")),
     new PublishStep(root.PathTo("src", "Overworld.Daemon"), daemon, fingerprint),
     new LinkStep(Path.Combine(daemon, "overworld"), Path.Combine(bin, "overworld")),
+    new WindowStep(root.PathTo("src", "overworld-window"), Path.Combine(share, "overworld", "window")),
+    new LinkStep(Path.Combine(share, "overworld", "window", WindowStep.Binary), Path.Combine(bin, WindowStep.Binary)),
     new PublishStep(root.PathTo("apps", "Dye", "Overworld.Apps.Dye.Desktop"), Path.Combine(apps, "dye"), fingerprint),
     new DesktopEntryStep("dye", root.PathTo("apps", "Dye"), apps, Path.Combine(share, "applications")),
     new LinkStep(Path.Combine(apps, "dye", "dye"), Path.Combine(bin, "overworld:dye")),

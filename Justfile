@@ -1,5 +1,6 @@
 build:
     dotnet build
+    cargo build --release --manifest-path src/overworld-window/Cargo.toml
 
 test:
     dotnet test

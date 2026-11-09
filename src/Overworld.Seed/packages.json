@@ -3,6 +3,7 @@
     "base-devel",
     "git",
     "dotnet-sdk",
+    "rust",
     "just",
     "hyprland",
     "xdg-desktop-portal-hyprland",
