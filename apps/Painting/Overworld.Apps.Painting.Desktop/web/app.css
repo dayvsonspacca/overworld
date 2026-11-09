@@ -1,0 +1,2 @@
+.canvas { flex: 1; border: 0; width: 100%; background: white; }
+.problem { color: var(--danger); max-width: 480px; text-align: center; }

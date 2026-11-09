@@ -1,4 +1,3 @@
-using Overworld.Apps.Dye.Desktop;
 using Overworld.Apps.Dye.Palettes;
 using Overworld.Apps.Dye.Profiles;
 using Overworld.Apps.Dye.Presentation;
@@ -9,9 +8,9 @@ using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
-using Overworld.Desktop;
 using Overworld.Hosting;
 using Overworld.Redstone;
+using Overworld.Web;
 
 var app = new AppIdentity("dye");
 var store = new PaletteStore(DataDirectory.For(app.Name));
@@ -45,7 +44,7 @@ return await AppHost.RunAsync(
         removePicture,
     ],
     args,
-    withoutArgs: () => Task.FromResult(DesktopHost.Run(app, frame =>
+    withoutArgs: () => Task.FromResult(WebHost.Run(app, page =>
     {
         var dye = new DyeViewModel(
             new PalettesViewModel(list, save),
@@ -54,11 +53,20 @@ return await AppHost.RunAsync(
         _ = dye.LoadAsync(CancellationToken.None);
         _ = FollowAsync(dye);
 
-        var view = new DyeView { DataContext = dye };
-        DyeView.Dress(frame, dye);
+        page.Mirror.Ignore<ThemeLook>(nameof(ThemeLook.Theme));
+        page.Handle("picture", async picked =>
+        {
+            if (picked?["data"]?.GetValue<string>() is { Length: > 0 } data)
+            {
+                var file = Path.Combine(Path.GetTempPath(), $"overworld-picture{Path.GetExtension(picked["name"]?.GetValue<string>() ?? ".png")}");
+                await File.WriteAllBytesAsync(file, Convert.FromBase64String(data));
+                await dye.Profile.SetPictureAsync(file, CancellationToken.None);
+            }
 
-        return view;
-    }, args)));
+            return null;
+        });
+        page.Show(dye);
+    })));
 
 static async Task FollowAsync(DyeViewModel dye)
 {

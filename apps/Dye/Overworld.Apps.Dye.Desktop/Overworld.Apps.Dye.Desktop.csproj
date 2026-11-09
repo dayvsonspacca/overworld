@@ -2,21 +2,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>dye</AssemblyName>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="../icon.png" Link="icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Avalonia" />
+    <Content Include="../icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../icon.png" Link="wwwroot/app/icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="web/**" Link="wwwroot/app/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
     <ProjectReference Include="../Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
-    <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Web/Overworld.Web.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
   </ItemGroup>
 </Project>

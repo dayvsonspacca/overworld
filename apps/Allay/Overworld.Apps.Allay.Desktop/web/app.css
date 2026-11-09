@@ -1,0 +1,31 @@
+.main { flex: 1; display: flex; min-height: 0; }
+.page { flex: 1; overflow-y: auto; background: var(--background); }
+.agent { max-width: 640px; margin: 24px 32px; display: flex; flex-direction: column; gap: 22px; }
+.agent-head { display: flex; align-items: center; gap: 14px; }
+.agent-head h1 { margin: 0; font-size: var(--fs-title1); font-weight: 600; }
+.agent-head .who { flex: 1; }
+.hint { font-size: var(--fs-callout); color: var(--subtle); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-text); flex: none; }
+.dot.ready { background: var(--added); }
+.dot.blocked { background: var(--danger); }
+.pill { height: 22px; padding: 0 9px; border-radius: var(--r-pill); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-callout); color: var(--text-soft); }
+.pill.ready { color: var(--added); }
+.pill.blocked { color: var(--danger); }
+.standing { display: flex; align-items: center; gap: 10px; }
+.detail { font-family: var(--mono); font-size: var(--fs-footnote); color: var(--subtle); }
+.remedy { padding: 12px; border-radius: var(--r-control); border: 1px solid var(--danger); background: var(--raised); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; color: var(--text-soft); }
+.command { padding: 7px 10px; border-radius: var(--r-control); border: 1px solid var(--divider); background: var(--background); font-family: var(--mono); font-size: var(--fs-callout); white-space: pre-wrap; user-select: text; align-self: stretch; }
+.card { display: flex; flex-direction: column; gap: 14px; }
+.card-head { display: flex; align-items: center; gap: 10px; }
+.card-head .group-label { flex: 1; }
+.limit { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.limit .meter, .limit .resets { grid-column: 1 / -1; }
+.label { color: var(--text-soft); }
+.used { font-weight: 600; }
+.used.close { color: var(--danger); }
+.resets { font-size: var(--fs-footnote); color: var(--subtle); }
+.setup { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: center; }
+.chips { display: flex; gap: 6px; }
+.agent-row .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent-row .standing-line { font-size: var(--fs-footnote); color: var(--subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent-row .text { flex: 1; min-width: 0; }
