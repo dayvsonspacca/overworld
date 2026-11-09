@@ -1,16 +1,10 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using Avalonia.Controls;
-using Avalonia.Data;
-using Avalonia.Data.Converters;
-using Avalonia.Input;
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Bells;
 using Overworld.Apps.Crafter.Conversations;
-using Overworld.Apps.Crafter.Desktop.Gate;
-using Overworld.Apps.Crafter.Desktop.Workbench;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
 using Overworld.Apps.Crafter.Preferences;
@@ -31,10 +25,16 @@ using Overworld.Bedrock.Apps;
 using Overworld.Bell;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
-using Overworld.Desktop;
 using Overworld.Hosting;
 using Overworld.Mcp;
 using Overworld.Redstone;
+using Overworld.Web;
+using Overworld.Allay.Conversations;
+using Overworld.Apps.Crafter.Presentation.Chats;
+using Overworld.Apps.Crafter.Presentation.Conversations;
+using Overworld.Apps.Crafter.Presentation.Composing;
+using Overworld.Apps.Crafter.Presentation.Projects;
+using System.Text.Json.Nodes;
 
 var app = new AppIdentity("crafter");
 var data = DataDirectory.For(app.Name);
@@ -151,45 +151,103 @@ return await AppHost.RunAsync(
     {
         tools.Start();
 
-        var code = DesktopHost.Run(app, frame =>
+        var code = WebHost.Run(app, page =>
         {
-            frame.Leaving.Add(async token =>
+            page.Leaving.Add(async token =>
             {
                 await ringer.WithdrawAllAsync(token);
                 workshop.CloseAll();
             });
 
+            Hide(page.Mirror);
+
             var workbench = new WorkbenchViewModel(abilities);
-            var view = new WorkbenchView { DataContext = workbench };
-            Shortcuts.Register(frame, workbench, view);
             _ = workbench.LoadAsync(CancellationToken.None);
 
             var gate = new GateViewModel(Operation.From(new ListAgentsOp(crew)), Operation.From(new CheckAgentOp(crew)), OpenAllay);
-            view.Bind(InputElement.IsEnabledProperty, new Binding(nameof(GateViewModel.IsShut)) { Source = gate, Converter = BoolConverters.Not });
             _ = gate.LoadAsync(CancellationToken.None);
             _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = painting.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
 
-            var shown = new Panel { Children = { view, new GateView { DataContext = gate } } };
-            shown.AttachedToVisualTree += (_, _) =>
-            {
-                if (TopLevel.GetTopLevel(shown) is Window window)
-                {
-                    attention.IsActive = window.IsActive;
-                    window.Activated += (_, _) => attention.IsActive = true;
-                    window.Deactivated += (_, _) => attention.IsActive = false;
-                    attention.Summoned += (_, _) => window.Activate();
-                }
-            };
+            page.Activated += (_, _) => attention.IsActive = true;
+            page.Deactivated += (_, _) => attention.IsActive = false;
+            attention.Summoned += (_, _) => page.Summon();
 
-            return shown;
-        }, args);
+            page.Handle("attach", asked =>
+            {
+                if (Conversation(page.Mirror, asked) is { } conversation)
+                {
+                    foreach (var path in asked?["paths"]?.AsArray().Select(each => each?.GetValue<string>()).OfType<string>() ?? [])
+                    {
+                        conversation.Attach(Attachment(path));
+                    }
+                }
+            });
+            page.Handle("attach-picture", asked =>
+            {
+                if (Conversation(page.Mirror, asked) is { } conversation && asked?["data"]?.GetValue<string>() is { Length: > 0 } data)
+                {
+                    conversation.Attach(new Picture(asked["type"]?.GetValue<string>() ?? "image/png", Convert.FromBase64String(data)));
+                }
+            });
+            page.Handle("open-outside", asked =>
+            {
+                if (asked?["path"]?.GetValue<string>() is { Length: > 0 } path && File.Exists(path))
+                {
+                    using var opened = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { path }, UseShellExecute = false });
+                }
+            });
+
+            page.Show(new { Workbench = workbench, Gate = gate });
+        });
 
         workshop.CloseAll();
 
         return Task.FromResult(code);
     });
+
+static void Hide(Overworld.Web.Mirroring.Mirror mirror)
+{
+    mirror.Ignore<ChatSummaryViewModel>(nameof(ChatSummaryViewModel.Record), nameof(ChatSummaryViewModel.Conversation));
+    mirror.Ignore<ConversationViewModel>(nameof(ConversationViewModel.Record), nameof(ConversationViewModel.Setup));
+    mirror.Ignore<Timeline>(nameof(Timeline.Shown));
+    mirror.Ignore<SpeechEntry>(nameof(SpeechEntry.Blocks));
+    mirror.Ignore<SummaryProposalEntry>(nameof(SummaryProposalEntry.Blocks));
+    mirror.Ignore<OverviewViewModel>(nameof(OverviewViewModel.Blocks), nameof(OverviewViewModel.Project));
+    mirror.Ignore<PromptEntry>(nameof(PromptEntry.Prompt));
+    mirror.Ignore<PictureView>(nameof(PictureView.Picture));
+    mirror.Ignore<AttachmentView>(nameof(AttachmentView.Attachment));
+    mirror.Ignore<PlanEntry>(nameof(PlanEntry.Steps));
+}
+
+static ConversationViewModel? Conversation(Overworld.Web.Mirroring.Mirror mirror, JsonNode? asked) =>
+    asked?["conversation"]?["$ref"]?.GetValue<int>() is { } id ? mirror.Find(id) as ConversationViewModel : null;
+
+static Attachment Attachment(string path)
+{
+    var kind = Path.GetExtension(path).ToUpperInvariant() switch
+    {
+        ".PNG" => "image/png",
+        ".JPG" or ".JPEG" => "image/jpeg",
+        ".GIF" => "image/gif",
+        ".WEBP" => "image/webp",
+        _ => null,
+    };
+
+    if (kind is not null)
+    {
+        try
+        {
+            return new Picture(kind, File.ReadAllBytes(path));
+        }
+        catch (Exception unreadable) when (unreadable is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
+    return new FileMention(path);
+}
 
 static bool OpenAllay()
 {

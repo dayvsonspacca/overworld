@@ -2,24 +2,21 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>crafter</AssemblyName>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="../icon.png" Link="icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Avalonia" />
+    <Content Include="../icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../icon.png" Link="wwwroot/app/icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="web/**" Link="wwwroot/app/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Crafter/Overworld.Apps.Crafter.csproj" />
     <ProjectReference Include="../Overworld.Apps.Crafter.Presentation/Overworld.Apps.Crafter.Presentation.csproj" />
-    <ProjectReference Include="../../Painting/Overworld.Apps.Painting.Views/Overworld.Apps.Painting.Views.csproj" />
-    <ProjectReference Include="../../Dye/Overworld.Apps.Dye.Views/Overworld.Apps.Dye.Views.csproj" />
+    <ProjectReference Include="../../Painting/Overworld.Apps.Painting.Presentation/Overworld.Apps.Painting.Presentation.csproj" />
+    <ProjectReference Include="../../Dye/Overworld.Apps.Dye.Presentation/Overworld.Apps.Dye.Presentation.csproj" />
     <ProjectReference Include="../../../src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
-    <ProjectReference Include="../../../src/Overworld.Desktop/Overworld.Desktop.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Web/Overworld.Web.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
   </ItemGroup>
 </Project>
