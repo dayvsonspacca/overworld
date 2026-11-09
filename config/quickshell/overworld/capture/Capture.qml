@@ -8,7 +8,7 @@ Singleton {
     id: root
 
     readonly property string logo: Qt.resolvedUrl("../brand/grass.png").toString().replace("file://", "")
-    readonly property string share: 'wl-copy --type image/png < "$1"; action=$(notify-send -a Overworld -i "$2" -h "string:image-path:$1" -h boolean:x-overworld-preview:true -A open=Open -A folder="Show in folder" "Screenshot copied" "Saved to $3"); case "$action" in open) xdg-open "$1" ;; folder) xdg-open "$(dirname "$1")" ;; esac'
+    readonly property string share: 'wl-copy --type image/png < "$1"; action=$(notify-send -a Overworld -i "$2" -h "string:image-path:$1" -h boolean:x-overworld-preview:true -A open=Open -A folder="Show in folder" "Screenshot copied" "Saved to $3"); case "$action" in open) xdg-open "$1" ;; folder) gdbus call --session --dest org.freedesktop.FileManager1 --object-path /org/freedesktop/FileManager1 --method org.freedesktop.FileManager1.ShowItems "[\"file://$(printf %s "$1" | sed "s/ /%20/g")\"]" "" ;; esac'
     property string pictures: `${Quickshell.env("HOME")}/Pictures`
     readonly property string folder: `${pictures}/Screenshots`
     readonly property string place: `${pictures.split("/").pop()}/Screenshots`
