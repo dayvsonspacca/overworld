@@ -118,6 +118,9 @@
   <Style Selector="Button.icon.chosen Path">
     <Setter Property="Stroke" Value="{DynamicResource AccentTextBrush}" />
   </Style>
+  <Style Selector="Button.icon.copied Path, Button.icon.copied:pointerover Path">
+    <Setter Property="Stroke" Value="{DynamicResource AddedBrush}" />
+  </Style>
 
   <!-- Chip: a small word beside what it acts on; chosen chips side by side pick between views. -->
   <Style Selector="Button.chip">
