@@ -6,6 +6,7 @@
              xmlns:local="using:Overworld.Apps.Crafter.Desktop.Conversations"
              xmlns:text="using:Overworld.Desktop.Text"
              xmlns:framing="using:Overworld.Desktop.Framing"
+             xmlns:agents="using:Overworld.Desktop.Agents"
              x:Class="Overworld.Apps.Crafter.Desktop.Conversations.ConversationView"
              x:DataType="conversations:ConversationViewModel">
   <UserControl.Resources>
@@ -69,6 +70,52 @@
 
   <UserControl.Styles>
     <StyleInclude Source="avares://crafter/Conversations/ProseStyles.axaml" />
+
+    <!-- The agent at work: a row under the last step, its Allay hovering and its word breathing. -->
+    <Style Selector="StackPanel.pulse">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="10" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Margin" Value="0,2,0,8" />
+    </Style>
+    <Style Selector="StackPanel.pulse > :is(Control)">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- Keyframes can't animate RenderTransform itself (no animator, and the view fails to load), so they move its parts. -->
+    <Style Selector="agents|AllayIcon.pulse">
+      <Style.Animations>
+        <Animation Duration="0:0:2.4" IterationCount="INFINITE" Easing="SineEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="TranslateTransform.Y" Value="0" />
+            <Setter Property="RotateTransform.Angle" Value="-3" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="TranslateTransform.Y" Value="-4" />
+            <Setter Property="RotateTransform.Angle" Value="3" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="TranslateTransform.Y" Value="0" />
+            <Setter Property="RotateTransform.Angle" Value="-3" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="TextBlock.pulse-word">
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+      <Style.Animations>
+        <Animation Duration="0:0:2" IterationCount="INFINITE" Easing="SineEaseInOut">
+          <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0.5" /></KeyFrame>
+          <KeyFrame Cue="50%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.5" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="TextBlock.pulse-time">
+      <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSizeCallout}" />
+      <Setter Property="Foreground" Value="{DynamicResource FaintBrush}" />
+    </Style>
 
     <!-- An act's row: a flat button that opens what the act gave back. -->
     <Style Selector="Button.act">
@@ -719,7 +766,15 @@
     </Border>
 
     <text:TextPage Name="Page">
-      <ItemsControl Name="Entries" ItemsSource="{Binding Timeline.Shown}" MaxWidth="760" Margin="24,20,24,12" />
+      <StackPanel MaxWidth="760" Margin="24,20,24,12">
+        <ItemsControl Name="Entries" ItemsSource="{Binding Timeline.Shown}" />
+        <!-- While the agent answers: its Allay hovering, what it is doing and for how long. -->
+        <StackPanel Classes="pulse" IsVisible="{Binding Pulse.IsShown}">
+          <agents:AllayIcon Classes="pulse" Color="{Binding Color}" Width="26" Height="26" />
+          <TextBlock Classes="pulse-word" Text="{Binding Pulse.Word}" />
+          <TextBlock Classes="pulse-time" Text="{Binding Pulse.Elapsed, StringFormat='· {0}'}" />
+        </StackPanel>
+      </StackPanel>
     </text:TextPage>
   </DockPanel>
 

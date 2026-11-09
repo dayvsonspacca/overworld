@@ -10,6 +10,8 @@ public sealed class RecordingTest
 
     private static readonly Prompt Ask = new("Run the tests", [], []);
 
+    private static readonly Ticking Still = new(TimeSpan.Zero);
+
     private static async Task<List<Moment>> HeardAsync(IAsyncEnumerable<Moment> moments)
     {
         List<Moment> heard = [];
@@ -27,7 +29,8 @@ public sealed class RecordingTest
     {
         var conversation = new Conversation(
             new ScriptedSession([new Speech("Run"), new Speech("ning."), new Act("a-1", ActKind.Command, "dotnet test"), new ActResult("a-1", true, "Passed"), new Speech("Done."), new Finished()]),
-            []);
+            [],
+            Still);
 
         var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
@@ -37,7 +40,8 @@ public sealed class RecordingTest
                 Ask,
                 new Reply(
                     [new Speech("Running."), new Act("a-1", ActKind.Command, "dotnet test"), new ActResult("a-1", true, "Passed"), new Speech("Done.")],
-                    new Finished()),
+                    new Finished(),
+                    TimeSpan.Zero),
             ],
             conversation.Turns);
     }
@@ -61,7 +65,7 @@ public sealed class RecordingTest
         await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(
-            new Reply([new Thought("Look first.", TimeSpan.FromSeconds(3)), new Speech("Ok."), new Plan([new PlanStep("Run", StepState.Done)])], new Finished()),
+            new Reply([new Thought("Look first.", TimeSpan.FromSeconds(3)), new Speech("Ok."), new Plan([new PlanStep("Run", StepState.Done)])], new Finished(), TimeSpan.FromSeconds(9)),
             conversation.Turns[^1]);
     }
 
@@ -77,12 +81,13 @@ public sealed class RecordingTest
                 new Speech("Skipped."),
                 new Finished(),
             ]),
-            []);
+            [],
+            Still);
 
         var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.Equal(5, heard.Count);
-        Assert.Equal(new Reply([new Speech("Skipped.")], new Finished()), conversation.Turns[^1]);
+        Assert.Equal(new Reply([new Speech("Skipped.")], new Finished(), TimeSpan.Zero), conversation.Turns[^1]);
     }
 
     [Fact]
@@ -103,12 +108,12 @@ public sealed class RecordingTest
     [Fact]
     public async Task EndsAReplyThatStopsWithoutAnOutcomeAsAFailure()
     {
-        var conversation = new Conversation(new ScriptedSession([new Speech("Half")]), []);
+        var conversation = new Conversation(new ScriptedSession([new Speech("Half")]), [], Still);
 
         var heard = await HeardAsync(conversation.AskAsync(Ask, Setup.Default, Token));
 
         Assert.IsType<Failed>(heard[^1]);
-        Assert.Equal(new Reply([new Speech("Half")], new Failed("The agent went silent before finishing its reply.")), conversation.Turns[^1]);
+        Assert.Equal(new Reply([new Speech("Half")], new Failed("The agent went silent before finishing its reply."), TimeSpan.Zero), conversation.Turns[^1]);
     }
 
     [Fact]
@@ -125,13 +130,13 @@ public sealed class RecordingTest
     public async Task RecordsWhatTheAgentSaysWhenItWakesOnItsOwn()
     {
         var session = new ScriptedSession();
-        var conversation = new Conversation(session, [Ask]);
+        var conversation = new Conversation(session, [Ask], Still);
         IAsyncEnumerable<Moment>? woke = null;
         conversation.Woke += (_, moments) => woke = moments;
 
         session.Wake([new Speech("The build finished."), new Finished()]);
         await HeardAsync(woke!);
 
-        Assert.Equal([Ask, new Reply([new Speech("The build finished.")], new Finished())], conversation.Turns);
+        Assert.Equal([Ask, new Reply([new Speech("The build finished.")], new Finished(), TimeSpan.Zero)], conversation.Turns);
     }
 }

@@ -55,10 +55,10 @@ public sealed class ChatTest
     public async Task RecordsWhatItNeedsToComeBack()
     {
         var id = ChatId.New();
-        var chat = new Chat(id, Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession([new Speech("Olá"), new Finished()]) { Id = "s-1" }, []));
+        var chat = new Chat(id, Claude, ChatTitle.Untitled, new Conversation(new ScriptedSession([new Speech("Olá"), new Finished()]) { Id = "s-1" }, [], new Still()));
 
         await chat.AskAsync(Ask("oi"), Setup.Default, Token).ToListAsync(Token);
 
-        Assert.Equal(new ChatRecord(id, Claude, ChatTitle.Of("oi"), "s-1", [Ask("oi"), new Reply([new Speech("Olá")], new Finished())]), chat.Record());
+        Assert.Equal(new ChatRecord(id, Claude, ChatTitle.Of("oi"), "s-1", [Ask("oi"), new Reply([new Speech("Olá")], new Finished(), TimeSpan.Zero)]), chat.Record());
     }
 }

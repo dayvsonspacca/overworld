@@ -30,6 +30,8 @@ public sealed class Timeline
 
     private DateTimeOffset _since;
 
+    private DateTimeOffset? _started;
+
     public Timeline(
         Action<string, Decision>? decide = null,
         Func<string, Picture?>? find = null,
@@ -107,7 +109,8 @@ public sealed class Timeline
                     }
                 }
 
-                Add(reply.Outcome);
+                Entries.Add(new OutcomeEntry(reply.Outcome, reply.Took));
+                _started = null;
                 break;
         }
     }
@@ -115,6 +118,7 @@ public sealed class Timeline
     public void Add(Prompt prompt)
     {
         DoneThinking();
+        _started = _clock.GetUtcNow();
         _plan = null;
         _acts.Clear();
         _requests.Clear();
@@ -139,6 +143,8 @@ public sealed class Timeline
         {
             DoneThinking();
         }
+
+        _started ??= _clock.GetUtcNow();
 
         switch (moment)
         {
@@ -182,7 +188,8 @@ public sealed class Timeline
                 Entries.Add(new NoticeEntry(notice));
                 break;
             case Outcome outcome:
-                Entries.Add(new OutcomeEntry(outcome));
+                Entries.Add(new OutcomeEntry(outcome, _clock.GetUtcNow() - _started));
+                _started = null;
                 break;
         }
     }

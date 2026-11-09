@@ -141,7 +141,7 @@ public sealed class ChatStore(string directory, PictureStore pictures)
             ? [.. steps.Select(Moment).OfType<Moment>()]
             : entry.Text.Length > 0 ? [new Speech(entry.Text)] : [];
 
-        return new Reply(moments, Outcome(entry));
+        return new Reply(moments, Outcome(entry), entry.Seconds is { } seconds ? TimeSpan.FromSeconds(seconds) : null);
     }
 
     private static Moment? Moment(StepEntry step) => step switch
@@ -194,7 +194,8 @@ public sealed class ChatStore(string directory, PictureStore pictures)
             string.Concat(reply.Moments.OfType<Speech>().Select(speech => speech.Text)),
             Name(reply.Outcome),
             Detail(reply.Outcome),
-            reply.Moments.Any(moment => moment is not Speech) ? [.. reply.Moments.Select(Step).OfType<StepEntry>()] : null),
+            reply.Moments.Any(moment => moment is not Speech) ? [.. reply.Moments.Select(Step).OfType<StepEntry>()] : null,
+            Seconds: reply.Took is { } took ? Math.Round(took.TotalSeconds, 1) : null),
         _ => null,
     };
 

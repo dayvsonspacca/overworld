@@ -2,9 +2,13 @@ using Overworld.Allay.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
-public sealed class OutcomeEntry(Outcome outcome) : Entry
+public sealed class OutcomeEntry(Outcome outcome, TimeSpan? took = null) : Entry
 {
-    public string Text { get; } = outcome switch
+    public string Text { get; } = took is { } spent ? $"{Said(outcome)} · {ThoughtEntry.Spoken(spent)}" : Said(outcome);
+
+    public bool WentWrong { get; } = outcome is not (Finished or Stopped);
+
+    private static string Said(Outcome outcome) => outcome switch
     {
         Finished => "Finished",
         Stopped => "Stopped",
@@ -14,6 +18,4 @@ public sealed class OutcomeEntry(Outcome outcome) : Entry
         Failed failed => $"Failed: {failed.Reason}",
         _ => outcome.GetType().Name,
     };
-
-    public bool WentWrong { get; } = outcome is not (Finished or Stopped);
 }

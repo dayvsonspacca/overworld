@@ -52,6 +52,7 @@ public sealed class Conversation
         var flowing = new StringBuilder();
         Moment? flow = null;
         var since = DateTimeOffset.MinValue;
+        var started = _clock.GetUtcNow();
         Outcome? outcome = null;
 
         void Settle()
@@ -125,6 +126,6 @@ public sealed class Conversation
             yield return outcome;
         }
 
-        _turns.Add(new Reply(kept, outcome));
+        _turns.Add(new Reply(kept, outcome, _clock.GetUtcNow() - started));
     }
 }

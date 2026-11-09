@@ -44,7 +44,7 @@ public sealed class ChatStoreTest : IDisposable
             new(ChatId.New(), Claude, ChatTitle.Of("Fix reconnect"), "s-1",
             [
                 Ask("Fix it"),
-                new Reply([new Speech("Done")], new Finished()),
+                new Reply([new Speech("Done")], new Finished(), TimeSpan.FromSeconds(84.5)),
                 Ask("More"),
                 new Reply([new Speech("Half")], new Stopped()),
                 Ask("Long"),

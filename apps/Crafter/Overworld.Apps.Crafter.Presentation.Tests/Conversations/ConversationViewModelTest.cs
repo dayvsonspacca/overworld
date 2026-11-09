@@ -109,7 +109,7 @@ public sealed class ConversationViewModelTest : IDisposable
         await talking.WaitAsync(TimeSpan.FromSeconds(5), Bench.Cancellation);
 
         Assert.Single(_bench.Session.Heard);
-        Assert.Equal("Stopped", Assert.IsType<OutcomeEntry>(conversation.Timeline.Entries[^1]).Text);
+        Assert.StartsWith("Stopped · ", Assert.IsType<OutcomeEntry>(conversation.Timeline.Entries[^1]).Text);
         Assert.False(conversation.StopCommand.CanExecute(null));
     }
 

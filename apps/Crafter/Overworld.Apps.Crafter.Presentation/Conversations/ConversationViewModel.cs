@@ -30,8 +30,6 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly Dictionary<string, string> _rung = [];
 
-    private string? _color;
-
     private readonly Workshop _workshop;
 
     private readonly Abilities _abilities;
@@ -84,6 +82,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     public Timeline Timeline { get; }
 
+    public Pulse Pulse { get; } = new();
+
     public ViewerViewModel Viewer { get; }
 
     public ChatRecord Record => _chat?.Record() ?? _record;
@@ -125,6 +125,9 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string? Problem { get; private set; }
+
+    [ObservableProperty]
+    public partial string? Color { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ModeLabel))]
@@ -185,7 +188,7 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         (Mode, Model, Effort) = (desk.Value.Setup.Mode, desk.Value.Setup.Model, desk.Value.Setup.Effort);
         Agent = desk.Value.Agent;
-        _color = desk.Value.Color;
+        Color = desk.Value.Color;
         OnPropertyChanged(nameof(ModelLabel));
     }
 
@@ -347,6 +350,7 @@ public sealed partial class ConversationViewModel : ObservableObject
                 }
 
                 Timeline.Add(next.Prompt);
+                Pulse.Start();
                 var reply = _chat!.AskAsync(next.Prompt, Setup, stopped);
                 Title = _chat.Title.Text;
                 await HearAsync(reply);
@@ -391,6 +395,7 @@ public sealed partial class ConversationViewModel : ObservableObject
     private async Task WokenAsync(IAsyncEnumerable<Moment> moments)
     {
         Working(true);
+        Pulse.Start();
 
         try
         {
@@ -415,6 +420,7 @@ public sealed partial class ConversationViewModel : ObservableObject
 
                 _heard |= moment is not Outcome;
                 Timeline.Add(moment);
+                Pulse.Heard(moment);
                 Ring(moment);
             }
         }
@@ -448,6 +454,7 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         if (!working)
         {
+            Pulse.Stop();
             Answered?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -490,6 +497,7 @@ public sealed partial class ConversationViewModel : ObservableObject
     private void Decide(string request, Decision decision)
     {
         _chat?.Session.Decide(request, decision);
+        Pulse.Resume();
 
         if (_rung.Remove(request, out var notice))
         {
@@ -514,7 +522,7 @@ public sealed partial class ConversationViewModel : ObservableObject
     {
         var ringing = new Ringing(
             $"{Path.GetFileName(_folder)} · {Title}",
-            _color,
+            Color,
             IsShown && _abilities.Attention.IsActive,
             decision => OnUi(() => entry.Settle(decision)),
             () => OnUi(() => _abilities.Attention.Summon(_folder, _record.Id)));

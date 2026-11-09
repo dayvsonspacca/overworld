@@ -135,6 +135,30 @@ public sealed class TimelineTest
     }
 
     [Fact]
+    public void TellsHowLongTheReplyTookOnceItEnds()
+    {
+        var clock = new Clock();
+        var timeline = new Timeline(clock: clock);
+
+        timeline.Add(new Prompt("Run the tests", [], []));
+        clock.Now += TimeSpan.FromSeconds(84);
+        timeline.Add(new Speech("All green."));
+        timeline.Add(new Finished());
+
+        Assert.Equal("Finished · 1m 24s", Assert.IsType<OutcomeEntry>(timeline.Entries[^1]).Text);
+    }
+
+    [Fact]
+    public void ReadsBackHowLongTheReplyTook()
+    {
+        _timeline.Add(new Reply([new Speech("Done.")], new Stopped(), TimeSpan.FromSeconds(7)));
+        _timeline.Add(new Reply([new Speech("Old.")], new Finished()));
+
+        Assert.Equal("Stopped · 7s", Assert.IsType<OutcomeEntry>(_timeline.Entries[1]).Text);
+        Assert.Equal("Finished", Assert.IsType<OutcomeEntry>(_timeline.Entries[^1]).Text);
+    }
+
+    [Fact]
     public void ReadsBackHowLongTheAgentThought()
     {
         _timeline.Add(new Reply([new Thought("Hm.", TimeSpan.FromSeconds(75)), new Thought("Old.")], new Finished()));
