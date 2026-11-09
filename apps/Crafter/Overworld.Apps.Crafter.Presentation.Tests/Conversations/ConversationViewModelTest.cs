@@ -222,10 +222,10 @@ public sealed class ConversationViewModelTest : IDisposable
     }
 
     [Fact]
-    public async Task BringsBackWhatWasStoppedAheadOfWhatIsBeingTyped()
+    public async Task WithdrawsWhatWasStoppedBeforeTheAgentSaidAnythingAndBringsItBack()
     {
-        var (_, conversation) = await ReadyAsync();
-        _bench.Session.Script(new Speech("Long"), new Finished());
+        var (folder, conversation) = await ReadyAsync();
+        _bench.Session.Script(new Finished());
         _bench.Session.Held = new TaskCompletionSource();
         var picture = new Picture("image/png", [1]);
         conversation.Draft = "one";
@@ -245,6 +245,37 @@ public sealed class ConversationViewModelTest : IDisposable
 
         Assert.Equal("one\n\ntwo\n\nthree", conversation.Draft);
         Assert.Equal(picture, Assert.Single(conversation.Attachments).Attachment);
+        Assert.Empty(conversation.Timeline.Entries);
+        Assert.Equal("New chat", conversation.Title);
+        Assert.Empty(Assert.Single((await _bench.Chats.LoadAsync(folder, Bench.Cancellation)).Value).Turns);
+    }
+
+    [Fact]
+    public async Task KeepsWhatWasStoppedOnceTheAgentSaidSomething()
+    {
+        var (_, conversation) = await ReadyAsync();
+        _bench.Session.Script(new Speech("Long"), new Finished());
+        _bench.Session.Held = new TaskCompletionSource();
+        conversation.Draft = "one";
+        var talking = conversation.SendCommand.ExecuteAsync(null);
+        conversation.Draft = "two";
+        await conversation.SendCommand.ExecuteAsync(null);
+
+        while (!conversation.Timeline.Entries.OfType<SpeechEntry>().Any())
+        {
+            await Task.Delay(10, Bench.Cancellation);
+        }
+
+        conversation.Draft = "three";
+        conversation.StopCommand.Execute(null);
+        await talking.WaitAsync(TimeSpan.FromSeconds(5), Bench.Cancellation);
+
+        Assert.Equal("two\n\nthree", conversation.Draft);
+        Assert.Collection(
+            conversation.Timeline.Entries,
+            entry => Assert.Equal("one", Assert.IsType<PromptEntry>(entry).Text),
+            entry => Assert.Equal("Long", Assert.IsType<SpeechEntry>(entry).Text),
+            entry => Assert.IsType<OutcomeEntry>(entry));
     }
 
     [Fact]

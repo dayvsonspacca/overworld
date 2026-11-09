@@ -44,6 +44,10 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private Sent? _current;
 
+    private Sent? _withdrawn;
+
+    private bool _heard;
+
     private Chat? _chat;
 
     private CancellationTokenSource? _stopping;
@@ -252,11 +256,17 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(IsWorking))]
     private void Stop()
     {
-        Sent[] dropped = [.. new[] { _current }.OfType<Sent>(), .. _queued];
+        _withdrawn = _heard ? null : _current;
+        Sent[] dropped = [.. new[] { _withdrawn }.OfType<Sent>(), .. _queued];
         _current = null;
         _queued.Clear();
         Queued = 0;
         _stopping?.Cancel();
+
+        if (_withdrawn is { } withdrawn)
+        {
+            Timeline.Withdraw(withdrawn.Prompt);
+        }
 
         if (!_forgotten)
         {
@@ -328,6 +338,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             for (var next = sent; next is not null && !stopped.IsCancellationRequested; next = _queued.TryDequeue(out var queued) ? queued : null)
             {
                 _current = next;
+                _heard = false;
                 Queued = _queued.Count;
 
                 if (!await OpenAsync() || stopped.IsCancellationRequested)
@@ -344,6 +355,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         finally
         {
             _current = null;
+            _withdrawn = null;
             _stopping.Dispose();
             _stopping = null;
             Working(false);
@@ -396,6 +408,12 @@ public sealed partial class ConversationViewModel : ObservableObject
         {
             await foreach (var moment in moments)
             {
+                if (_withdrawn is not null)
+                {
+                    continue;
+                }
+
+                _heard |= moment is not Outcome;
                 Timeline.Add(moment);
                 Ring(moment);
             }
@@ -406,6 +424,11 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
         finally
         {
+            if (_withdrawn is { } withdrawn)
+            {
+                _chat!.Withdraw(withdrawn.Prompt);
+            }
+
             Title = _chat!.Title.Text;
         }
 

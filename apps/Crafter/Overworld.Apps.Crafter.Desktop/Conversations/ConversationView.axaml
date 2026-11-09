@@ -636,7 +636,7 @@
         <DockPanel>
           <Panel DockPanel.Dock="Right">
             <Button Classes="primary" Content="Send" Command="{Binding SendCommand}" IsVisible="{Binding !IsWorking}" ToolTip.Tip="Enter · Shift+Enter for a new line" />
-            <Button Classes="ghost" Command="{Binding StopCommand}" IsVisible="{Binding IsWorking}" ToolTip.Tip="Stop the agent and bring back what was sent · Esc twice clears the message">
+            <Button Classes="ghost" Command="{Binding StopCommand}" IsVisible="{Binding IsWorking}" ToolTip.Tip="Stop the agent, and bring back what was sent if it has not answered yet · Esc twice clears the message">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="Stop" />
                 <TextBlock Text="Esc" FontFamily="{DynamicResource MonoFont}" Foreground="{DynamicResource SubtleBrush}" />

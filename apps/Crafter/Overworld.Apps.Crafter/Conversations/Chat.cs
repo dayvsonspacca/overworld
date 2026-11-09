@@ -30,6 +30,16 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
         return Conversation.AskAsync(prompt, setup, cancellationToken);
     }
 
+    public void Withdraw(Prompt prompt)
+    {
+        Conversation.Withdraw(prompt);
+
+        if (Conversation.Turns.Count == 0)
+        {
+            Title = ChatTitle.Untitled;
+        }
+    }
+
     public void Rename(ChatTitle title)
     {
         Title = title;

@@ -31,6 +31,16 @@ public sealed class Conversation
         return Recorded(Session.ReplyAsync(prompt, setup, cancellationToken), cancellationToken);
     }
 
+    public void Withdraw(Prompt prompt)
+    {
+        var at = _turns.LastIndexOf(prompt);
+
+        if (at >= 0)
+        {
+            _turns.RemoveRange(at, _turns.Count - at);
+        }
+    }
+
     private async IAsyncEnumerable<Moment> Recorded(
         IAsyncEnumerable<Moment> moments,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)

@@ -102,6 +102,16 @@ public sealed class Timeline
         Entries.Add(new PromptEntry(prompt));
     }
 
+    public void Withdraw(Prompt prompt)
+    {
+        var at = Entries.ToList().FindLastIndex(entry => entry is PromptEntry shown && shown.Prompt == prompt);
+
+        while (at >= 0 && Entries.Count > at)
+        {
+            Entries.RemoveAt(Entries.Count - 1);
+        }
+    }
+
     public void Add(ProposalEntry proposal) => Entries.Add(proposal);
 
     public void Add(Moment moment)

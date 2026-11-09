@@ -4,6 +4,8 @@ namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
 public sealed class PromptEntry(Prompt prompt) : Entry
 {
+    public Prompt Prompt { get; } = prompt;
+
     public string Text { get; } = prompt.Text;
 
     public bool HasText => Text.Trim().Length > 0;
