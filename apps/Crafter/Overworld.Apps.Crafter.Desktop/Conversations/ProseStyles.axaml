@@ -59,6 +59,24 @@
     <Style Selector="Border.prose-code">
       <Setter Property="Padding" Value="14,12" />
     </Style>
+    <!-- A code block's copy button: in its top corner, over the code, shown while the pointer is on the block. -->
+    <Style Selector="Button.prose-copy">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Margin" Value="0,-6,-8,0" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="Background" Value="{DynamicResource RaisedBrush}" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.prose-code:pointerover Button.prose-copy, Button.prose-copy.copied, Button.prose-copy:focus-visible">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
     <Style Selector="Border.prose-table">
       <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>

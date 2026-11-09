@@ -132,12 +132,13 @@ public sealed class ProseView : Decorator
         _ => new Panel(),
     };
 
-    private static Border Source(Md.Code code, object? group)
+    private static Border Source(Md.Code code, object? group, bool copyable = true)
     {
         var text = Classed(new SelectableText { Group = group }, "prose", "code");
         var inlines = new InlineCollection();
+        var lines = code.Text.TrimEnd('\n');
 
-        foreach (var token in Highlighter.Tokens(code.Text.TrimEnd('\n'), Grammars.For(code.Language ?? string.Empty)))
+        foreach (var token in Highlighter.Tokens(lines, Grammars.For(code.Language ?? string.Empty)))
         {
             var run = new Run(token.Text);
 
@@ -156,14 +157,21 @@ public sealed class ProseView : Decorator
 
         text.Inlines = inlines;
 
-        return Classed(new Border { Child = Sideways(text) }, "prose-code");
+        var shown = new Panel { Children = { Sideways(text) } };
+
+        if (copyable)
+        {
+            shown.Children.Add(Classed(new CopyButton { Text = lines }, "prose-copy"));
+        }
+
+        return Classed(new Border { Child = shown }, "prose-code");
     }
 
     // Markdown an agent writes out, like a summary or a README, reads drawn; its source is a click away.
     private static StackPanel Drafted(Md.Code code, object? group, int depth)
     {
         var drawn = Classed(new Border { Child = Stack(Md.Prose.Parse(code.Text), group, depth, BlockSpacing) }, "prose-preview");
-        var source = Source(code, group);
+        var source = Source(code, group, copyable: false);
         source.IsVisible = false;
 
         var preview = Classed(new Button { Content = "Preview" }, "chip", "chosen");
@@ -181,6 +189,7 @@ public sealed class ProseView : Decorator
         raw.Click += (_, _) => Show(drawing: false);
 
         var switches = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Right };
+        switches.Children.Add(new CopyButton { Text = code.Text.TrimEnd('\n') });
         switches.Children.Add(preview);
         switches.Children.Add(raw);
 
