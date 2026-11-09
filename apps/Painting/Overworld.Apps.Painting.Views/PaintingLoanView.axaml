@@ -1,8 +1,0 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lending="using:Overworld.Apps.Painting.Presentation.Lending"
-             xmlns:views="using:Overworld.Apps.Painting.Views"
-             x:Class="Overworld.Apps.Painting.Views.PaintingLoanView"
-             x:DataType="lending:PaintingLoan">
-  <views:ArtworkCanvas Html="{Binding Html}" />
-</UserControl>
