@@ -23,12 +23,14 @@ public sealed class ShowArtworkOpTest : IDisposable
     public void Dispose() => _folder.Dispose();
 
     [Fact]
-    public async Task ShowsThePaintingPaintedLast()
+    public async Task ShowsTheLatestVersionOfThePaintingPaintedLast()
     {
         var later = await Add("Later", Morning.AddHours(2));
         await Add("Earlier", Morning);
 
-        Assert.Equal(later, (await _show.ExecuteAsync(new ShowArtwork(), Token)).Value);
+        var shown = (await _show.ExecuteAsync(new ShowArtwork(), Token)).Value;
+
+        Assert.Equal((later.Id, "<h1>Later</h1>", 1), (shown.Id, shown.Html, shown.Version));
     }
 
     [Fact]
@@ -37,7 +39,30 @@ public sealed class ShowArtworkOpTest : IDisposable
         var earlier = await Add("Earlier", Morning);
         await Add("Later", Morning.AddHours(2));
 
-        Assert.Equal(earlier, (await _show.ExecuteAsync(new ShowArtwork(earlier.Id), Token)).Value);
+        Assert.Equal("<h1>Earlier</h1>", (await _show.ExecuteAsync(new ShowArtwork(earlier.Id), Token)).Value.Html);
+    }
+
+    [Fact]
+    public async Task ShowsAnEarlierVersion()
+    {
+        var artwork = await Add("Design", Morning);
+        await _store.ChangeAsync(artwork.Id, kept => kept.Painted("<h1>Second</h1>", Morning.AddHours(1)), Token);
+
+        var shown = (await _show.ExecuteAsync(new ShowArtwork(artwork.Id, 1), Token)).Value;
+        var latest = (await _show.ExecuteAsync(new ShowArtwork(artwork.Id), Token)).Value;
+
+        Assert.Equal(("<h1>Design</h1>", 1, 2, Morning), (shown.Html, shown.Version, shown.Versions, shown.Painted));
+        Assert.Equal(("<h1>Second</h1>", 2), (latest.Html, latest.Version));
+    }
+
+    [Fact]
+    public async Task SaysWhenThereIsNoSuchVersion()
+    {
+        var artwork = await Add("Design", Morning);
+
+        var shown = await _show.ExecuteAsync(new ShowArtwork(artwork.Id, 4), Token);
+
+        Assert.Equal("painting.version_not_found", shown.Error.Code);
     }
 
     [Fact]
@@ -59,5 +84,5 @@ public sealed class ShowArtworkOpTest : IDisposable
     }
 
     private async Task<Artwork> Add(string title, DateTimeOffset painted) =>
-        (await _store.AddAsync(new Artwork(Guid.NewGuid(), title, $"<h1>{title}</h1>", painted), Token)).Value;
+        (await _store.AddAsync(Artwork.New(title, null, $"<h1>{title}</h1>", painted), Token)).Value;
 }

@@ -23,8 +23,8 @@ public sealed class PaintingLenderTest : IDisposable
 
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
-    private static JsonElement Painted(string html = "<p>swatches</p>") =>
-        JsonDocument.Parse($$"""{ "id": "{{Palette}}", "title": "Amethyst palette", "html": "{{html}}", "painted": "2026-11-07T12:00:00+00:00" }""").RootElement;
+    private static JsonElement Painted(int version, int versions) =>
+        JsonDocument.Parse($$"""{ "id": "{{Palette}}", "title": "Amethyst palette", "version": {{version}}, "versions": {{versions}}, "painted": "2026-11-07T12:00:00+00:00" }""").RootElement;
 
     private static async IAsyncEnumerable<string> Signals(params string[] signals)
     {
@@ -38,17 +38,27 @@ public sealed class PaintingLenderTest : IDisposable
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
     [Fact]
-    public void LendsThePaintingAPaintGaveBack()
+    public void LendsTheVersionAPaintGaveBack()
     {
-        var loan = Assert.IsType<PaintingLoan>(_lender.Lend(Painted()));
+        var loan = Assert.IsType<PaintingLoan>(_lender.Lend(Painted(2, 2)));
 
-        Assert.Equal((Palette, "Amethyst palette", "<p>swatches</p>"), (loan.Id, loan.Title, loan.Html));
-        Assert.Equal(($"painting:{Palette}", "Painting"), (loan.Key, loan.Source));
+        Assert.Equal((Palette, "Amethyst palette", 2, 2), (loan.Id, loan.Title, loan.Version, loan.Versions));
+        Assert.Equal(($"painting:{Palette}:2", "Painting"), (loan.Key, loan.Source));
+    }
+
+    [Fact]
+    public void LendsWhatAnOlderPaintGaveBackAsTheFirstVersion()
+    {
+        var said = JsonDocument.Parse($$"""{ "id": "{{Palette}}", "title": "A", "html": "<p>old</p>", "painted": "2026-11-07T12:00:00+00:00" }""").RootElement;
+
+        var loan = Assert.IsType<PaintingLoan>(_lender.Lend(said));
+
+        Assert.Equal((1, "<p>old</p>"), (loan.Version, loan.Html));
     }
 
     [Theory]
-    [InlineData("""{ "id": "not-a-guid", "title": "A", "html": "<p></p>", "painted": "2026-11-07T12:00:00+00:00" }""")]
-    [InlineData("""{ "id": "1d9b883c-b335-4dc4-b228-6bf3aeb6802c", "title": "A", "painted": "2026-11-07T12:00:00+00:00" }""")]
+    [InlineData("""{ "id": "not-a-guid", "title": "A", "version": 1, "painted": "2026-11-07T12:00:00+00:00" }""")]
+    [InlineData("""{ "id": "1d9b883c-b335-4dc4-b228-6bf3aeb6802c", "version": 1, "painted": "2026-11-07T12:00:00+00:00" }""")]
     [InlineData("""{ "name": "Sea", "colors": ["#003F5C"] }""")]
     [InlineData("[1, 2]")]
     public void LendsNothingElse(string said)
@@ -57,70 +67,75 @@ public sealed class PaintingLenderTest : IDisposable
     }
 
     [Fact]
-    public async Task ReadsThePaintingAgainWhenFirstSeenSinceWhatWasKeptMayBeOlder()
+    public async Task ReadsItsOwnVersionWhenFirstSeen()
     {
-        await PaintAsync("<p>newer</p>");
-        var loan = Lent();
+        await PaintAsync("<p>one</p>", "<p>two</p>");
+        var loan = Lent(1, 1);
 
         loan.IsLive = true;
 
-        await Until(() => loan.Html == "<p>newer</p>");
+        await Until(() => loan.Html == "<p>one</p>");
+        Assert.Equal((2, false, true), (loan.Versions, loan.IsNewest, loan.IsPainted));
     }
 
     [Fact]
-    public async Task RedrawsWhileSeenWhenThePaintingIsRepainted()
+    public async Task KeepsItsVersionWhenThePaintingIsPaintedAgain()
     {
-        await PaintAsync("<p>first</p>");
-        var loan = Lent();
+        await PaintAsync("<p>one</p>");
+        var loan = Lent(1, 1);
         loan.IsLive = true;
-        await Until(() => loan.Html == "<p>first</p>");
+        await Until(() => loan.Html == "<p>one</p>");
 
-        await PaintAsync("<p>second</p>");
+        await PaintAsync("<p>two</p>");
         await _lender.FollowAsync(Signals("painting"), Token);
 
-        await Until(() => loan.Html == "<p>second</p>");
+        await Until(() => loan.Versions == 2);
+        Assert.Equal("<p>one</p>", loan.Html);
     }
 
     [Fact]
-    public async Task LetsRepaintsGoByWhileOutOfSightAndCatchesUpWhenSeenAgain()
+    public async Task ShowsTheOtherVersionsWithoutForgettingItsOwn()
     {
-        await PaintAsync("<p>first</p>");
-        var loan = Lent();
+        await PaintAsync("<p>one</p>", "<p>two</p>");
+        var loan = Lent(1, 2);
         loan.IsLive = true;
-        await Until(() => loan.Html == "<p>first</p>");
-        loan.IsLive = false;
+        await Until(() => loan.Html == "<p>one</p>");
 
-        await PaintAsync("<p>second</p>");
-        await _lender.FollowAsync(Signals("painting", "pins"), Token);
-        await Task.Delay(50, Token);
+        await loan.NextCommand.ExecuteAsync(null);
 
-        Assert.Equal("<p>first</p>", loan.Html);
+        Assert.Equal(("<p>two</p>", 2, true, false), (loan.Html, loan.Shown, loan.IsNewest, loan.IsPainted));
+        Assert.False(loan.NextCommand.CanExecute(null));
 
-        loan.IsLive = true;
+        await loan.PreviousCommand.ExecuteAsync(null);
 
-        await Until(() => loan.Html == "<p>second</p>");
+        Assert.Equal(("<p>one</p>", true), (loan.Html, loan.IsPainted));
+        Assert.False(loan.PreviousCommand.CanExecute(null));
     }
 
     [Fact]
     public async Task KeepsWhatItHasWhenThePaintingIsGone()
     {
-        var loan = Lent();
+        var said = JsonDocument.Parse($$"""{ "id": "{{Palette}}", "title": "A", "html": "<p>kept</p>", "painted": "2026-11-07T12:00:00+00:00" }""").RootElement;
+        var loan = Assert.IsType<PaintingLoan>(_lender.Lend(said));
 
         await loan.RefreshAsync(Token);
 
-        Assert.Equal("<p>swatches</p>", loan.Html);
+        Assert.Equal("<p>kept</p>", loan.Html);
     }
 
-    private PaintingLoan Lent() => Assert.IsType<PaintingLoan>(_lender.Lend(Painted()));
+    private PaintingLoan Lent(int version, int versions) => Assert.IsType<PaintingLoan>(_lender.Lend(Painted(version, versions)));
 
-    private async Task PaintAsync(string html)
+    private async Task PaintAsync(params string[] pages)
     {
-        var listed = await _store.ListAsync(Token);
-        var painted = listed.Value.Any(artwork => artwork.Id == Palette)
-            ? await _store.ChangeAsync(Palette, artwork => artwork with { Html = html }, Token)
-            : await _store.AddAsync(new Artwork(Palette, "Amethyst palette", html, DateTimeOffset.UnixEpoch), Token);
+        foreach (var html in pages)
+        {
+            var found = await _store.FindAsync(Palette, Token);
+            var painted = found.IsSuccess
+                ? await _store.ChangeAsync(Palette, artwork => artwork.Painted(html, DateTimeOffset.UnixEpoch), Token)
+                : await _store.AddAsync(new Artwork(Palette, "Amethyst palette", null, [new ArtworkVersion(1, html, DateTimeOffset.UnixEpoch)]), Token);
 
-        Assert.True(painted.IsSuccess);
+            Assert.True(painted.IsSuccess);
+        }
     }
 
     private static async Task Until(Func<bool> done)

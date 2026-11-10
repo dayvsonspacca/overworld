@@ -4,10 +4,10 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Painting.Artworks;
 
-[Operation("paint", "Paints a page of HTML for the person to see in Painting's window, or changes a painting already there, and signals the window to show it now.")]
-public sealed class PaintArtworkOp(ArtworkStore store, BeaconClient beacon, TimeProvider time) : IOperation<PaintArtwork, Artwork>
+[Operation("paint", "Paints a page of HTML for the person to see, or paints a painting again as its next version, keeping the earlier ones, and signals Painting to show it now.")]
+public sealed class PaintArtworkOp(ArtworkStore store, BeaconClient beacon, TimeProvider time) : IOperation<PaintArtwork, Canvas>
 {
-    public async Task<Result<Artwork>> ExecuteAsync(PaintArtwork input, CancellationToken cancellationToken)
+    public async Task<Result<Canvas>> ExecuteAsync(PaintArtwork input, CancellationToken cancellationToken)
     {
         var html = await HtmlAsync(input, cancellationToken);
 
@@ -26,17 +26,19 @@ public sealed class PaintArtworkOp(ArtworkStore store, BeaconClient beacon, Time
         var now = time.GetUtcNow();
 
         var painted = input.Id is { } id
-            ? await store.ChangeAsync(id, artwork => artwork with { Title = title ?? artwork.Title, Html = html.Value, Painted = now }, cancellationToken)
+            ? await store.ChangeAsync(id, artwork => (artwork with { Title = title ?? artwork.Title, Group = input.Group ?? artwork.Group }).Painted(html.Value, now), cancellationToken)
             : title is null
                 ? new Error("painting.title_missing", "A new painting needs a title.")
-                : await store.AddAsync(new Artwork(Guid.NewGuid(), title, html.Value, now), cancellationToken);
+                : await store.AddAsync(Artwork.New(title, input.Group, html.Value, now), cancellationToken);
 
-        if (painted.IsSuccess)
+        if (!painted.IsSuccess)
         {
-            await beacon.LightAsync("painting", cancellationToken);
+            return painted.Error;
         }
 
-        return painted;
+        await beacon.LightAsync("painting", cancellationToken);
+
+        return Canvas.Latest(painted.Value);
     }
 
     private static async Task<Result<string>> HtmlAsync(PaintArtwork input, CancellationToken cancellationToken)

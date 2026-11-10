@@ -44,10 +44,10 @@ public sealed class PaintArtworkOpTest : IDisposable
     {
         var painted = await Paint(new PaintArtwork(" Design ", Html: "<h1>Hi</h1>"));
 
-        Assert.Equal("Design", painted.Value.Title);
-        Assert.Equal("<h1>Hi</h1>", painted.Value.Html);
-        Assert.Equal(_clock.Now, painted.Value.Painted);
-        Assert.Equal(painted.Value, Assert.Single(await Stored()));
+        Assert.Equal(("Design", 1, 1, _clock.Now), (painted.Value.Title, painted.Value.Version, painted.Value.Versions, painted.Value.Painted));
+        Assert.Null(painted.Value.Html);
+        var kept = Assert.Single(await Stored());
+        Assert.Equal((painted.Value.Id, "<h1>Hi</h1>"), (kept.Id, kept.Latest.Html));
     }
 
     [Fact]
@@ -56,9 +56,9 @@ public sealed class PaintArtworkOpTest : IDisposable
         var file = Path.Combine(_folder.Path, "page.html");
         await File.WriteAllTextAsync(file, "<p>From a file</p>", Token);
 
-        var painted = await Paint(new PaintArtwork("Design", File: file));
+        await Paint(new PaintArtwork("Design", File: file));
 
-        Assert.Equal("<p>From a file</p>", painted.Value.Html);
+        Assert.Equal("<p>From a file</p>", Assert.Single(await Stored()).Latest.Html);
     }
 
     [Fact]
@@ -72,19 +72,32 @@ public sealed class PaintArtworkOpTest : IDisposable
     }
 
     [Fact]
-    public async Task ChangesAPaintingByItsIdAndKeepsItsTitle()
+    public async Task PaintsAPaintingAgainAsItsNextVersionAndKeepsTheEarlierOnes()
     {
         var first = await Paint(new PaintArtwork("Design", Html: "<p>one</p>"));
         _clock.Now = _clock.Now.AddMinutes(5);
 
-        var changed = await Paint(new PaintArtwork(Html: "<p>two</p>", Id: first.Value.Id));
+        var again = await Paint(new PaintArtwork(Html: "<p>two</p>", Id: first.Value.Id));
 
-        Assert.Equal(new Artwork(first.Value.Id, "Design", "<p>two</p>", _clock.Now), changed.Value);
-        Assert.Equal(changed.Value, Assert.Single(await Stored()));
+        Assert.Equal((first.Value.Id, "Design", 2, 2, _clock.Now), (again.Value.Id, again.Value.Title, again.Value.Version, again.Value.Versions, again.Value.Painted));
+        var kept = Assert.Single(await Stored());
+        Assert.Equal(["<p>one</p>", "<p>two</p>"], kept.Versions.Select(version => version.Html));
+        Assert.Equal([1, 2], kept.Versions.Select(version => version.Number));
     }
 
     [Fact]
-    public async Task RefusesToChangeAPaintingThatIsNotThere()
+    public async Task GivesAGroupAndKeepsItWhenPaintedAgain()
+    {
+        var first = await Paint(new PaintArtwork("Buttons", Html: "<p>one</p>", Group: ArtworkGroup.Design));
+
+        var again = await Paint(new PaintArtwork(Html: "<p>two</p>", Id: first.Value.Id));
+
+        Assert.Equal(ArtworkGroup.Design, again.Value.Group);
+        Assert.Equal(ArtworkGroup.Design, Assert.Single(await Stored()).Group);
+    }
+
+    [Fact]
+    public async Task RefusesToPaintAgainAPaintingThatIsNotThere()
     {
         AssertFails("painting.not_found", await Paint(new PaintArtwork(Html: "<p></p>", Id: Guid.NewGuid())));
         Assert.Empty(_daemon.Requests);
@@ -117,11 +130,11 @@ public sealed class PaintArtworkOpTest : IDisposable
         AssertFails("painting.file_not_found", await Paint(new PaintArtwork("Design", File: Path.Combine(_folder.Path, "gone.html"))));
     }
 
-    private Task<Result<Artwork>> Paint(PaintArtwork input) => _paint.ExecuteAsync(input, Token);
+    private Task<Result<Canvas>> Paint(PaintArtwork input) => _paint.ExecuteAsync(input, Token);
 
     private async Task<IReadOnlyList<Artwork>> Stored() => (await _store.ListAsync(Token)).Value;
 
-    private static void AssertFails(string code, Result<Artwork> result)
+    private static void AssertFails(string code, Result<Canvas> result)
     {
         Assert.False(result.IsSuccess);
         Assert.Equal(code, result.Error.Code);

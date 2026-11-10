@@ -9,5 +9,7 @@ public sealed record PaintArtwork(
     string? Html = null,
     [property: Description("An HTML file whose contents become the page to show. Give this or html.")]
     string? File = null,
-    [property: Description("The id of a painting to change, as paint gave it. Leave it out to paint a new one.")]
-    Guid? Id = null);
+    [property: Description("The id of a painting to paint again, as paint gave it: the page becomes its next version and the earlier ones are kept. Leave it out to paint a new one.")]
+    Guid? Id = null,
+    [property: Description("The group the painting belongs to: Design for the design of a screen, a component or an app. Leave it out to keep a painting's group.")]
+    ArtworkGroup? Group = null);
