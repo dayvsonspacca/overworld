@@ -38,6 +38,8 @@ using Overworld.Apps.Crafter.Presentation.Composing;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using System.Text.Json.Nodes;
 using Overworld.Allay.Presentation.Conversations;
+using Overworld.Allay.Presentation.Chats;
+using Overworld.Allay.Visits;
 
 var app = new AppIdentity("crafter");
 var data = DataDirectory.For(app.Name);
@@ -200,7 +202,14 @@ return await AppHost.RunAsync(
 
             Hide(page.Mirror);
 
-            var workbench = new WorkbenchViewModel(abilities);
+            var chat = new ChatViewModel(new Lobby(crew, link), HomeBriefAsync, abilities.Lenders, HomeBrief.Suggestions, ringer, "Crafter");
+            page.Leaving.Add(_ =>
+            {
+                chat.End();
+
+                return Task.CompletedTask;
+            });
+            var workbench = new WorkbenchViewModel(abilities, chat: chat);
             _ = OpenAsync(workbench, attention, summoned);
             _ = FollowSummonsAsync(attention, page);
 
@@ -211,8 +220,9 @@ return await AppHost.RunAsync(
             _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = FollowKeptAsync(workshop);
 
-            page.Activated += (_, _) => attention.IsActive = true;
-            page.Deactivated += (_, _) => attention.IsActive = false;
+            page.Activated += (_, _) => attention.IsActive = chat.IsAttended = true;
+            page.Deactivated += (_, _) => attention.IsActive = chat.IsAttended = false;
+            chat.Summoned += (_, _) => page.Summon();
             attention.Summoned += (_, _) => page.Summon();
 
             page.Handle("attach", asked =>
@@ -247,6 +257,14 @@ return await AppHost.RunAsync(
 
         return Task.FromResult(code);
     });
+
+async Task<Overworld.Allay.Briefs.Brief> HomeBriefAsync(CancellationToken cancellationToken)
+{
+    var read = await preferences.ReadAsync(cancellationToken);
+    var root = read.IsSuccess && read.Value.ProjectsRoot is { } kept ? kept : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+    return HomeBrief.Of(root, Environment.ProcessPath ?? app.Command);
+}
 
 static async Task OpenAsync(WorkbenchViewModel workbench, Attention attention, Summons? summoned)
 {

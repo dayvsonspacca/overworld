@@ -31,6 +31,26 @@ public sealed class WorkbenchViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task ListsTheProjectsAgainKeepingTheOnesShown()
+    {
+        await _bench.ProjectAsync("alpha");
+        var beta = await _bench.ProjectAsync("beta");
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+        var alpha = workbench.Projects[0];
+        var gamma = await _bench.ProjectAsync("gamma");
+        await _bench.Abilities.RemoveProject.ExecuteAsync(new Apps.Crafter.Projects.RemoveProject(beta), Bench.Cancellation);
+        await _bench.Abilities.EditProject.ExecuteAsync(new Apps.Crafter.Projects.EditProject(alpha.Project.Folder, "Alpha"), Bench.Cancellation);
+
+        await workbench.RelistAsync(Bench.Cancellation);
+
+        Assert.Equal(["Alpha", "gamma"], workbench.Projects.Select(project => project.Name));
+        Assert.Same(alpha, workbench.Projects[0]);
+        Assert.Equal(gamma, workbench.Projects[1].Project.Folder);
+        Assert.Equal(0, workbench.Projects[1].ChatCount);
+    }
+
+    [Fact]
     public async Task GoesHomeFromAProject()
     {
         await _bench.ProjectAsync("alpha");

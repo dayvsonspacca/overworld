@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Overworld.Allay.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Projects;
 
@@ -16,12 +17,17 @@ public sealed partial class HomeViewModel : ObservableObject
 
     private readonly Dictionary<ChatSummaryViewModel, RecentChatViewModel> _known = [];
 
-    public HomeViewModel(ObservableCollection<ProjectViewModel> projects)
+    public HomeViewModel(ObservableCollection<ProjectViewModel> projects, ChatViewModel? chat = null)
     {
         _projects = projects;
+        Chat = chat;
         _projects.CollectionChanged += Rewatch;
         Rewatch(null, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
+
+    public ChatViewModel? Chat { get; }
+
+    public bool HasChat => Chat is not null;
 
     public ObservableCollection<RecentChatViewModel> Recent { get; } = [];
 

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Overworld.Allay.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Home;
@@ -15,7 +16,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject
 {
     private readonly Abilities abilities;
 
-    public WorkbenchViewModel(Abilities abilities, RepositoryFinder? finder = null)
+    public WorkbenchViewModel(Abilities abilities, RepositoryFinder? finder = null, ChatViewModel? chat = null)
     {
         this.abilities = abilities;
         Adding = new AddProjectViewModel(abilities, finder ?? new RepositoryFinder());
@@ -25,7 +26,20 @@ public sealed partial class WorkbenchViewModel : ObservableObject
             Projects.Add(shown);
             Project = shown;
         };
-        Home = new HomeViewModel(Projects);
+        Home = new HomeViewModel(Projects, chat);
+
+        if (chat is not null)
+        {
+            chat.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ChatViewModel.IsWorking) && !chat.IsWorking)
+                {
+                    _ = RelistAsync(CancellationToken.None);
+                }
+            };
+            chat.Summoned += (_, _) => _ = GoHomeAsync();
+        }
+
         Preferences = new PreferencesViewModel(abilities);
         Preferences.Changed += (_, _) => _ = RebriefAllAsync();
         abilities.Attention.Summoned += (_, summons) => Summon(summons);
@@ -92,6 +106,49 @@ public sealed partial class WorkbenchViewModel : ObservableObject
 
         Project = null;
         await Home.SurveyAsync(cancellationToken);
+
+        if (Home.Chat is { } chat)
+        {
+            await chat.LoadAsync(cancellationToken);
+        }
+    }
+
+    public async Task RelistAsync(CancellationToken cancellationToken)
+    {
+        var listed = await abilities.ListProjects.ExecuteAsync(new ListProjects(), cancellationToken);
+
+        if (!listed.IsSuccess)
+        {
+            Problem = listed.Error.Message;
+
+            return;
+        }
+
+        Problem = null;
+        var known = Projects.ToDictionary(project => project.Project.Folder);
+        var folders = listed.Value.Select(project => project.Folder).ToHashSet();
+
+        foreach (var gone in Projects.Where(project => !folders.Contains(project.Project.Folder)).ToList())
+        {
+            Remove(gone);
+        }
+
+        for (var at = 0; at < listed.Value.Count; at++)
+        {
+            var project = listed.Value[at];
+
+            if (known.TryGetValue(project.Folder, out var shown))
+            {
+                shown.Edited(project);
+                Projects.Move(Projects.IndexOf(shown), at);
+            }
+            else
+            {
+                shown = Shown(project);
+                Projects.Insert(at, shown);
+                await shown.SurveyAsync(cancellationToken);
+            }
+        }
     }
 
     [RelayCommand]

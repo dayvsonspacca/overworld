@@ -4,6 +4,7 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { boot, TitleBar, IconButton, Icon, Button, Modal, Prose, AllayIcon, SearchField, TextField, Progress, glyphs, useCommands, localFile, choose, useObj, useList, run, can, put, invoke, obj, idOf, type Obj } from '@overworld/kit';
+import { ChatBubble } from '@overworld/chat';
 import { Conversation, Viewer, Stage } from './chat/conversation';
 import './app.css';
 
@@ -629,6 +630,7 @@ function Main({ workbench, project }: { workbench: Obj; project: Obj | null }) {
 
 function Crafter({ root }: { root: any }) {
   const workbench = useObj(root.workbench);
+  const home = useObj(workbench?.p.home);
   const project = useObj(workbench?.p.project);
   const aside = useObj(project?.p.aside);
   const conversation = useObj(aside?.p.conversation);
@@ -639,7 +641,7 @@ function Crafter({ root }: { root: any }) {
     { title: 'New chat', group: 'Chats', keys: 'Ctrl+T', run: () => { run(w(), 'NewChatCommand'); focusComposer(); } },
     { title: 'Write a message', group: 'Chats', keys: 'Ctrl+L', run: focusComposer },
     { title: 'Stop the agent', group: 'Chats', run: () => run(talking(), 'StopCommand') },
-    { title: 'Background jobs of the chat', group: 'Chats', keys: 'Ctrl+J', run: () => run(w(), 'ShowJobsCommand') },
+    { title: 'Background jobs of the chat', group: 'Chats', keys: 'Ctrl+J', when: () => !!w()?.p.project, run: () => run(w(), 'ShowJobsCommand') },
     { title: 'Next chat', group: 'Chats', keys: 'Ctrl+Tab', run: () => run(w(), 'NextChatCommand') },
     { title: 'Previous chat', group: 'Chats', keys: 'Ctrl+Shift+Tab', run: () => run(w(), 'PreviousChatCommand') },
     { title: 'Search chats', group: 'Chats', keys: 'Ctrl+F', run: () => { const s = document.getElementById('search') as HTMLInputElement | null; s?.focus(); s?.select(); } },
@@ -678,6 +680,7 @@ function Crafter({ root }: { root: any }) {
       {conversation && <Viewer id={conversation.p.viewer} />}
       {project && <RemovingChat id={project.id} />}
       <Adding id={p.adding} />
+      {p.showsHome && home?.p.hasChat && <ChatBubble id={home.p.chat} />}
       <Gate id={root.gate} />
     </>
   );
