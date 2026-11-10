@@ -31,7 +31,7 @@ public sealed class PalettesViewModelTest : IDisposable
     }
 
     [Fact]
-    public async Task LoadsEveryPaletteAndSelectsTheFirst()
+    public async Task LoadsEveryPaletteWithoutOpeningOne()
     {
         await Save("Sea", "#003F5C");
         await Save("Fire", "#FF6347");
@@ -39,7 +39,33 @@ public sealed class PalettesViewModelTest : IDisposable
         await _palettes.LoadAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["Sea", "Fire"], _palettes.Palettes.Select(palette => palette.Name));
-        Assert.Equal("Sea", _palettes.Selected?.Name);
+        Assert.Null(_palettes.Selected);
+    }
+
+    [Fact]
+    public async Task KeepsTheOpenPaletteWhenLoadedAgain()
+    {
+        await Save("Sea", "#003F5C");
+        await Save("Fire", "#FF6347");
+        await _palettes.LoadAsync(TestContext.Current.CancellationToken);
+        _palettes.Selected = _palettes.Palettes[1];
+
+        await _palettes.LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("Fire", _palettes.Selected?.Name);
+    }
+
+    [Fact]
+    public async Task ClosesTheOpenPalette()
+    {
+        await Save("Sea", "#003F5C");
+        await _palettes.LoadAsync(TestContext.Current.CancellationToken);
+        _palettes.Selected = _palettes.Palettes[0];
+
+        _palettes.CloseCommand.Execute(null);
+
+        Assert.Null(_palettes.Selected);
+        Assert.Empty(_palettes.Swatches);
     }
 
     [Fact]
@@ -74,6 +100,7 @@ public sealed class PalettesViewModelTest : IDisposable
         await Save("Sea", "#003F5C", "#E4E2DC");
         await Save("Fire", "#FF6347");
         await _palettes.LoadAsync(TestContext.Current.CancellationToken);
+        _palettes.Selected = _palettes.Palettes[0];
 
         Assert.Equal(["003F5C", "E4E2DC"], _palettes.Swatches.Select(swatch => swatch.Label));
 

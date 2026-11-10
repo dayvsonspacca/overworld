@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Dye.Palettes;
 using Overworld.Bedrock.Operations;
 
@@ -52,6 +53,10 @@ public sealed partial class PalettesViewModel : ObservableObject
             Palettes.Add(palette);
         }
 
-        Selected = Palettes.FirstOrDefault(palette => palette.Name == select) ?? Palettes.FirstOrDefault();
+        var open = select ?? Selected?.Name;
+        Selected = Palettes.FirstOrDefault(palette => palette.Name == open);
     }
+
+    [RelayCommand]
+    private void Close() => Selected = null;
 }
