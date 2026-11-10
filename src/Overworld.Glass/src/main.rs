@@ -64,6 +64,9 @@ fn main() -> ExitCode {
         });
     }
 
+    let input = env::var("OVERWORLD_IM_MODULE").unwrap_or_else(|_| "gtk-im-context-simple".into());
+    env::set_var("GTK_IM_MODULE", input);
+
     gtk::glib::set_prgname(Some(wanted.app.as_str()));
     gtk::glib::set_application_name(&wanted.title);
 
