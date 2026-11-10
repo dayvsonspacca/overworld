@@ -1,12 +1,23 @@
-import { memo, useEffect, useState, type ComponentProps } from 'react';
+import { memo, useEffect, useMemo, useState, type ComponentProps } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
+import { common, createLowlight } from 'lowlight';
+import { toJsxRuntime } from 'hast-util-to-jsx-runtime';
+import { Fragment, jsx, jsxs } from 'react/jsx-runtime';
 import remarkGfm from 'remark-gfm';
 import { Check, Copy } from 'lucide-react';
 import { ask } from '@overworld/kit';
 import { Button } from './ui/button';
 import { cn } from './ui/cn';
 
-const CollapseAfter = 14;
+const lowlight = createLowlight(common);
+
+const Aliases: Record<string, string> = { cs: 'csharp', 'c#': 'csharp', sh: 'bash', zsh: 'bash', shell: 'bash', ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript', qml: 'javascript', axaml: 'xml', xaml: 'xml', html: 'xml', md: 'markdown', yml: 'yaml' };
+
+function highlighted(code: string, lang?: string) {
+  const name = lang ? Aliases[lang.toLowerCase()] ?? lang.toLowerCase() : undefined;
+  if (!name || !lowlight.registered(name)) return code;
+  return toJsxRuntime(lowlight.highlight(name, code), { Fragment, jsx, jsxs });
+}
 
 export function CopyButton({ text, className, label = 'Copy' }: { text: string; className?: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -34,23 +45,15 @@ export function CopyButton({ text, className, label = 'Copy' }: { text: string; 
 
 export function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   const lines = code.split('\n').length;
-  const long = lines > CollapseAfter;
-  const [expanded, setExpanded] = useState(!long);
+  const shown = useMemo(() => highlighted(code, lang), [code, lang]);
   return (
     <div className="my-2 overflow-hidden rounded-md border bg-muted/40">
       <div className="flex items-center justify-between border-b px-2 py-1 text-xs text-muted-foreground">
         <span className="font-mono">{lang || 'code'} · {lines} {lines === 1 ? 'line' : 'lines'}</span>
-        <div className="flex items-center gap-1">
-          {long && (
-            <Button variant="ghost" size="xs" onClick={() => setExpanded((e) => !e)}>
-              {expanded ? 'Collapse' : 'Expand'}
-            </Button>
-          )}
-          <CopyButton text={code} />
-        </div>
+        <CopyButton text={code} />
       </div>
-      <pre className={cn('overflow-x-auto p-3 font-mono text-xs leading-relaxed', !expanded && 'max-h-48 overflow-y-hidden')}>
-        <code>{code}</code>
+      <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed">
+        <code className="hljs">{shown}</code>
       </pre>
     </div>
   );
