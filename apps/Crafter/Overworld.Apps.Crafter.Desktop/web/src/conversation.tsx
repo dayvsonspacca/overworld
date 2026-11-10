@@ -246,6 +246,18 @@ function Pulse({ id, color }: { id: any; color?: string }) {
 
 const Start = 1_000_000;
 
+const Pages = 3;
+
+function Top({ context }: { context?: { state: 'idle' | 'loading' | 'done' } }) {
+  if (context?.state === 'loading') return <div className="timeline-top subtle footnote">Loading earlier…</div>;
+  if (context?.state === 'done') return <div className="timeline-top subtle footnote">The start of the chat</div>;
+  return <div className="timeline-top" />;
+}
+
+function Bottom({ context }: { context?: { pulse: any; color?: string } }) {
+  return <div className="timeline-row"><Pulse id={context?.pulse} color={context?.color} /></div>;
+}
+
 function Timeline({ conversation }: { conversation: Obj }) {
   const timeline = conversation.p.timeline;
   const entries = useList(timeline?.shown);
@@ -254,6 +266,7 @@ function Timeline({ conversation }: { conversation: Obj }) {
   const top = useRef<number | null>(null);
   const first = useRef(Start);
   const loading = useRef(false);
+  const [state, setState] = useState<'idle' | 'loading' | 'done'>(timeline?.hasEarlier === false ? 'done' : 'idle');
 
   const ids = entries.map((ref) => idOf(ref)!);
   if (top.current !== null) {
@@ -272,10 +285,20 @@ function Timeline({ conversation }: { conversation: Obj }) {
   }, [entries]);
 
   const earlier = async () => {
-    if (loading.current || !timeline?.$id) return;
+    if (loading.current || state === 'done' || !timeline?.$id) return;
     loading.current = true;
-    await invoke({ id: timeline.$id } as Obj, 'ShowEarlier');
+    setState('loading');
+    let brought = 0;
+    for (let page = 0; page < Pages; page++) {
+      const more = await invoke<number | null>({ id: timeline.$id } as Obj, 'ShowEarlier');
+      if (!more) {
+        if (more === 0) brought = -1;
+        break;
+      }
+      brought += more;
+    }
     loading.current = false;
+    setState(brought < 0 ? 'done' : 'idle');
   };
 
   return (
@@ -283,6 +306,7 @@ function Timeline({ conversation }: { conversation: Obj }) {
       ref={list}
       className="timeline-page"
       data={entries}
+      context={{ state, pulse: conversation.p.pulse, color: conversation.p.color }}
       firstItemIndex={first.current}
       initialTopMostItemIndex={{ index: 'LAST', align: 'end' }}
       startReached={earlier}
@@ -291,10 +315,7 @@ function Timeline({ conversation }: { conversation: Obj }) {
       increaseViewportBy={{ top: 800, bottom: 400 }}
       computeItemKey={(_, ref) => idOf(ref)!}
       itemContent={(_, ref) => <div className="timeline-row"><Entry id={idOf(ref)!} conversation={conversation} /></div>}
-      components={{
-        Header: () => <div className="timeline-top" />,
-        Footer: () => <div className="timeline-row"><Pulse id={conversation.p.pulse} color={conversation.p.color} /></div>,
-      }}
+      components={{ Header: Top, Footer: Bottom }}
     />
   );
 }

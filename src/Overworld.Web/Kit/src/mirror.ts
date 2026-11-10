@@ -38,7 +38,13 @@ export function connect() {
     for (const each of queue.splice(0)) socket!.send(each);
     send({ t: 'focus', value: document.hasFocus() });
   };
-  socket.onclose = () => setTimeout(connect, 500);
+  socket.onclose = () => {
+    for (const [n, resolve] of pending) {
+      resolve(null);
+      pending.delete(n);
+    }
+    setTimeout(connect, 500);
+  };
 }
 
 function send(message: object) {

@@ -106,7 +106,7 @@
 .conversation { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
 .timeline-page { flex: 1; }
 .timeline-row { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-.timeline-top { height: 20px; }
+.timeline-top { min-height: 20px; max-width: 760px; margin: 0 auto; padding: 12px 24px 8px 52px; }
 .pulse-room { height: 12px; }
 .composer-dock { max-width: 760px; width: 100%; margin: 0 auto; padding: 4px 24px 14px; display: flex; flex-direction: column; gap: 6px; }
 
