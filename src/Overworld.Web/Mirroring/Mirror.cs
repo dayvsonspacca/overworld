@@ -250,7 +250,11 @@ public sealed class Mirror
                 return named.ToString();
             case byte[] bytes:
                 return new JsonObject { ["$blob"] = Register(bytes) };
-            case DateTimeOffset or DateTime or Guid or Uri or char:
+            case DateTimeOffset moment:
+                return moment.ToString("O", CultureInfo.InvariantCulture);
+            case DateTime moment:
+                return moment.ToString("O", CultureInfo.InvariantCulture);
+            case Guid or Uri or char:
                 return Convert.ToString(value, CultureInfo.InvariantCulture);
             case TimeSpan span:
                 return span.TotalSeconds;
