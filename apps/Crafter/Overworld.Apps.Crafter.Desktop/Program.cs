@@ -113,6 +113,7 @@ using var link = new AllayLink();
 var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), toolbox, chats, link, (folder, chat) => Presence.Opener(Environment.ProcessPath, folder, chat));
 var ringer = new Ringer(new BellClient(new RedstoneClient(SocketPath.Resolve())), "crafter");
 var attention = new Attention();
+Overworld.Allay.Briefs.ToolServer? window = null;
 
 var abilities = new Abilities
 {
@@ -211,6 +212,10 @@ return await AppHost.RunAsync(
                 return Task.CompletedTask;
             });
             var workbench = new WorkbenchViewModel(abilities, chat: chat);
+            window = toolbox.Lend(
+                HomeBrief.Window,
+                [Operation.From(new OpenChatOp(shelf, (folder, prompt) => page.Loop.RunAsync(() => workbench.OpenChatAsync(folder, prompt)).Unwrap()))],
+                HomeBrief.WindowInstructions);
             _ = OpenAsync(workbench, attention, summoned);
             _ = FollowSummonsAsync(attention, page);
 
@@ -264,7 +269,7 @@ async Task<Overworld.Allay.Briefs.Brief> HomeBriefAsync(CancellationToken cancel
     var read = await preferences.ReadAsync(cancellationToken);
     var root = read.IsSuccess && read.Value.ProjectsRoot is { } kept ? kept : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-    return HomeBrief.Of(root, Environment.ProcessPath ?? app.Command);
+    return HomeBrief.Of(root, Environment.ProcessPath ?? app.Command, window ?? throw new InvalidOperationException("Crafter's window has not opened."));
 }
 
 static async Task OpenAsync(WorkbenchViewModel workbench, Attention attention, Summons? summoned)

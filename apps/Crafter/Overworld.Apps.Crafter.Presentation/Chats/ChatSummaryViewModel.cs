@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Conversations;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Presentation.Chats;
 
@@ -11,6 +12,8 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
     private const int Longest = 60;
 
     private ConversationViewModel? _conversation;
+
+    private Task _desk = Task.CompletedTask;
 
     public ChatId Id => record.Id;
 
@@ -27,7 +30,7 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
                 _conversation = new ConversationViewModel(folder, record, abilities) { IsShown = IsOpen };
                 _conversation.PropertyChanged += Changed;
                 _conversation.Answered += (_, _) => Heard();
-                _ = _conversation.LoadDeskAsync(CancellationToken.None);
+                _desk = _conversation.LoadDeskAsync(CancellationToken.None);
             }
 
             return _conversation;
@@ -53,6 +56,14 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
     public bool IsWorking => State == ChatState.Working;
 
     public bool IsUnread => State == ChatState.Unread;
+
+    public async Task<Result<Prompt>> SayAsync(string draft)
+    {
+        var conversation = Conversation;
+        await _desk;
+
+        return conversation.Say(draft);
+    }
 
     public void Close() => _conversation?.Close();
 

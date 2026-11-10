@@ -116,6 +116,71 @@ public sealed class WorkbenchViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task OpensAChatInAProjectForTheHomeAgentAndSendsItsFirstMessage()
+    {
+        await _bench.HireAsync();
+        await _bench.ProjectAsync("alpha");
+        var beta = await _bench.ProjectAsync("beta");
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+        _bench.Session.Script(new Speech("On it."), new Finished());
+
+        var opened = await workbench.OpenChatAsync(beta, "Fix the modal");
+        for (var tries = 0; tries < 200 && _bench.Session.Heard.Count == 0; tries++)
+        {
+            await Task.Delay(10, Bench.Cancellation);
+        }
+
+        Assert.Equal("beta", workbench.Project?.Name);
+        Assert.False(workbench.ShowsHome);
+        Assert.Equal(opened.Value, workbench.Project?.Chat?.Id);
+        Assert.Equal("Fix the modal", Assert.Single(_bench.Session.Heard).Text);
+    }
+
+    [Fact]
+    public async Task OpensAnEmptyChatWhenTheHomeAgentGivesNoPrompt()
+    {
+        await _bench.HireAsync();
+        var alpha = await _bench.ProjectAsync("alpha");
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+
+        var opened = await workbench.OpenChatAsync(alpha, null);
+
+        Assert.Equal(opened.Value, workbench.Project?.Chat?.Id);
+        Assert.True(workbench.Project?.Chat?.IsFresh);
+        Assert.Empty(_bench.Session.Heard);
+    }
+
+    [Fact]
+    public async Task OpensAChatInAProjectAddedSinceItListed()
+    {
+        await _bench.HireAsync();
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+        var gamma = await _bench.ProjectAsync("gamma");
+
+        var opened = await workbench.OpenChatAsync(gamma, null);
+
+        Assert.True(opened.IsSuccess);
+        Assert.Equal("gamma", workbench.Project?.Name);
+    }
+
+    [Fact]
+    public async Task StaysHomeWhenTheFolderIsNotAProjectOpen()
+    {
+        await _bench.HireAsync();
+        await _bench.ProjectAsync("alpha");
+        var workbench = new WorkbenchViewModel(_bench.Abilities);
+        await workbench.LoadAsync(Bench.Cancellation);
+
+        var opened = await workbench.OpenChatAsync(_bench.PathTo("elsewhere"), "Fix it");
+
+        Assert.Equal("project.not_open", opened.Error.Code);
+        Assert.True(workbench.ShowsHome);
+    }
+
+    [Fact]
     public async Task GoesToAProjectBySlotAndIgnoresAnEmptySlot()
     {
         await _bench.ProjectAsync("alpha");

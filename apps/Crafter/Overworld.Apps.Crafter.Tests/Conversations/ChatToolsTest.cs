@@ -2,6 +2,8 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Pictures;
+using Overworld.Apps.Crafter.Projects;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
 
@@ -106,5 +108,79 @@ public sealed class ChatToolsTest : IDisposable
 
         Assert.Equal("chat.title_empty", said.Error.Code);
         Assert.False(called);
+    }
+
+    [Fact]
+    public async Task OpensAChatInAnOpenProjectAndSendsItsFirstMessage()
+    {
+        var (shelf, folder) = await ShelvedAsync();
+        var chat = ChatId.New();
+        (string Folder, string? Prompt)? asked = null;
+
+        var said = await new OpenChatOp(shelf, (given, prompt) =>
+        {
+            asked = (given, prompt);
+
+            return Task.FromResult(Result.Success(chat));
+        }).ExecuteAsync(new OpenChat(folder + "/", "  Fix the modal  "), Token);
+
+        Assert.Equal((folder, "Fix the modal"), asked);
+        Assert.Equal($"Crafter opened chat {chat.Value} in {folder} and sent it the prompt; the project's agent is working on it.", said.Value);
+    }
+
+    [Fact]
+    public async Task OpensAnEmptyChatWhenThePromptIsBlank()
+    {
+        var (shelf, folder) = await ShelvedAsync();
+        var chat = ChatId.New();
+        string? prompt = "unset";
+
+        var said = await new OpenChatOp(shelf, (_, given) =>
+        {
+            prompt = given;
+
+            return Task.FromResult(Result.Success(chat));
+        }).ExecuteAsync(new OpenChat(folder, "   "), Token);
+
+        Assert.Null(prompt);
+        Assert.Equal($"Crafter opened chat {chat.Value} in {folder}; it waits for the user's first message.", said.Value);
+    }
+
+    [Fact]
+    public async Task RefusesToOpenAChatOutsideAnOpenProject()
+    {
+        var (shelf, _) = await ShelvedAsync();
+        var called = false;
+
+        var said = await new OpenChatOp(shelf, (_, _) =>
+        {
+            called = true;
+
+            return Task.FromResult(Result.Success(ChatId.New()));
+        }).ExecuteAsync(new OpenChat(_folder.PathTo("elsewhere"), "Fix it"), Token);
+
+        Assert.Equal("project.not_open", said.Error.Code);
+        Assert.Contains("elsewhere", said.Error.Message);
+        Assert.False(called);
+    }
+
+    [Fact]
+    public async Task SaysWhyTheWindowCouldNotOpenTheChat()
+    {
+        var (shelf, folder) = await ShelvedAsync();
+
+        var said = await new OpenChatOp(shelf, (_, _) => Task.FromResult<Result<ChatId>>(new Error("crafter.no_agent", "No agent is hired yet.")))
+            .ExecuteAsync(new OpenChat(folder), Token);
+
+        Assert.Equal("crafter.no_agent", said.Error.Code);
+    }
+
+    private async Task<(Shelf Shelf, string Folder)> ShelvedAsync()
+    {
+        var shelf = new Shelf(_folder.PathTo("data"));
+        var folder = Directory.CreateDirectory(_folder.PathTo("alpha")).FullName;
+        await shelf.AddAsync(folder, Token);
+
+        return (shelf, folder);
     }
 }

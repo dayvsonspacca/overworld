@@ -112,6 +112,37 @@ public sealed class SessionsTest : IDisposable
     }
 
     [Fact]
+    public async Task LendsTheHomeChatTheWindowsOpenChat()
+    {
+        await _shelf.AddAsync(_overworld, Token);
+        using var host = new McpHttpHost("crafter");
+        host.Start();
+        (string Folder, string? Prompt)? asked = null;
+        var open = Operation.From(new OpenChatOp(_shelf, (folder, prompt) =>
+        {
+            asked = (folder, prompt);
+
+            return Task.FromResult(Bedrock.Results.Result.Success(ChatId.New()));
+        }));
+        var window = new Toolbox(host, [], [], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Lend(HomeBrief.Window, [open], HomeBrief.WindowInstructions);
+
+        var brief = HomeBrief.Of(_folder.PathTo("projects"), "crafter", window);
+        var call = new JsonObject
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = 1,
+            ["method"] = "tools/call",
+            ["params"] = new JsonObject { ["name"] = "open-chat", ["arguments"] = new JsonObject { ["folder"] = _overworld, ["prompt"] = "Fix the modal" } },
+        };
+        await PostAsync(window, call.ToJsonString());
+
+        Assert.Equal([HomeBrief.Tools, HomeBrief.Window], brief.Tools.Select(tool => tool.Name));
+        Assert.Empty(window.FreeTools);
+        Assert.Equal(Toolbox.Patience, window.Patience);
+        Assert.Equal((_overworld, "Fix the modal"), asked);
+    }
+
+    [Fact]
     public async Task ForgetsASessionItReleased()
     {
         await _shelf.AddAsync(_overworld, Token);

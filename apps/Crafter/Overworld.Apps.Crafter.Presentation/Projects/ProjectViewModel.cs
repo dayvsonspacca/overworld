@@ -6,6 +6,7 @@ using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Repositories;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Presentation.Projects;
 
@@ -143,29 +144,34 @@ public sealed partial class ProjectViewModel : ObservableObject
 
     public async Task NewChatAsync(CancellationToken cancellationToken)
     {
+        var fresh = await FreshChatAsync(cancellationToken);
+        Problem = fresh.IsSuccess ? null : fresh.Error.Message;
+    }
+
+    public async Task<Result<ChatSummaryViewModel>> FreshChatAsync(CancellationToken cancellationToken)
+    {
         if (_chats.FirstOrDefault(chat => chat.IsFresh) is { } fresh)
         {
             Query = string.Empty;
             Chat = fresh;
 
-            return;
+            return fresh;
         }
 
         var record = await _abilities.Workshop.FreshAsync(cancellationToken);
 
         if (!record.IsSuccess)
         {
-            Problem = record.Error.Message;
-
-            return;
+            return record.Error;
         }
 
-        Problem = null;
         var chat = Watched(new ChatSummaryViewModel(record.Value, Project.Folder, _abilities, fresh: true));
         _chats.Insert(0, chat);
         Query = string.Empty;
         Filter();
         Chat = chat;
+
+        return chat;
     }
 
     public void Edited(Project project)

@@ -14,6 +14,7 @@ using Overworld.Apps.Crafter.Presentation.Jobs;
 using Overworld.Apps.Crafter.Proposals;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Allay.Presentation.Conversations;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
@@ -263,16 +264,36 @@ public sealed partial class ConversationViewModel : ObservableObject
     [RelayCommand]
     private void CloseSpread() => Spread = null;
 
+    public Result<Prompt> Say(string draft)
+    {
+        var asked = Ask(draft, []);
+
+        if (!asked.IsSuccess)
+        {
+            Problem = asked.Error.Message;
+
+            return asked.Error;
+        }
+
+        _ = SubmitAsync(asked.Value);
+
+        return asked.Value.Prompt;
+    }
+
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()
     {
-        if (Ask(Draft, [.. Attachments.Select(each => each.Attachment)]) is not { } sent)
+        var asked = Ask(Draft, [.. Attachments.Select(each => each.Attachment)]);
+
+        if (!asked.IsSuccess)
         {
+            Problem = asked.Error.Message;
+
             return;
         }
 
         Clear();
-        await SubmitAsync(sent);
+        await SubmitAsync(asked.Value);
     }
 
     [RelayCommand]
@@ -321,18 +342,11 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private bool CanSend() => (Draft.Trim().Length > 0 || Attachments.Count > 0) && Agent is not null;
 
-    private Sent? Ask(string draft, IReadOnlyList<Attachment> attached)
+    private Result<Sent> Ask(string draft, IReadOnlyList<Attachment> attached)
     {
         var asked = Asking.Of(draft, _folder, [.. _skills.Select(skill => skill.Id)], attached);
 
-        if (!asked.IsSuccess)
-        {
-            Problem = asked.Error.Message;
-
-            return null;
-        }
-
-        return new Sent(asked.Value, draft, attached);
+        return asked.IsSuccess ? new Sent(asked.Value, draft, attached) : asked.Error;
     }
 
     private async Task SubmitAsync(Sent sent)

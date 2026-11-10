@@ -83,6 +83,13 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
         return servers;
     }
 
+    public ToolServer Lend(string name, IReadOnlyList<Operation> operations, string instructions)
+    {
+        var token = host.Admit(new Caller(name, [.. operations.Select(operation => new ServedTool(operation))], instructions));
+
+        return new ToolServer(name, host.Endpoint ?? throw new InvalidOperationException("The tool server has not started."), token, [], Patience);
+    }
+
     public void Release(IEnumerable<ToolServer> servers)
     {
         foreach (var server in servers)

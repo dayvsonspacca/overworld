@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Presentation.Chats;
+using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Home;
@@ -9,6 +10,7 @@ using Overworld.Apps.Crafter.Presentation.Preferences;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Projects;
+using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Presentation.Workbench;
 
@@ -173,6 +175,44 @@ public sealed partial class WorkbenchViewModel : ObservableObject
         await project.NewChatAsync(CancellationToken.None);
     }
 
+    public async Task<Result<ChatId>> OpenChatAsync(string folder, string? prompt)
+    {
+        if (Find(folder) is null)
+        {
+            await RelistAsync(CancellationToken.None);
+        }
+
+        if (Find(folder) is not { } project)
+        {
+            return new Error("project.not_open", $"'{folder}' is not a project open in Crafter.");
+        }
+
+        Open(project);
+        await Opening;
+        var fresh = await project.FreshChatAsync(CancellationToken.None);
+
+        if (!fresh.IsSuccess)
+        {
+            project.Problem = fresh.Error.Message;
+
+            return fresh.Error;
+        }
+
+        project.Problem = null;
+
+        if (prompt is not null)
+        {
+            var said = await fresh.Value.SayAsync(prompt);
+
+            if (!said.IsSuccess)
+            {
+                return said.Error;
+            }
+        }
+
+        return fresh.Value.Id;
+    }
+
     [RelayCommand]
     public void Go(int slot)
     {
@@ -182,9 +222,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject
         }
     }
 
+    private ProjectViewModel? Find(string folder) => Projects.FirstOrDefault(each => each.Project.Folder == folder);
+
     private void Summon(Summons summons)
     {
-        if (Projects.FirstOrDefault(each => each.Project.Folder == summons.Folder) is not { } project)
+        if (Find(summons.Folder) is not { } project)
         {
             return;
         }
