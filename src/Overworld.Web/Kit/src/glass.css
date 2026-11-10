@@ -30,9 +30,10 @@
 .btn.danger-ghost:hover { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); }
 
 .btn.icon { height: 32px; min-width: 32px; padding: 0 8px; gap: 0; color: var(--subtle); overflow: hidden; }
-.btn.icon .btn-label { max-width: 0; opacity: 0; overflow: hidden; font-size: var(--fs-callout); transition: max-width 0.2s, opacity 0.2s, margin 0.2s; }
+.btn.icon .btn-label { display: grid; grid-template-columns: 0fr; opacity: 0; font-size: var(--fs-callout); transition: grid-template-columns 0.2s, opacity 0.2s, margin 0.2s; }
+.btn.icon .btn-label > span { min-width: 0; overflow: hidden; }
 .btn.icon:hover { color: var(--text); }
-.btn.icon:hover .btn-label { max-width: 120px; opacity: 1; margin-left: 8px; }
+.btn.icon:hover .btn-label { grid-template-columns: 1fr; opacity: 1; margin-left: 8px; }
 .btn.icon.chosen { color: var(--accent-text); border-color: var(--accent-deep); }
 .btn.icon.copied, .btn.icon.copied:hover { color: var(--added); }
 

@@ -81,7 +81,7 @@ export function IconButton({ d, title, onClick, disabled, chosen, className = ''
     <Tip text={keys ? readable(keys) : undefined}>
       <button className={`btn icon ${chosen ? 'chosen' : ''} ${className}`} disabled={disabled} onClick={onClick} aria-label={name || undefined}>
         <Icon d={d} />
-        {name && <span className="btn-label">{name}</span>}
+        {name && <span className="btn-label"><span>{name}</span></span>}
       </button>
     </Tip>
   );
@@ -102,7 +102,7 @@ export function CopyButton({ text, className = '' }: { text: string | (() => str
   return (
     <button className={`btn icon copy ${copied ? 'copied' : ''} ${className}`} onClick={copy} aria-label="Copy">
       <Icon d={copied ? glyphs.check : glyphs.copy} />
-      <span className="btn-label">{copied ? 'Copied' : 'Copy'}</span>
+      <span className="btn-label"><span>{copied ? 'Copied' : 'Copy'}</span></span>
     </button>
   );
 }
