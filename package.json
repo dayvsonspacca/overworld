@@ -1,0 +1,23 @@
+{
+  "name": "overworld",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "src/Overworld.Web/Kit",
+    "apps/Painting/Overworld.Apps.Painting.Desktop/web",
+    "apps/Allay/Overworld.Apps.Allay.Desktop/web",
+    "apps/Dye/Overworld.Apps.Dye.Desktop/web",
+    "apps/Crafter/Overworld.Apps.Crafter.Desktop/web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7"
+  }
+}

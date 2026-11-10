@@ -291,3 +291,10 @@ kbd {
 .field-label { font-size: var(--fs-callout); font-weight: 600; color: var(--text-soft); }
 .field-hint { font-size: var(--fs-footnote); color: var(--subtle); }
 .field-error { font-size: var(--fs-footnote); color: var(--danger); }
+
+.tip { background: var(--raised); color: var(--text); border: 1px solid var(--border); border-radius: var(--r-control); padding: 4px 8px; font-size: var(--fs-footnote); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); z-index: 200; max-width: 320px; }
+.palette { position: fixed; top: 12vh; left: 50%; transform: translateX(-50%); z-index: 101; }
+.palette [cmdk-item][data-selected='true'] { background: var(--selected); }
+.palette [cmdk-group-heading] { display: none; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; }
+.scrim { align-items: initial; padding-top: 0; }

@@ -4,3 +4,5 @@ dist/
 
 # Settings for this machine only, such as monitors.
 config/hypr/hyprland.local.lua
+
+node_modules/

@@ -6,7 +6,7 @@ namespace Overworld.Seed.Steps;
 
 public sealed class Fingerprint(IReadOnlyList<string> settings)
 {
-    private static readonly string[] Built = ["bin", "obj"];
+    private static readonly string[] Built = ["bin", "obj", "node_modules", "dist"];
 
     public string Of(string project)
     {
@@ -47,6 +47,6 @@ public sealed class Fingerprint(IReadOnlyList<string> settings)
 
         return folders.SelectMany(folder => Directory
             .EnumerateFiles(folder, "*", SearchOption.AllDirectories)
-            .Where(file => !Built.Any(built => Path.GetRelativePath(folder, file).Split(Path.DirectorySeparatorChar)[0] == built)));
+            .Where(file => !Path.GetRelativePath(folder, file).Split(Path.DirectorySeparatorChar).Any(Built.Contains)));
     }
 }

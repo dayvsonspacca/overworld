@@ -1,0 +1,11 @@
+{
+  "name": "@overworld/painting",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@overworld/kit": "*"
+  }
+}

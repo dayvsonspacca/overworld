@@ -4,6 +4,8 @@
     "git",
     "dotnet-sdk",
     "rust",
+    "nodejs",
+    "npm",
     "just",
     "hyprland",
     "xdg-desktop-portal-hyprland",

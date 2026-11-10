@@ -26,6 +26,9 @@ var fingerprint = new Fingerprint(
     root.PathTo("Directory.Build.rsp"),
     root.PathTo("Directory.Packages.props"),
     root.PathTo("global.json"),
+    root.PathTo("package.json"),
+    root.PathTo("package-lock.json"),
+    root.PathTo("tsconfig.json"),
 ]);
 
 IReadOnlyList<IStep> Plan(Install install) =>

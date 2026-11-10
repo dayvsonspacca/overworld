@@ -7,7 +7,6 @@
   <ItemGroup>
     <Content Include="../icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../icon.png" Link="wwwroot/app/icon.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="web/**" Link="wwwroot/app/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,4 +18,6 @@
     <ProjectReference Include="../../../src/Overworld.Web/Overworld.Web.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
   </ItemGroup>
+
+  <Import Project="../../../src/Overworld.Web/Page.targets" />
 </Project>

@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
 using Overworld.Redstone;
@@ -15,6 +18,7 @@ public static class WebHost
     {
         using var loop = new Loop();
         var page = new Page(new Mirror(), loop);
+        page.Handle("open-link", Open);
         loop.Send(_ => show(page), null);
 
         using var server = new PageServer(page, Path.Combine(AppContext.BaseDirectory, "wwwroot"));
@@ -34,6 +38,22 @@ public static class WebHost
         Leave(page);
 
         return 0;
+    }
+
+    private static void Open(JsonNode? asked)
+    {
+        if (asked?["url"]?.GetValue<string>() is { } url
+            && Uri.TryCreate(url, UriKind.Absolute, out var link)
+            && link.Scheme is "http" or "https" or "mailto")
+        {
+            try
+            {
+                using var opened = Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { link.ToString() }, UseShellExecute = false });
+            }
+            catch (Win32Exception)
+            {
+            }
+        }
     }
 
     private static void Leave(Page page)

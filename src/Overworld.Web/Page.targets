@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <OverworldRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../'))</OverworldRoot>
+    <PageFolder>$(MSBuildProjectDirectory)/web</PageFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PageSource Include="$(PageFolder)/src/**;$(PageFolder)/index.html;$(PageFolder)/package.json;$(PageFolder)/vite.config.ts;$(MSBuildThisFileDirectory)Kit/src/**;$(MSBuildThisFileDirectory)Kit/package.json;$(MSBuildThisFileDirectory)Kit/vite.ts;$(OverworldRoot)package.json" />
+  </ItemGroup>
+
+  <Target Name="InstallPageDependencies" Condition="!Exists('$(OverworldRoot)node_modules/.package-lock.json')">
+    <Exec Command="npm ci --no-audit --no-fund" WorkingDirectory="$(OverworldRoot)" />
+  </Target>
+
+  <Target Name="BuildPage" DependsOnTargets="InstallPageDependencies" Inputs="@(PageSource)" Outputs="$(PageFolder)/dist/index.html">
+    <Exec Command="npm run build" WorkingDirectory="$(PageFolder)" />
+    <Touch Files="$(PageFolder)/dist/index.html" />
+  </Target>
+
+  <Target Name="IncludePage" DependsOnTargets="BuildPage" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <BuiltPage Include="$(PageFolder)/dist/**" />
+      <Content Include="@(BuiltPage)" Link="wwwroot/app/%(BuiltPage.RecursiveDir)%(BuiltPage.Filename)%(BuiltPage.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

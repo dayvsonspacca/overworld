@@ -1,0 +1,11 @@
+{
+  "name": "@overworld/allay",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@overworld/kit": "*"
+  }
+}
