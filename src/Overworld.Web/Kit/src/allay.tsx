@@ -69,7 +69,9 @@ async function tint(color: string) {
   return url;
 }
 
-export function AllayIcon({ color, size = 28, className = '' }: { color?: string | null; size?: number; className?: string }) {
+export type AllayState = 'idle' | 'thinking' | 'working' | 'waiting' | 'done';
+
+export function AllayIcon({ color, size = 28, state = 'idle', className = '' }: { color?: string | null; size?: number; state?: AllayState; className?: string }) {
   const [src, setSrc] = useState(tinted.get(color ?? '') ?? null);
   useEffect(() => {
     let live = true;
@@ -78,5 +80,13 @@ export function AllayIcon({ color, size = 28, className = '' }: { color?: string
       live = false;
     };
   }, [color]);
-  return <span className={`allay ${className}`} style={{ width: size, height: size }}>{src && <img src={src} alt="" width={size} height={size} />}</span>;
+  return (
+    <span className={`allay ${state} ${className}`} style={{ width: size, height: size, ['--agent' as string]: color ?? 'var(--accent)' }}>
+      {state === 'working' && <><i className="allay-spark" /><i className="allay-spark" /><i className="allay-spark" /></>}
+      {state === 'done' && <i className="allay-puff" />}
+      {src && <img src={src} alt="" width={size} height={size} />}
+      {state === 'thinking' && <span className="allay-bubble"><i>.</i><i>.</i><i>.</i></span>}
+      {state === 'waiting' && <span className="allay-bubble">?</span>}
+    </span>
+  );
 }

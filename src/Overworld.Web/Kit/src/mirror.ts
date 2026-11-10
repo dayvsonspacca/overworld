@@ -204,3 +204,19 @@ addEventListener('focus', () => send({ t: 'focus', value: true }));
 addEventListener('blur', () => send({ t: 'focus', value: false }));
 addEventListener('error', (e) => log(`error: ${e.message} at ${e.filename}:${e.lineno}`));
 addEventListener('unhandledrejection', (e) => log(`rejection: ${e.reason?.stack ?? e.reason}`));
+
+export function useObjs(refs: any[]): (Obj | null)[] {
+  const ids = refs.map(idOf);
+  const key = ids.join(',');
+  const cache = useMemo(() => ({ value: [] as (Obj | null)[] }), [key]);
+  const subscribe = useMemo(() => (fn: () => void) => {
+    const stops = ids.map((id) => watch(id)(fn));
+    return () => stops.forEach((stop) => stop());
+  }, [key]);
+  const read = () => {
+    const next = ids.map((id) => (id == null ? null : objects.get(id) ?? null));
+    if (next.length !== cache.value.length || next.some((o, i) => o !== cache.value[i])) cache.value = next;
+    return cache.value;
+  };
+  return useSyncExternalStore(subscribe, read);
+}

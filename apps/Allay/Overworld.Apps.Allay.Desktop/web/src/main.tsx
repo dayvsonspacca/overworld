@@ -1,4 +1,4 @@
-import { boot, TitleBar, Sidebar, Section, StatusBar, AllayIcon, IconButton, Button, glyphs, useCommands, useObj, useList, run, can, put, obj, idOf } from '@overworld/kit';
+import { boot, TitleBar, Sidebar, Section, StatusBar, Ticker, RingGauge, Picker, AllayIcon, IconButton, Button, glyphs, useCommands, useObj, useList, run, can, put, obj, idOf } from '@overworld/kit';
 import './app.css';
 
 function AgentRow({ id, selected, onPick }: { id: number; selected: boolean; onPick: () => void }) {
@@ -7,7 +7,7 @@ function AgentRow({ id, selected, onPick }: { id: number; selected: boolean; onP
   const p = agent.p;
   return (
     <div className={`row agent-row ${selected ? 'selected' : ''}`} onClick={onPick}>
-      <AllayIcon color={p.color} size={28} />
+      <AllayIcon color={p.color} size={28} state={p.isChecking ? 'thinking' : 'idle'} />
       <div className="text">
         <div className="name">{p.name}</div>
         <div className="standing-line">{p.standing}</div>
@@ -59,7 +59,7 @@ function Agent({ id }: { id: number }) {
   return (
     <div className="agent">
       <div className="agent-head">
-        <AllayIcon color={p.color} size={48} />
+        <AllayIcon color={p.color} size={48} state={p.isChecking ? 'thinking' : 'idle'} />
         <div className="who">
           <h1>{p.name}</h1>
           <div className="hint">{p.summary}</div>
@@ -95,9 +95,7 @@ function Agent({ id }: { id: number }) {
             <span />
             <span className="hint">{p.modeHint}</span>
             <span className="label">Model</span>
-            <select value={p.model?.id} onChange={(e) => put(agent, 'Model', models.find((m) => m.id === e.target.value))}>
-              {models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-            </select>
+            <Picker label={p.name} value={p.model} choices={models.map((m) => ({ value: m, label: m.label, description: m.id !== m.label ? m.id : undefined }))} same={(a: any, b: any) => a?.id === b?.id} onPick={(m) => put(agent, 'Model', m)} />
             <span className="label">Effort</span>
             <div className="chips">
               <Button kind="chip" chosen={!p.isMax} onClick={() => run(agent, 'PickEffortCommand', 'Default')}>Default</Button>
@@ -110,6 +108,20 @@ function Agent({ id }: { id: number }) {
       {!p.isHired && <span className="hint">Hire it to choose the mode, model and effort it starts with.</span>}
       {p.problem && <span className="danger">{p.problem}</span>}
     </div>
+  );
+}
+
+function Status({ id, headcount }: { id: number | null | undefined; headcount: string }) {
+  const agent = useObj(id);
+  const usage = useObj(agent?.p.showsUsage ? agent.p.usage : null);
+  const limits = useList(usage?.p.limits);
+  const p = agent?.p;
+  const busy = !!p?.isChecking || !!usage?.p.isMeasuring;
+  return (
+    <StatusBar busy={busy} off={!p?.isReady} state={p ? `${p.name} ${p.state.toLowerCase()}` : headcount}>
+      <Ticker text={usage?.p.isMeasuring ? 'Checking the usage…' : headcount} />
+      {limits.map((limit) => <span key={limit.$id} title={`${limit.name} · ${limit.resets ?? ''}`}><RingGauge fill={limit.fill} close={limit.close} label={limit.used} note={limit.name} /></span>)}
+    </StatusBar>
   );
 }
 
@@ -134,11 +146,7 @@ function Agents({ root }: { root: any }) {
           {selected != null && <Agent id={selected} />}
         </div>
       </div>
-      <StatusBar>
-        <span>{p.headcount}</span>
-        <span style={{ flex: 1 }} />
-        <span>Every app that runs agents offers the hired ones</span>
-      </StatusBar>
+      <Status id={selected} headcount={p.headcount} />
     </>
   );
 }

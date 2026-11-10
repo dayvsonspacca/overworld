@@ -1,4 +1,5 @@
 import './base.css';
+import './glass.css';
 
 export * from './mirror';
 export * from './window';
