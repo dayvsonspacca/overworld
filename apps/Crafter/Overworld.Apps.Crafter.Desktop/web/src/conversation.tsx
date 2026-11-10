@@ -244,10 +244,23 @@ function Pulse({ id, color }: { id: any; color?: string }) {
   );
 }
 
+const Start = 1_000_000;
+
 function Timeline({ conversation }: { conversation: Obj }) {
-  const entries = useList(conversation.p.timeline?.entries);
+  const timeline = conversation.p.timeline;
+  const entries = useList(timeline?.shown);
   const list = useRef<VirtuosoHandle>(null);
   const newest = useRef<number | null>(null);
+  const top = useRef<number | null>(null);
+  const first = useRef(Start);
+  const loading = useRef(false);
+
+  const ids = entries.map((ref) => idOf(ref)!);
+  if (top.current !== null) {
+    const moved = ids.indexOf(top.current);
+    if (moved > 0) first.current -= moved;
+  }
+  top.current = ids[0] ?? null;
 
   useEffect(() => {
     const prompts = entries.filter((ref) => obj(ref)?.type === 'PromptEntry');
@@ -258,12 +271,21 @@ function Timeline({ conversation }: { conversation: Obj }) {
     newest.current = last;
   }, [entries]);
 
+  const earlier = async () => {
+    if (loading.current || !timeline?.$id) return;
+    loading.current = true;
+    await invoke({ id: timeline.$id } as Obj, 'ShowEarlier');
+    loading.current = false;
+  };
+
   return (
     <Virtuoso
       ref={list}
       className="timeline-page"
       data={entries}
+      firstItemIndex={first.current}
       initialTopMostItemIndex={{ index: 'LAST', align: 'end' }}
+      startReached={earlier}
       followOutput={(atBottom) => (atBottom ? 'auto' : false)}
       atBottomThreshold={48}
       increaseViewportBy={{ top: 800, bottom: 400 }}

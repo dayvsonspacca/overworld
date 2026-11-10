@@ -211,7 +211,7 @@ static void Hide(Overworld.Web.Mirroring.Mirror mirror)
 {
     mirror.Ignore<ChatSummaryViewModel>(nameof(ChatSummaryViewModel.Record), nameof(ChatSummaryViewModel.Conversation));
     mirror.Ignore<ConversationViewModel>(nameof(ConversationViewModel.Record), nameof(ConversationViewModel.Setup));
-    mirror.Ignore<Timeline>(nameof(Timeline.Shown));
+    mirror.Ignore<Timeline>(nameof(Timeline.Entries));
     mirror.Ignore<SpeechEntry>(nameof(SpeechEntry.Blocks));
     mirror.Ignore<SummaryProposalEntry>(nameof(SummaryProposalEntry.Blocks));
     mirror.Ignore<OverviewViewModel>(nameof(OverviewViewModel.Blocks), nameof(OverviewViewModel.Project));
