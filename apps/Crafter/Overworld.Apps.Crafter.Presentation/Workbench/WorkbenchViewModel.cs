@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Presentation.Preferences;
 using Overworld.Apps.Crafter.Presentation.Projects;
@@ -48,7 +49,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject
     public partial bool ShowsList { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool ShowsAside { get; set; } = true;
+    public partial bool ShowsAside { get; set; }
 
     [ObservableProperty]
     public partial string? Problem { get; set; }
@@ -215,6 +216,25 @@ public sealed partial class WorkbenchViewModel : ObservableObject
 
     [RelayCommand]
     public void ToggleAside() => ShowsAside = !ShowsAside;
+
+    [RelayCommand]
+    public void Peek(AsideTab tab)
+    {
+        if (Project?.Aside is not { } aside)
+        {
+            return;
+        }
+
+        if (ShowsAside && aside.Tab == tab)
+        {
+            ShowsAside = false;
+
+            return;
+        }
+
+        aside.Tab = tab;
+        ShowsAside = true;
+    }
 
     partial void OnProjectChanged(ProjectViewModel? oldValue, ProjectViewModel? newValue)
     {

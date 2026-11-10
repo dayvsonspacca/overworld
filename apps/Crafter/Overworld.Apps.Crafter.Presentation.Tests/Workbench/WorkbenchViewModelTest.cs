@@ -68,7 +68,6 @@ public sealed class WorkbenchViewModelTest : IDisposable
 
         workbench.ToggleList();
         workbench.ToggleAside();
-        workbench.ToggleAside();
 
         Assert.False(workbench.ShowsList);
         Assert.True(workbench.ShowsAside);

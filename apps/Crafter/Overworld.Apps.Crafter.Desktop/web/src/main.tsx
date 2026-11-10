@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import * as Tabs from '@radix-ui/react-tabs';
+import { createElement, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { ListChecks, Scale, Sparkles, SquareTerminal } from 'lucide-react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { boot, TitleBar, IconButton, Icon, Button, Modal, Prose, AllayIcon, glyphs, useCommands, localFile, choose, useObj, useList, run, can, put, invoke, obj, idOf, type Obj } from '@overworld/kit';
-import { Conversation, Viewer, Stage } from './conversation';
+import { boot, TitleBar, IconButton, Icon, Button, Modal, Prose, AllayIcon, SearchField, TextField, Progress, glyphs, useCommands, localFile, choose, useObj, useList, run, can, put, invoke, obj, idOf, type Obj } from '@overworld/kit';
+import { Conversation, Viewer, Stage } from './chat/conversation';
 import './app.css';
 
 const focusComposer = () => requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('.composer-box')?.focus());
@@ -68,9 +68,9 @@ function ChatRow({ id, project, selected, arranging }: { id: number; project: Ob
   if (!chat) return null;
   const p = chat.p;
   return (
-    <Lifted id={id} disabled={!arranging} className={`chat-row ${selected ? 'selected' : ''}`}>
-      <div onClick={() => put(project, 'Chat', { $ref: chat.id })}>
-        <div className="chat-title"><i className={`state ${p.isWorking ? 'working' : ''} ${p.isUnread ? 'unread' : ''}`} /><span>{p.title}</span></div>
+    <Lifted id={id} disabled={!arranging} className={`row chat-row ${selected ? 'selected' : ''} ${p.isWorking ? 'working' : ''} ${p.isUnread ? 'unread' : ''}`}>
+      <div className="chat-text" onClick={() => put(project, 'Chat', { $ref: chat.id })}>
+        <div className="chat-title"><span>{p.title}</span></div>
         {p.lastLine && <div className="chat-line">{p.lastLine}</div>}
       </div>
       <button className="btn icon chat-delete" title="Delete the chat" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); run(project, 'AskToRemoveChatCommand', { $ref: chat.id }); }}>
@@ -93,8 +93,8 @@ function Chats({ id, workbench }: { id: number; workbench: Obj }) {
         <button className="project-name" title="The project's page" onClick={() => run(workbench, 'OpenOverviewCommand')}>{p.name}</button>
         <IconButton d={glyphs.plus} title="New chat · Ctrl+T" onClick={() => { run(workbench, 'NewChatCommand'); focusComposer(); }} />
       </header>
-      <input id="search" className="chats-search" placeholder="Search chats" value={p.query ?? ''} onChange={(e) => put(project, 'Query', e.target.value)} />
-      <div className="chats-list">
+      <div className="chats-search"><SearchField id="search" value={p.query ?? ''} placeholder="Search chats" keys="Ctrl+F" onInput={(v) => put(project, 'Query', v)} /></div>
+      <div className="chats-list timeline">
         <Sortable ids={ids} disabled={!p.canArrange} onMove={(from, to) => invoke(project, 'MoveChatAsync', from, to)}>
           {ids.map((chat) => <ChatRow key={chat} id={chat} project={project} selected={chat === current} arranging={p.canArrange} />)}
         </Sortable>
@@ -106,7 +106,7 @@ function Chats({ id, workbench }: { id: number; workbench: Obj }) {
 }
 
 function Adder({ value, placeholder, onInput, onAdd }: { value: string; placeholder: string; onInput: (value: string) => void; onAdd: () => void }) {
-  return <input className="adder" value={value ?? ''} placeholder={placeholder} onChange={(e) => onInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onAdd()} />;
+  return <div className="adder"><TextField label={<Icon d={glyphs.plus} size={14} />} value={value ?? ''} placeholder={placeholder} keys="Enter" onInput={onInput} onEnter={onAdd} /></div>;
 }
 
 function Todo({ id }: { id: number }) {
@@ -130,10 +130,11 @@ function Todos({ id }: { id: any }) {
   const p = todos.p;
   return (
     <div className="aside-pane">
+      {all.length > 0 && <div className="todos-progress"><span>{all.length - (p.left ?? 0)}/{all.length} done</span><Progress fill={((all.length - (p.left ?? 0)) / all.length) * 100} /></div>}
       <Adder value={p.newTodo} placeholder="Something left to do" onInput={(v) => put(todos, 'NewTodo', v)} onAdd={() => run(todos, 'AddCommand')} />
       {all.map((ref) => <Todo key={idOf(ref)} id={idOf(ref)!} />)}
       {!p.hasTodos && <div className="subtle note">Nothing left to do.</div>}
-      {p.problem && <div className="field-error">{p.problem}</div>}
+      {p.problem && <div className="legend-error">{p.problem}</div>}
     </div>
   );
 }
@@ -146,7 +147,7 @@ function Skills({ id }: { id: any }) {
     <div className="aside-pane">
       {all.map((skill) => <div className="skill" key={skill.$id}><strong>{skill.name}</strong><span className="subtle">{skill.description}</span></div>)}
       {!skills.p.hasSkills && <div className="subtle note">The project has no skills yet.</div>}
-      {skills.p.problem && <div className="field-error">{skills.p.problem}</div>}
+      {skills.p.problem && <div className="legend-error">{skills.p.problem}</div>}
     </div>
   );
 }
@@ -166,7 +167,7 @@ function Axioms({ id }: { id: any }) {
         </div>
       ))}
       {!p.hasAxioms && <div className="subtle note">No axioms yet.</div>}
-      {p.problem && <div className="field-error">{p.problem}</div>}
+      {p.problem && <div className="legend-error">{p.problem}</div>}
     </div>
   );
 }
@@ -199,27 +200,71 @@ function Jobs({ id }: { id: any }) {
   );
 }
 
-function Aside({ id }: { id: number }) {
+const Peeks = [
+  { tab: 'Todos', title: 'Todos', icon: ListChecks },
+  { tab: 'Axioms', title: 'Axioms', icon: Scale },
+  { tab: 'Skills', title: 'Skills', icon: Sparkles },
+  { tab: 'Jobs', title: 'Background jobs', icon: SquareTerminal },
+] as const;
+
+function Trail({ id, workbench }: { id: number; workbench: Obj }) {
   const aside = useObj(id);
   const todos = useObj(aside?.p.todos);
+  const axioms = useObj(aside?.p.axioms);
+  const skills = useObj(aside?.p.skills);
+  const axiomList = useList<string>(axioms?.p.axioms);
+  const skillList = useList(skills?.p.skills);
   const conversation = useObj(aside?.p.conversation);
   const jobs = useList(conversation?.p.jobs);
+  const open = !!workbench.p.showsAside;
+  useEffect(() => {
+    if (!open) return;
+    const key = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (e.key === 'Escape' && !e.defaultPrevented && (target === document.body || target.closest('.drawer'))) {
+        e.preventDefault();
+        run(workbench, 'ToggleAsideCommand');
+      }
+    };
+    addEventListener('keydown', key);
+    return () => removeEventListener('keydown', key);
+  }, [open]);
   if (!aside) return null;
   const p = aside.p;
-  const pick = (tab: string) => run(aside, `Show${tab}Command`);
+  const counts: Record<string, number | undefined> = {
+    Todos: todos?.p.hasLeft ? todos.p.left : undefined,
+    Axioms: axiomList.length || undefined,
+    Skills: skillList.length || undefined,
+    Jobs: jobs.length || undefined,
+  };
+  const shown = Peeks.filter((peek) => peek.tab !== 'Jobs' || conversation?.p.hasJobs);
+  const current = Peeks.find((peek) => peek.tab === p.tab) ?? Peeks[0];
   return (
-    <Tabs.Root className="aside" value={p.tab} onValueChange={pick}>
-      <Tabs.List className="tabs">
-        <Tabs.Trigger className="btn tab" value="Todos">Todos {todos?.p.hasLeft && <span className="mono">{todos.p.left}</span>}</Tabs.Trigger>
-        <Tabs.Trigger className="btn tab" value="Skills">Skills</Tabs.Trigger>
-        <Tabs.Trigger className="btn tab" value="Axioms">Axioms</Tabs.Trigger>
-        {conversation?.p.hasJobs && <Tabs.Trigger className="btn tab" value="Jobs" title="Ctrl+J">Jobs <span className="mono">{jobs.length}</span></Tabs.Trigger>}
-      </Tabs.List>
-      <Tabs.Content value="Todos" asChild><div className="aside-tab"><Todos id={p.todos} /></div></Tabs.Content>
-      <Tabs.Content value="Skills" asChild><div className="aside-tab"><Skills id={p.skills} /></div></Tabs.Content>
-      <Tabs.Content value="Axioms" asChild><div className="aside-tab"><Axioms id={p.axioms} /></div></Tabs.Content>
-      <Tabs.Content value="Jobs" asChild><div className="aside-tab"><Jobs id={p.conversation} /></div></Tabs.Content>
-    </Tabs.Root>
+    <div className="trail-room">
+      <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open}>
+        <header className="drawer-head">
+          <span className="drawer-title">{current.title}</span>
+          {counts[current.tab] != null && <span className="drawer-count">{current.tab === 'Todos' ? `${counts.Todos} left` : counts[current.tab]}</span>}
+          <span className="spacer" />
+          <kbd>Esc</kbd>
+          <button className="winctl" aria-label="Close" onClick={() => run(workbench, 'ToggleAsideCommand')}><Icon d={glyphs.close} size={14} /></button>
+        </header>
+        <div className="drawer-body">
+          {p.tab === 'Todos' && <Todos id={p.todos} />}
+          {p.tab === 'Skills' && <Skills id={p.skills} />}
+          {p.tab === 'Axioms' && <Axioms id={p.axioms} />}
+          {p.tab === 'Jobs' && <Jobs id={p.conversation} />}
+        </div>
+      </aside>
+      <nav className="trail">
+        {shown.map((peek) => (
+          <button key={peek.tab} className={`trail-button ${open && p.tab === peek.tab ? 'chosen' : ''}`} title={peek.title} aria-label={peek.title} onClick={() => run(workbench, 'PeekCommand', peek.tab)}>
+            {createElement(peek.icon, { className: 'size-4' })}
+            {counts[peek.tab] != null && <span className={`trail-badge ${peek.tab === 'Jobs' ? 'live' : ''}`}>{counts[peek.tab]}</span>}
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 }
 
@@ -271,7 +316,7 @@ function Overview({ id, project }: { id: any; project: Obj }) {
             {project.p.hasIcon && <Button onClick={() => run(overview, 'RemoveIconCommand')}>No icon</Button>}
           </div>
         </div>
-        {p.problem && <div className="field-error">{p.problem}</div>}
+        {p.problem && <div className="legend-error">{p.problem}</div>}
         <section className="overview-section">
           <div className="overview-section-head">
             <span className="group-label">Summary · .crafter/summary.md</span>
@@ -348,19 +393,19 @@ function Preferences({ id }: { id: any }) {
             </div>
           ) : (
             <div className="row-line">
-              <input className="mono grow" placeholder="git@github.com:you/skills.git" value={p.draft ?? ''} onChange={(e) => put(preferences, 'Draft', e.target.value)} />
+              <div className="grow"><TextField label="Repo" placeholder="git@github.com:you/skills.git" value={p.draft ?? ''} onInput={(v) => put(preferences, 'Draft', v)} onEnter={() => can(preferences, 'LinkCommand') && run(preferences, 'LinkCommand')} /></div>
               <Button kind="primary" disabled={!can(preferences, 'LinkCommand')} onClick={() => run(preferences, 'LinkCommand')}>Link</Button>
             </div>
           )}
           {p.isBusy && <span className="subtle">Working with the repository…</span>}
           <span className="subtle footnote">Linking clones the repository; Sync brings it to what the repository holds now.</span>
-          {p.problem && <div className="field-error">{p.problem}</div>}
+          {p.problem && <div className="legend-error">{p.problem}</div>}
         </section>
         <section className="overview-section">
           <span className="group-label">Skills every project gets</span>
           {skills.map((ref) => <DefaultSkill key={idOf(ref)} id={idOf(ref)!} />)}
           {!p.hasSkills && <span className="subtle">Link a library to choose its skills.</span>}
-          {problems.map((problem) => <div className="field-error" key={problem}>{problem}</div>)}
+          {problems.map((problem) => <div className="legend-error" key={problem}>{problem}</div>)}
         </section>
         <span className="subtle footnote">Agents, and the mode, model and effort they start with, are set in Allay, for every app.</span>
       </div>
@@ -398,7 +443,7 @@ function Adding({ id }: { id: any }) {
         <Button kind="primary" disabled={!can(adding, 'AddCommand')} onClick={() => run(adding, 'AddCommand')}>Add</Button>
       </>
     }>
-      <input autoFocus placeholder="Search the repositories" value={p.query ?? ''} onChange={(e) => put(adding, 'Query', e.target.value)} onKeyDown={steer} />
+      <SearchField autoFocus placeholder="Search the repositories" value={p.query ?? ''} onInput={(v) => put(adding, 'Query', v)} onKeyDown={steer} />
       <span className="subtle footnote">Git repositories under {p.root}</span>
       <div className="repositories">
         {repositories.map((r) => (
@@ -409,7 +454,7 @@ function Adding({ id }: { id: any }) {
         {p.isSearching && <div className="subtle note">Looking for repositories…</div>}
         {p.foundNone && <div className="subtle note">No repository here that is not open yet.</div>}
       </div>
-      {p.problem && <div className="field-error">{p.problem}</div>}
+      {p.problem && <div className="legend-error">{p.problem}</div>}
     </Modal>
   );
 }
@@ -442,7 +487,7 @@ function Gate({ id }: { id: any }) {
           <Button kind="primary" onClick={() => run(gate, 'OpenAllayCommand')}>Open Allay</Button>
           <Button onClick={() => run(gate, 'LoadCommand')}>Check again</Button>
         </div>
-        {p.problem && <span className="field-error">{p.problem}</span>}
+        {p.problem && <span className="legend-error">{p.problem}</span>}
       </div>
     </div>
   );
@@ -496,11 +541,11 @@ function Crafter({ root }: { root: any }) {
   return (
     <>
       <TitleBar
-        title={p.title}
-        subtitle={p.subtitle}
+        title={p.subtitle ?? p.title}
+        subtitle={p.subtitle ? p.title : null}
         icon="/icon.png"
         leading={<IconButton d={glyphs.list} chosen={p.showsList} title="Show or hide the chats · Ctrl+B" onClick={() => run(workbench, 'ToggleListCommand')} />}
-        trailing={<IconButton d={glyphs.aside} chosen={p.showsAside} title="Show or hide the aside · Ctrl+Alt+B" onClick={() => run(workbench, 'ToggleAsideCommand')} />}
+        trailing={<IconButton d={glyphs.aside} chosen={p.showsAside} title="Todos, axioms and skills · Ctrl+Alt+B" onClick={() => run(workbench, 'ToggleAsideCommand')} />}
       />
       <div className="workbench">
         <Rail workbench={workbench} />
@@ -508,7 +553,7 @@ function Crafter({ root }: { root: any }) {
           <>
             {p.showsList && project && <div className="list-room"><Chats id={project.id} workbench={workbench} /></div>}
             <Main workbench={workbench} project={project} />
-            {p.showsAside && aside && <div className="aside-room"><Aside id={aside.id} /></div>}
+            {aside && <Trail id={aside.id} workbench={workbench} />}
           </>
         )}
       </div>
