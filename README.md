@@ -18,19 +18,23 @@ The desktop itself: taskbar, start menu, control center, notifications, lock scr
 
 ### Crafter
 
-An app for coding with AI. Each project keeps the rules its agent follows, a summary, todos and a library of skills; each chat shows what the agent said, thought, planned and did, and lets you pick how it works, attach files and pictures and queue your next message.
+An app for coding with AI. Each project keeps the rules its agent follows, a summary, todos and a library of skills; each chat reads as one thread of what the agent said, thought, planned and did, and lets you pick how it works, attach files and pictures and queue your next message. The agent keeps working when Crafter is closed, and a question it asks meanwhile comes as a notification that brings you back to the chat.
 
 ### Allay
 
-Where you hire the agents every app can use: see whether each is ready, choose how it starts and how much of your plan is used.
+Where you hire the agents every app can use: see whether each is ready, choose how it starts and how much of your plan is used. Allay also runs in the background, holding every chat, so any app can talk to an agent.
 
 ![Allay with Claude Code hired](.github/assets/screenshots/allay.png)
 
 ### Dye
 
-Color palettes as swatches, and Overworld's themes: each one previewed in an app and the shell, and applied to the whole desktop in a click.
+Color palettes as a gallery, and Overworld's themes: each one previewed in an app and the shell, and applied to the whole desktop in a click. Ask the agent in its corner for a new theme or palette and it makes it right there.
 
 ![Dye showing the warden theme](.github/assets/screenshots/dye.png)
+
+### Painting
+
+Where agents show you pages: mockups, charts, tables too wide for words. Every painting keeps its versions, so going back is one click, and designs are grouped so each one is a single card. It has an agent in its corner too.
 
 ## Install
 
