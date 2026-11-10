@@ -9,13 +9,13 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Mcp;
 
-public sealed class OperationTool(Operation operation) : McpServerTool
+public sealed class OperationTool(Operation operation, IReadOnlyDictionary<string, JsonNode>? presets = null) : McpServerTool
 {
     public override Tool ProtocolTool { get; } = new()
     {
         Name = operation.Name,
         Description = operation.Description,
-        InputSchema = InputSchema(operation.InputType),
+        InputSchema = JsonSerializer.SerializeToElement(OperationSchema.Of(operation.InputType, presets?.Keys.ToList())),
     };
 
     public override IReadOnlyList<object> Metadata => [];
@@ -24,7 +24,12 @@ public sealed class OperationTool(Operation operation) : McpServerTool
         RequestContext<CallToolRequestParams> request,
         CancellationToken cancellationToken = default)
     {
-        var arguments = JsonSerializer.SerializeToNode(request.Params?.Arguments ?? new Dictionary<string, JsonElement>());
+        var arguments = JsonSerializer.SerializeToNode(request.Params?.Arguments ?? new Dictionary<string, JsonElement>()) as JsonObject ?? [];
+
+        foreach (var (name, value) in presets ?? new Dictionary<string, JsonNode>())
+        {
+            arguments[name] = value.DeepClone();
+        }
 
         var result = await operation.RunAsync(arguments, cancellationToken);
 
@@ -32,8 +37,6 @@ public sealed class OperationTool(Operation operation) : McpServerTool
             ? Text(result.Value?.ToJsonString(BedrockJson.Options) ?? "null")
             : Failure(result.Error);
     }
-
-    private static JsonElement InputSchema(Type inputType) => JsonSerializer.SerializeToElement(OperationSchema.Of(inputType));
 
     private static CallToolResult Text(string text) => new() { Content = [new TextContentBlock { Text = text }] };
 

@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Overworld.Allay.Conversations;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Beacon;
 using Overworld.Bedrock.Operations;
 using Overworld.Bell;
 using Overworld.Redstone;
 
-namespace Overworld.Apps.Crafter.Tests.Bells;
+namespace Overworld.Allay.Tests.Bells;
 
 public sealed class RingerTest : IAsyncLifetime
 {
@@ -49,7 +49,7 @@ public sealed class RingerTest : IAsyncLifetime
         Directory.Delete(_folder, recursive: true);
     }
 
-    private Ringer Ringer() => new(new BellClient(new RedstoneClient(Path.Combine(_folder, "overworld.sock"))));
+    private Ringer Ringer() => new(new BellClient(new RedstoneClient(Path.Combine(_folder, "overworld.sock"))), "crafter");
 
     [Fact]
     public async Task HandsTheAnswerBackAsADecision()
@@ -95,7 +95,7 @@ public sealed class RingerTest : IAsyncLifetime
     [Fact]
     public async Task RingsNothingWhenTheDaemonIsAway()
     {
-        var away = new Ringer(new BellClient(new RedstoneClient(Path.Combine(_folder, "nobody.sock"))));
+        var away = new Ringer(new BellClient(new RedstoneClient(Path.Combine(_folder, "nobody.sock"))), "crafter");
 
         Assert.Null(await away.RingAsync(Run, new Ringing("overworld", null, false, _ => { }, () => { }), Token));
     }

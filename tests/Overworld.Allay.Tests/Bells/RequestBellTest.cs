@@ -1,11 +1,11 @@
 using Overworld.Allay.Conversations;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Bell;
 using AllayQuestion = Overworld.Allay.Conversations.Question;
 using AllayQuestions = Overworld.Allay.Conversations.Questions;
 using BellQuestions = Overworld.Bell.Questions;
 
-namespace Overworld.Apps.Crafter.Tests.Bells;
+namespace Overworld.Allay.Tests.Bells;
 
 public sealed class RequestBellTest
 {
@@ -21,7 +21,7 @@ public sealed class RequestBellTest
     [Fact]
     public void RingsAPermissionAsButtons()
     {
-        var ring = RequestBell.Ring(Run, "overworld · Bell", "#7FC79A", quiet: false);
+        var ring = RequestBell.Ring(Run, "crafter", "overworld · Bell", "#7FC79A", quiet: false);
 
         var buttons = Assert.IsType<Buttons>(ring.Ask);
         Assert.Equal("crafter", ring.From);
@@ -33,7 +33,7 @@ public sealed class RequestBellTest
     [Fact]
     public void OffersAlwaysOnlyWhenThereIsSomethingToRemember()
     {
-        var ring = RequestBell.Ring(Run with { Remembers = [] }, "overworld", null, quiet: false);
+        var ring = RequestBell.Ring(Run with { Remembers = [] }, "crafter", "overworld", null, quiet: false);
 
         Assert.Equal(["Deny", "Allow once"], Assert.IsType<Buttons>(ring.Ask).Offered.Select(button => button.Label));
     }
@@ -41,7 +41,7 @@ public sealed class RequestBellTest
     [Fact]
     public void RingsQuestionsWithTheirChoices()
     {
-        var ring = RequestBell.Ring(Asked, "overworld", null, quiet: true);
+        var ring = RequestBell.Ring(Asked, "crafter", "overworld", null, quiet: true);
 
         var questions = Assert.IsType<BellQuestions>(ring.Ask);
         Assert.True(ring.Quiet);
@@ -53,7 +53,7 @@ public sealed class RequestBellTest
     [Fact]
     public void TurnsAPressedButtonIntoItsDecision()
     {
-        var buttons = Assert.IsType<Buttons>(RequestBell.Ring(Run, "overworld", null, quiet: false).Ask);
+        var buttons = Assert.IsType<Buttons>(RequestBell.Ring(Run, "crafter", "overworld", null, quiet: false).Ask);
         var key = (string label) => buttons.Offered.Single(button => button.Label == label).Key;
 
         Assert.IsType<AllowOnce>(RequestBell.Decision(Run, new Pressed(key("Allow once"))));

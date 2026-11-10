@@ -5,21 +5,19 @@ using BellQuestion = Overworld.Bell.Question;
 using BellQuestions = Overworld.Bell.Questions;
 using Reply = Overworld.Bell.Reply;
 
-namespace Overworld.Apps.Crafter.Bells;
+namespace Overworld.Allay.Bells;
 
 public static class RequestBell
 {
-    public const string From = "crafter";
-
     private const string Once = "allowOnce";
     private const string Always = "allowAlways";
     private const string Never = "deny";
 
-    public static RingBell Ring(Request request, string context, string? color, bool quiet) => request switch
+    public static RingBell Ring(Request request, string from, string context, string? color, bool quiet) => request switch
     {
-        Permission permission => new RingBell(From, Asks(permission.Kind), permission.Reason, context, color, Buttons(permission), quiet),
-        AllayQuestions questions => new RingBell(From, "A question", null, context, color, Asked(questions), quiet),
-        _ => throw new ArgumentOutOfRangeException(nameof(request), request, "Crafter rings only for permissions and questions."),
+        Permission permission => new RingBell(from, Asks(permission.Kind), permission.Reason, context, color, Buttons(permission), quiet),
+        AllayQuestions questions => new RingBell(from, "A question", null, context, color, Asked(questions), quiet),
+        _ => throw new ArgumentOutOfRangeException(nameof(request), request, "Only permissions and questions ring the Bell."),
     };
 
     public static Decision Decision(Request request, Reply reply) => (request, reply) switch

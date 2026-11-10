@@ -4,6 +4,7 @@ using Overworld.Apps.Crafter.Proposals;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
 using Overworld.Apps.Crafter.Todos;
+using Overworld.Bedrock.Operations;
 using Overworld.Mcp;
 
 namespace Overworld.Apps.Crafter.Tests.Proposals;
@@ -104,14 +105,34 @@ public sealed class ProposalsTest : IDisposable
         host.Start();
         var toolbox = new Toolbox(host, [], [], _axioms, _summaries);
 
-        var plain = toolbox.Admit(_project);
-        var asking = toolbox.Admit(_project, Answering(true));
+        var plain = toolbox.Admit(_project).Single();
+        var asking = toolbox.Admit(_project, Answering(true)).Single();
 
         Assert.DoesNotContain("propose-axiom", plain.FreeTools);
         Assert.Contains("propose-axiom", asking.FreeTools);
         Assert.Contains("propose-summary", asking.FreeTools);
         Assert.Contains("propose-axiom-removal", asking.FreeTools);
         Assert.DoesNotContain("propose-axiom-removal", plain.FreeTools);
+    }
+
+    [Fact]
+    public void StartsTheSharedToolsByCommandAndKeepsOnlyWhatNeedsTheChatLive()
+    {
+        using var host = new McpHttpHost("crafter");
+        host.Start();
+        var toolbox = new Toolbox(host, [Operation.From(new ListAxiomsOp(_axioms))], [Operation.From(new AddAxiomOp(_axioms))], _axioms, _summaries, "/usr/bin/crafter");
+
+        var servers = toolbox.Admit(_project, Answering(true), retitle: _ => { });
+        var shared = servers.Single(server => server.Name == Toolbox.Name);
+        var live = servers.Single(server => server.Name == Toolbox.Live);
+
+        Assert.Equal("/usr/bin/crafter", shared.Command);
+        Assert.Equal([Toolbox.Serve, _project], shared.Arguments);
+        Assert.Null(shared.Endpoint);
+        Assert.Equal(["list-axioms", "add-axiom"], shared.FreeTools);
+        Assert.Equal(["rename-chat", "propose-axiom", "propose-axiom-removal", "propose-summary"], live.FreeTools);
+        Assert.Equal(host.Endpoint, live.Endpoint);
+        Assert.Equal(Toolbox.Name, Assert.Single(toolbox.Admit(_project)).Name);
     }
 
     [Fact]

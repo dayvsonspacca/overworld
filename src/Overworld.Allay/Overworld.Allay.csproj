@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../Overworld.Beacon/Overworld.Beacon.csproj" />
+    <ProjectReference Include="../Overworld.Bell/Overworld.Bell.csproj" />
     <ProjectReference Include="../Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <ProjectReference Include="../Overworld.Chest/Overworld.Chest.csproj" />
+    <ProjectReference Include="../Overworld.Redstone/Overworld.Redstone.csproj" />
   </ItemGroup>
 </Project>

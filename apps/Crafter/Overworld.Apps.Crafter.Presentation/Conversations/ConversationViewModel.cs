@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Settings;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Folders;
 using Overworld.Apps.Crafter.Library;
@@ -13,6 +13,7 @@ using Overworld.Apps.Crafter.Presentation.Composing;
 using Overworld.Apps.Crafter.Presentation.Jobs;
 using Overworld.Apps.Crafter.Proposals;
 using Overworld.Apps.Crafter.Sessions;
+using Overworld.Allay.Presentation.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Conversations;
 
@@ -190,6 +191,28 @@ public sealed partial class ConversationViewModel : ObservableObject
         Agent = desk.Value.Agent;
         Color = desk.Value.Color;
         OnPropertyChanged(nameof(ModelLabel));
+
+        if (_workshop.IsServed)
+        {
+            await CatchUpAsync(cancellationToken);
+        }
+    }
+
+    private async Task CatchUpAsync(CancellationToken cancellationToken)
+    {
+        if (!await OpenAsync() || _chat is null || _chat.Turns.Count <= _record.Turns.Count)
+        {
+            return;
+        }
+
+        foreach (var turn in _chat.Turns.Skip(_record.Turns.Count))
+        {
+            Timeline.Add(turn);
+        }
+
+        Timeline.ShowLatest();
+        await _workshop.KeepAsync(_folder, _chat, cancellationToken);
+        Answered?.Invoke(this, EventArgs.Empty);
     }
 
     public void Close()

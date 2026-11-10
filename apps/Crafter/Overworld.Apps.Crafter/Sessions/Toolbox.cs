@@ -10,9 +10,15 @@ using Overworld.Mcp;
 
 namespace Overworld.Apps.Crafter.Sessions;
 
-public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IReadOnlyList<Operation> writes, AxiomBook axioms, SummaryStore summaries)
+public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IReadOnlyList<Operation> writes, AxiomBook axioms, SummaryStore summaries, string? command = null)
 {
     public const string Name = "crafter";
+
+    public const string Live = "crafter-chat";
+
+    public const string Serve = "tools";
+
+    public const string Signal = "crafter";
 
     public static readonly TimeSpan Patience = TimeSpan.FromMinutes(30);
 
@@ -26,7 +32,9 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             + "save-skill writes one when the user asks to keep a way of working as a skill, and give-skill turns one on or off for the project. "
             + "To show the user a picture, like a screenshot you took, a mockup you rendered or an image you made, call show-picture with its file; it appears in the chat. "
             + "To show the user a page, like a mockup, a chart, a palette's swatches or a table too wide for words, call paint with its HTML and a title; "
-            + "Painting draws it right in the chat, alive. Paint again with the id paint gave to change that same page instead of painting a new one. "
+            + "Painting draws it right in the chat and keeps it. Paint again with the id paint gave to make the next version of that same page instead of painting a new one; "
+            + "each version shows up as it is painted and the earlier ones stay. Give group Design to a page that designs a screen, a component or an app. "
+            + "painting-list lists the paintings, painting-show shows one version of one, painting-restore goes back to an earlier version by painting it again as the newest, and painting-group puts a painting in a group without a new version. "
             + "Dye keeps the user's color palettes and Overworld's themes: dye-list and dye-themes-list list them, and dye-show shows a palette and dye-themes-show a theme right in the chat, with its colors.";
 
     private const string Naming =
@@ -40,31 +48,60 @@ public sealed class Toolbox(McpHttpHost host, IReadOnlyList<Operation> reads, IR
             + "When you learn something lasting about the project that the summary lacks or gets wrong, propose the whole new summary with propose-summary. "
             + "The user approves or declines each proposal in the chat.";
 
-    public ToolServer Admit(string folder, Asker? ask = null, Action? kept = null, Action<ChatTitle>? retitle = null)
+    public IReadOnlyList<ToolServer> Admit(string folder, Asker? ask = null, Action? kept = null, Action<ChatTitle>? retitle = null)
     {
         Dictionary<string, JsonNode> presets = new() { ["folder"] = folder };
-        Operation[] operations =
+        Operation[] shared = [.. reads, .. kept is null ? writes : writes.Select(Operation (write) => new Keeping(write, kept))];
+        Operation[] live =
         [
-            .. reads,
-            .. kept is null ? writes : writes.Select(Operation (write) => new Keeping(write, kept)),
+            .. command is null ? shared : [],
             .. retitle is null ? [] : (Operation[])[Operation.From(new RenameChatOp(retitle))],
             .. ask is null
                 ? []
                 : (Operation[])[Operation.From(new ProposeAxiomOp(axioms, ask, kept)), Operation.From(new ProposeAxiomRemovalOp(axioms, ask, kept)), Operation.From(new ProposeSummaryOp(summaries, ask, kept))],
         ];
-        var instructions = Instructions + (retitle is null ? string.Empty : Naming) + (ask is null ? string.Empty : Proposing);
+        List<ToolServer> servers = [];
 
-        var token = host.Admit(new Caller(folder, [.. operations.Select(operation => new ServedTool(operation, presets))], instructions));
+        if (command is { } started)
+        {
+            servers.Add(ToolServer.Started(Name, started, [Serve, folder], [.. reads.Concat(writes).Select(operation => operation.Name)], Patience));
+        }
 
-        return new ToolServer(
-            Name,
-            host.Endpoint ?? throw new InvalidOperationException("The tool server has not started."),
-            token,
-            [.. operations.Select(operation => operation.Name)],
-            Patience);
+        if (live.Length > 0 || command is null)
+        {
+            var instructions = (command is null ? Instructions : string.Empty) + (retitle is null ? string.Empty : Naming) + (ask is null ? string.Empty : Proposing);
+            var token = host.Admit(new Caller(folder, [.. live.Select(operation => new ServedTool(operation, presets))], instructions.Trim()));
+
+            servers.Add(new ToolServer(
+                command is null ? Name : Live,
+                host.Endpoint ?? throw new InvalidOperationException("The tool server has not started."),
+                token,
+                [.. live.Select(operation => operation.Name)],
+                Patience));
+        }
+
+        return servers;
     }
 
-    public void Release(ToolServer server) => host.Release(server.Token);
+    public void Release(IEnumerable<ToolServer> servers)
+    {
+        foreach (var server in servers)
+        {
+            if (server.Token is { } token)
+            {
+                host.Release(token);
+            }
+        }
+    }
+
+    public Task ServeAsync(string folder, Action kept, CancellationToken cancellationToken)
+    {
+        Dictionary<string, JsonNode> presets = new() { ["folder"] = folder };
+        Operation[] shared = [.. reads, .. writes.Select(Operation (write) => new Keeping(write, kept))];
+
+        return new McpHost(Name, [.. shared.Select(operation => new ServedTool(operation, presets))], Instructions)
+            .RunAsync(Console.OpenStandardInput(), Console.OpenStandardOutput(), cancellationToken);
+    }
 
     public static Operation Borrow(string app, Operation operation) => new Borrowed($"{app}-{operation.Name}", operation);
 

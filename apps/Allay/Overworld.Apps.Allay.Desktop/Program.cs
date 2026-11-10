@@ -1,6 +1,8 @@
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
 using Overworld.Allay.Metering;
+using Overworld.Allay.Remote;
+using Overworld.Apps.Allay.Desktop;
 using Overworld.Apps.Allay.Presentation;
 using Overworld.Beacon;
 using Overworld.Bedrock.Apps;
@@ -14,6 +16,11 @@ var app = new AppIdentity("allay");
 var data = DataDirectory.For(app.Name);
 var crew = new Crew([new ClaudeCode(Path.Combine(data, "claude-code", "skills"))], new StaffFile(data));
 var beacon = new BeaconClient(new RedstoneClient(SocketPath.Resolve()));
+
+if (args is ["serve"])
+{
+    return await AllayService.RunAsync(crew, new Transcripts(Path.Combine(data, "chats")));
+}
 
 var list = Operation.From(new ListAgentsOp(crew));
 var check = Operation.From(new CheckAgentOp(crew));

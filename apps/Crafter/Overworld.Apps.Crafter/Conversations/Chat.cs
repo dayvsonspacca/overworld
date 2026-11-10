@@ -1,5 +1,6 @@
 using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
+using Overworld.Allay.Remote;
 using Overworld.Allay.Settings;
 
 namespace Overworld.Apps.Crafter.Conversations;
@@ -33,6 +34,11 @@ public sealed class Chat(ChatId id, AgentId agent, ChatTitle title, Conversation
     public void Withdraw(Prompt prompt)
     {
         Conversation.Withdraw(prompt);
+
+        if (Session is RemoteSession remote)
+        {
+            remote.Withdraw(prompt);
+        }
 
         if (Conversation.Turns.Count == 0)
         {

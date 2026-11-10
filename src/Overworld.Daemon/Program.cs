@@ -76,11 +76,17 @@ internal static class Program
             new RestartPolicy(),
             logging.CreateLogger<QuickshellSupervisor>());
 
+        var allay = new AllaySupervisor(
+            new SystemProcessLauncher(),
+            new RestartPolicy(),
+            logging.CreateLogger<AllaySupervisor>());
+
         var daemon = new OverworldDaemon(
             new ShellLocator(),
             server,
             beacon,
             supervisor,
+            allay,
             logging.CreateLogger<OverworldDaemon>());
 
         return await daemon.RunAsync(shutdown.Token);

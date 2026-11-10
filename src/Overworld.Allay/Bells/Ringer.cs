@@ -2,15 +2,15 @@ using System.Collections.Concurrent;
 using Overworld.Allay.Conversations;
 using Overworld.Bell;
 
-namespace Overworld.Apps.Crafter.Bells;
+namespace Overworld.Allay.Bells;
 
-public sealed class Ringer(BellClient bell)
+public sealed class Ringer(BellClient bell, string from)
 {
     private readonly ConcurrentDictionary<string, Rung> _rung = new();
 
     public async Task<string?> RingAsync(Request request, Ringing ringing, CancellationToken token)
     {
-        var rung = await bell.RingAsync(RequestBell.Ring(request, ringing.Context, ringing.Color, ringing.Quiet), token);
+        var rung = await bell.RingAsync(RequestBell.Ring(request, from, ringing.Context, ringing.Color, ringing.Quiet), token);
 
         if (!rung.IsSuccess)
         {
@@ -48,7 +48,7 @@ public sealed class Ringer(BellClient bell)
 
     private async Task CollectAsync(CancellationToken token)
     {
-        var collected = await bell.CollectAsync(RequestBell.From, token);
+        var collected = await bell.CollectAsync(from, token);
 
         if (!collected.IsSuccess)
         {

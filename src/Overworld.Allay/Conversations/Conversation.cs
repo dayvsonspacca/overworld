@@ -13,15 +13,45 @@ public sealed class Conversation
 
     private readonly TimeProvider _clock;
 
+    private readonly List<IAsyncEnumerable<Moment>> _held = [];
+
+    private EventHandler<IAsyncEnumerable<Moment>>? _woke;
+
     public Conversation(ISession session, IEnumerable<Turn> history, TimeProvider? clock = null)
     {
         Session = session;
         _turns = [.. history];
         _clock = clock ?? TimeProvider.System;
-        session.Woke += (_, moments) => Woke?.Invoke(this, Recorded(moments));
+        session.Woke += (_, moments) => Wake(Recorded(moments));
     }
 
-    public event EventHandler<IAsyncEnumerable<Moment>>? Woke;
+    public event EventHandler<IAsyncEnumerable<Moment>>? Woke
+    {
+        add
+        {
+            IAsyncEnumerable<Moment>[] held;
+
+            lock (_held)
+            {
+                _woke += value;
+                held = [.. _held];
+                _held.Clear();
+            }
+
+            foreach (var moments in held)
+            {
+                value?.Invoke(this, moments);
+            }
+        }
+
+        remove
+        {
+            lock (_held)
+            {
+                _woke -= value;
+            }
+        }
+    }
 
     public ISession Session { get; }
 
@@ -32,6 +62,25 @@ public sealed class Conversation
         _turns.Add(prompt);
 
         return Recorded(Session.ReplyAsync(prompt, setup, cancellationToken), cancellationToken);
+    }
+
+    private void Wake(IAsyncEnumerable<Moment> moments)
+    {
+        EventHandler<IAsyncEnumerable<Moment>>? woke;
+
+        lock (_held)
+        {
+            woke = _woke;
+
+            if (woke is null)
+            {
+                _held.Add(moments);
+
+                return;
+            }
+        }
+
+        woke(this, moments);
     }
 
     public void Withdraw(Prompt prompt)

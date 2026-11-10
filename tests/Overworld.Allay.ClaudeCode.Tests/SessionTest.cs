@@ -150,6 +150,20 @@ public sealed class SessionTest
     }
 
     [Fact]
+    public async Task StartsAToolServerByItsCommandWhenItIsNotReachedOverHttp()
+    {
+        using var claude = new FakeClaude($"{FakeClaude.SavesArguments}\nread -r line\n{FakeClaude.Success}");
+        ToolServer[] servers = [ToolServer.Started("crafter", "/usr/bin/crafter", ["tools", "/home/me/project"], ["list-todos"], TimeSpan.FromMinutes(30))];
+
+        await ReplyAsync(claude.Session(claude.Brief(tools: servers)), "oi");
+
+        Assert.Equal(
+            """{"mcpServers":{"crafter":{"type":"stdio","command":"/usr/bin/crafter","args":["tools","/home/me/project"],"timeout":1800000}}}""",
+            claude.Arguments[Array.IndexOf(claude.Arguments, "--mcp-config") + 1]);
+        Assert.Contains("mcp__crafter__list-todos", claude.Arguments);
+    }
+
+    [Fact]
     public async Task StartsClaudeCodeWithoutItsMemoryOrInstructionFiles()
     {
         using var claude = new FakeClaude($"env > \"$(dirname \"$0\")/environment\"\nread -r line\n{FakeClaude.Success}");

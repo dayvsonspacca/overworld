@@ -11,12 +11,19 @@ internal static class McpConfig
 
         foreach (var server in servers)
         {
-            var entry = new JsonObject
-            {
-                ["type"] = "http",
-                ["url"] = server.Endpoint.ToString(),
-                ["headers"] = new JsonObject { ["Authorization"] = $"Bearer {server.Token}" },
-            };
+            var entry = server.Command is { } command
+                ? new JsonObject
+                {
+                    ["type"] = "stdio",
+                    ["command"] = command,
+                    ["args"] = new JsonArray([.. (server.Arguments ?? []).Select(argument => (JsonNode)argument)]),
+                }
+                : new JsonObject
+                {
+                    ["type"] = "http",
+                    ["url"] = server.Endpoint?.ToString(),
+                    ["headers"] = new JsonObject { ["Authorization"] = $"Bearer {server.Token}" },
+                };
 
             if (server.Patience is { } patience)
             {

@@ -1,5 +1,5 @@
 using Overworld.Apps.Crafter.Axioms;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;

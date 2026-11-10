@@ -77,7 +77,7 @@ public sealed class SessionsTest : IDisposable
         using var host = new McpHttpHost("crafter");
         host.Start();
         var todos = new TodoList(_shelf);
-        var server = new Toolbox(host, [Operation.From(new ListTodosOp(todos))], [Operation.From(new AddTodoOp(todos)), Operation.From(new CompleteTodoOp(todos)), Operation.From(new RemoveTodoOp(todos))], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Admit(_overworld);
+        var server = new Toolbox(host, [Operation.From(new ListTodosOp(todos))], [Operation.From(new AddTodoOp(todos)), Operation.From(new CompleteTodoOp(todos)), Operation.From(new RemoveTodoOp(todos))], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore()).Admit(_overworld).Single();
 
         var listed = await PostAsync(server, """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""");
         await PostAsync(server, """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add-todo","arguments":{"folder":"/elsewhere","text":"Modal"}}}""");
@@ -98,8 +98,8 @@ public sealed class SessionsTest : IDisposable
         var kept = 0;
         ChatTitle? title = null;
         var toolbox = new Toolbox(host, [Operation.From(new ListTodosOp(todos))], [Operation.From(new AddTodoOp(todos))], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
-        var plain = toolbox.Admit(_overworld);
-        var server = toolbox.Admit(_overworld, kept: () => kept++, retitle: given => title = given);
+        var plain = toolbox.Admit(_overworld).Single();
+        var server = toolbox.Admit(_overworld, kept: () => kept++, retitle: given => title = given).Single();
 
         await PostAsync(server, """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list-todos","arguments":{}}}""");
         await PostAsync(server, """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add-todo","arguments":{"text":"Pictures"}}}""");
@@ -118,9 +118,9 @@ public sealed class SessionsTest : IDisposable
         using var host = new McpHttpHost("crafter");
         host.Start();
         var toolbox = new Toolbox(host, [], [], new AxiomBook(_shelf, new SettingsStore()), new SummaryStore());
-        var server = toolbox.Admit(_overworld);
+        var server = toolbox.Admit(_overworld).Single();
 
-        toolbox.Release(server);
+        toolbox.Release([server]);
 
         using var client = new HttpClient();
         using var request = new HttpRequestMessage(HttpMethod.Post, server.Endpoint) { Content = new StringContent("""{"jsonrpc":"2.0","id":1,"method":"ping"}""", Encoding.UTF8, "application/json") };

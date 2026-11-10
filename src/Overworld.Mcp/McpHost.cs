@@ -5,8 +5,13 @@ using Overworld.Bedrock.Operations;
 
 namespace Overworld.Mcp;
 
-public sealed class McpHost(string name, IEnumerable<Operation> operations)
+public sealed class McpHost(string name, IReadOnlyList<ServedTool> tools, string? instructions = null)
 {
+    public McpHost(string name, IEnumerable<Operation> operations)
+        : this(name, [.. new Catalog(operations).All.Select(operation => new ServedTool(operation))])
+    {
+    }
+
     public async Task RunAsync(Stream input, Stream output, CancellationToken cancellationToken)
     {
         var options = new McpServerOptions
@@ -16,7 +21,8 @@ public sealed class McpHost(string name, IEnumerable<Operation> operations)
                 Name = name,
                 Version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.0.0",
             },
-            ToolCollection = [.. new Catalog(operations).All.Select(operation => new OperationTool(operation))],
+            ServerInstructions = instructions,
+            ToolCollection = [.. tools.Select(tool => new OperationTool(tool.Operation, tool.Presets))],
         };
 
         await using var transport = new StreamServerTransport(input, output, name);

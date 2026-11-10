@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using Overworld.Allay.Briefs;
+using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Remote;
 using Overworld.Allay.Settings;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Proposals;
@@ -9,11 +11,13 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Apps.Crafter.Sessions;
 
-public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, ChatStore store)
+public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, ChatStore store, AllayLink? allay = null, Func<string, ChatId, IReadOnlyList<string>?>? opener = null)
 {
     private readonly ConcurrentDictionary<ChatId, Open> _open = new();
 
     public event EventHandler<string>? Changed;
+
+    public bool IsServed => allay?.IsServing() == true;
 
     public async Task<Result<ChatRecord>> FreshAsync(CancellationToken cancellationToken)
     {
@@ -64,7 +68,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
 
         Chat? chat = null;
         var tools = toolbox.Admit(folder, ask, () => _ = KeptAsync(folder), title => chat?.Rename(title));
-        var brief = await briefs.OfAsync(folder, [tools], cancellationToken);
+        var brief = await briefs.OfAsync(folder, tools, cancellationToken);
 
         if (!brief.IsSuccess)
         {
@@ -73,7 +77,8 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
             return brief.Error;
         }
 
-        chat = new Chat(record.Id, record.Agent, record.Title, new Conversation(agent.Value.Begin(brief.Value, record.SessionId), record.Turns));
+        var (session, turns) = await BeginAsync(folder, agent.Value, record, brief.Value, cancellationToken);
+        chat = new Chat(record.Id, record.Agent, record.Title, new Conversation(session, turns));
         _open[record.Id] = new Open(folder, chat, tools);
 
         return chat;
@@ -86,7 +91,7 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
     {
         foreach (var open in _open.Values.Where(open => open.Folder == folder))
         {
-            var brief = await briefs.OfAsync(folder, [open.Tools], cancellationToken);
+            var brief = await briefs.OfAsync(folder, open.Tools, cancellationToken);
 
             if (brief.IsSuccess)
             {
@@ -112,11 +117,56 @@ public sealed class Workshop(Crew crew, ProjectBrief briefs, Toolbox toolbox, Ch
         }
     }
 
+    public void LeaveAll()
+    {
+        foreach (var chat in _open.Keys)
+        {
+            if (!_open.TryRemove(chat, out var open))
+            {
+                continue;
+            }
+
+            if (open.Chat.Session is RemoteSession remote)
+            {
+                remote.Leave();
+            }
+            else
+            {
+                open.Chat.Session.End();
+            }
+
+            toolbox.Release(open.Tools);
+        }
+    }
+
+    private async Task<(ISession Session, IReadOnlyList<Turn> Turns)> BeginAsync(string folder, IAgent agent, ChatRecord record, Brief brief, CancellationToken cancellationToken)
+    {
+        if (allay is { } link && link.IsServing())
+        {
+            var opened = await link.OpenAsync(record.Id.Value.ToString(), record.Agent.Value, brief, record.SessionId, record.Turns, keep: true, cancellationToken, opener?.Invoke(folder, record.Id));
+
+            if (opened.IsSuccess)
+            {
+                return (opened.Value.Session, opened.Value.Turns);
+            }
+        }
+
+        return (agent.Begin(brief, record.SessionId), record.Turns);
+    }
+
+    public async Task KeptEverywhereAsync()
+    {
+        foreach (var folder in _open.Values.Select(open => open.Folder).Distinct().ToArray())
+        {
+            await KeptAsync(folder);
+        }
+    }
+
     private async Task KeptAsync(string folder)
     {
         await RebriefAsync(folder, CancellationToken.None);
         Changed?.Invoke(this, folder);
     }
 
-    private sealed record Open(string Folder, Chat Chat, ToolServer Tools);
+    private sealed record Open(string Folder, Chat Chat, IReadOnlyList<ToolServer> Tools);
 }

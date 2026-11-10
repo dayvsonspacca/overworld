@@ -12,6 +12,7 @@ internal sealed partial class OverworldDaemon(
     RedstoneServer server,
     BeaconServer beacon,
     QuickshellSupervisor supervisor,
+    AllaySupervisor allay,
     ILogger<OverworldDaemon> logger)
 {
     private const int AlreadyRunning = 3;
@@ -44,6 +45,7 @@ internal sealed partial class OverworldDaemon(
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(token);
         var serving = server.RunAsync(stop.Token);
         var shining = beacon.RunAsync(stop.Token);
+        var agents = allay.RunAsync(stop.Token);
 
         try
         {
@@ -52,7 +54,7 @@ internal sealed partial class OverworldDaemon(
         finally
         {
             await stop.CancelAsync();
-            await Task.WhenAll(serving, shining);
+            await Task.WhenAll(serving, shining, agents);
         }
     }
 

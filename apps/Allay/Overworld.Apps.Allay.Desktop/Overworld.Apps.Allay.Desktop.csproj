@@ -10,6 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Allay.Presentation/Overworld.Apps.Allay.Presentation.csproj" />
     <ProjectReference Include="../../../src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
     <ProjectReference Include="../../../src/Overworld.Web/Overworld.Web.csproj" />

@@ -2,8 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Overworld.Allay.ClaudeCode;
 using Overworld.Allay.Hiring;
+using Overworld.Allay.Remote;
 using Overworld.Apps.Crafter.Axioms;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
@@ -11,6 +12,7 @@ using Overworld.Apps.Crafter.Preferences;
 using Overworld.Apps.Crafter.Presentation;
 using Overworld.Apps.Crafter.Presentation.Gate;
 using Overworld.Apps.Crafter.Presentation.Workbench;
+using Overworld.Apps.Crafter.Desktop.Summoning;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Sessions;
 using Overworld.Apps.Crafter.Summaries;
@@ -35,6 +37,7 @@ using Overworld.Apps.Crafter.Presentation.Conversations;
 using Overworld.Apps.Crafter.Presentation.Composing;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using System.Text.Json.Nodes;
+using Overworld.Allay.Presentation.Conversations;
 
 var app = new AppIdentity("crafter");
 var data = DataDirectory.For(app.Name);
@@ -54,7 +57,9 @@ var painting = new PaintingLender(Operation.From(new ShowArtworkOp(artworks)));
 var palettes = new PaletteStore(DataDirectory.For("dye"));
 var config = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "overworld");
 var themes = new ThemeStore(Path.Combine(config, "themes"), Path.Combine(config, "theme.json"));
-var paint = Operation.From(new PaintArtworkOp(artworks, new BeaconClient(new RedstoneClient(SocketPath.Resolve())), TimeProvider.System));
+var lit = new BeaconClient(new RedstoneClient(SocketPath.Resolve()));
+var paint = Operation.From(new PaintArtworkOp(artworks, lit, TimeProvider.System));
+var restore = Operation.From(new RestoreArtworkOp(artworks, lit, TimeProvider.System));
 var staff = new StaffFile(allay);
 using var tools = new McpHttpHost(app.Name);
 var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], staff);
@@ -75,6 +80,10 @@ var toolbox = new Toolbox(
         Operation.From(new ReadChatOp(chats)),
         Operation.From(new ShowPictureOp(pictures)),
         paint,
+        Toolbox.Borrow("painting", Operation.From(new ListArtworksOp(artworks))),
+        Toolbox.Borrow("painting", Operation.From(new ShowArtworkOp(artworks))),
+        Toolbox.Borrow("painting", restore),
+        Toolbox.Borrow("painting", Operation.From(new GroupArtworkOp(artworks, lit))),
         Toolbox.Borrow("dye", Operation.From(new ListPalettesOp(palettes))),
         Toolbox.Borrow("dye", Operation.From(new ShowPaletteOp(palettes))),
         Toolbox.Borrow("dye", Operation.From(new ListThemesOp(themes))),
@@ -82,9 +91,25 @@ var toolbox = new Toolbox(
     ],
     [addTodo, completeTodo, removeTodo, editProject, giveSkill, saveSkill],
     axioms,
-    summaries);
-var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), toolbox, chats);
-var ringer = new Ringer(new BellClient(new RedstoneClient(SocketPath.Resolve())));
+    summaries,
+    Environment.ProcessPath);
+
+var summoned = Presence.Read(args);
+
+if (summoned is not null)
+{
+    args = [];
+}
+
+if (args is [Toolbox.Serve, var served])
+{
+    await toolbox.ServeAsync(served, () => lit.LightAsync(Toolbox.Signal, CancellationToken.None).GetAwaiter().GetResult(), CancellationToken.None);
+
+    return 0;
+}
+using var link = new AllayLink();
+var workshop = new Workshop(crew, new ProjectBrief(summaries, axioms, skills), toolbox, chats, link, (folder, chat) => Presence.Opener(Environment.ProcessPath, folder, chat));
+var ringer = new Ringer(new BellClient(new RedstoneClient(SocketPath.Resolve())), "crafter");
 var attention = new Attention();
 
 var abilities = new Abilities
@@ -149,6 +174,20 @@ return await AppHost.RunAsync(
     args,
     withoutArgs: () =>
     {
+        using var presence = Presence.Claim();
+
+        if (presence is null)
+        {
+            if (summoned is { } summons)
+            {
+                Presence.Leave(summons);
+            }
+
+            lit.LightAsync(Presence.Signal, CancellationToken.None).GetAwaiter().GetResult();
+
+            return Task.FromResult(0);
+        }
+
         tools.Start();
 
         var code = WebHost.Run(app, page =>
@@ -156,19 +195,21 @@ return await AppHost.RunAsync(
             page.Leaving.Add(async token =>
             {
                 await ringer.WithdrawAllAsync(token);
-                workshop.CloseAll();
+                workshop.LeaveAll();
             });
 
             Hide(page.Mirror);
 
             var workbench = new WorkbenchViewModel(abilities);
-            _ = workbench.LoadAsync(CancellationToken.None);
+            _ = OpenAsync(workbench, attention, summoned);
+            _ = FollowSummonsAsync(attention, page);
 
             var gate = new GateViewModel(Operation.From(new ListAgentsOp(crew)), Operation.From(new CheckAgentOp(crew)), OpenAllay);
             _ = gate.LoadAsync(CancellationToken.None);
             _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = painting.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
+            _ = FollowKeptAsync(workshop);
 
             page.Activated += (_, _) => attention.IsActive = true;
             page.Deactivated += (_, _) => attention.IsActive = false;
@@ -202,23 +243,65 @@ return await AppHost.RunAsync(
             page.Show(new { Workbench = workbench, Gate = gate });
         });
 
-        workshop.CloseAll();
+        workshop.LeaveAll();
 
         return Task.FromResult(code);
     });
+
+static async Task OpenAsync(WorkbenchViewModel workbench, Attention attention, Summons? summoned)
+{
+    await workbench.LoadAsync(CancellationToken.None);
+
+    if (summoned is { } summons)
+    {
+        attention.Summon(summons.Folder, summons.Chat);
+    }
+}
+
+static async Task FollowSummonsAsync(Attention attention, Overworld.Web.Page page)
+{
+    await foreach (var signal in new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None))
+    {
+        if (signal != Presence.Signal)
+        {
+            continue;
+        }
+
+        if (Presence.Take() is { } summons)
+        {
+            attention.Summon(summons.Folder, summons.Chat);
+        }
+        else
+        {
+            page.Summon();
+        }
+    }
+}
+
+static async Task FollowKeptAsync(Workshop workshop)
+{
+    await foreach (var signal in new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None))
+    {
+        if (signal == Toolbox.Signal)
+        {
+            await workshop.KeptEverywhereAsync();
+        }
+    }
+}
 
 static void Hide(Overworld.Web.Mirroring.Mirror mirror)
 {
     mirror.Ignore<ChatSummaryViewModel>(nameof(ChatSummaryViewModel.Record), nameof(ChatSummaryViewModel.Conversation));
     mirror.Ignore<ConversationViewModel>(nameof(ConversationViewModel.Record), nameof(ConversationViewModel.Setup));
-    mirror.Ignore<Timeline>(nameof(Timeline.Entries));
-    mirror.Ignore<SpeechEntry>(nameof(SpeechEntry.Blocks));
+
+    foreach (var (type, property) in Hidden.Properties)
+    {
+        mirror.Ignore(type, property);
+    }
+
     mirror.Ignore<SummaryProposalEntry>(nameof(SummaryProposalEntry.Blocks));
     mirror.Ignore<OverviewViewModel>(nameof(OverviewViewModel.Blocks), nameof(OverviewViewModel.Project));
-    mirror.Ignore<PromptEntry>(nameof(PromptEntry.Prompt));
-    mirror.Ignore<PictureView>(nameof(PictureView.Picture));
     mirror.Ignore<AttachmentView>(nameof(AttachmentView.Attachment));
-    mirror.Ignore<PlanEntry>(nameof(PlanEntry.Steps));
 }
 
 static ConversationViewModel? Conversation(Overworld.Web.Mirroring.Mirror mirror, JsonNode? asked) =>
