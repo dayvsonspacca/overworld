@@ -55,7 +55,7 @@ a { color: var(--accent-text); }
 .titlebar-icon { width: 16px; height: 16px; margin: 0 4px 0 12px; image-rendering: pixelated; }
 .titlebar-title { display: flex; align-items: baseline; gap: 6px; font-size: var(--fs-body); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .titlebar-subtitle { font-size: var(--fs-footnote); color: var(--subtle); overflow: hidden; text-overflow: ellipsis; }
-.winctl { width: 46px; height: 36px; border: 0; background: transparent; color: var(--subtle); display: grid; place-items: center; cursor: default; }
+.winctl { width: 46px; height: 36px; border: 0; background: transparent; color: var(--subtle); display: grid; place-items: center; cursor: pointer; }
 .winctl:hover { background: var(--hover-tint); color: var(--text); }
 .winctl:active { background: var(--active-tint); }
 .winctl.close:hover { background: var(--danger); color: var(--background); }
@@ -66,7 +66,7 @@ a { color: var(--accent-text); }
   border: 1px solid transparent;
   background: transparent;
   border-radius: var(--r-control);
-  cursor: default;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -277,7 +277,7 @@ kbd {
 .section-count { font-family: var(--mono); font-size: var(--fs-footnote); color: var(--subtle); }
 .section-body { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
 
-.row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: var(--r-control); cursor: default; }
+.row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: var(--r-control); cursor: pointer; }
 .row:hover { background: var(--hover-tint); }
 .row.selected { background: var(--selected); }
 
@@ -298,3 +298,6 @@ kbd {
 .palette [cmdk-group-heading] { display: none; }
 .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; }
 .scrim { align-items: initial; padding-top: 0; }
+
+button:not(:disabled), select, summary, label:has(input:not(:disabled)), input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), [role='tab'], [role='menuitem'], [cmdk-item], a { cursor: pointer; }
+.act:disabled, button:disabled { cursor: default; }

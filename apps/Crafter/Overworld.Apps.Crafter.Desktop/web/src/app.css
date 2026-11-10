@@ -30,7 +30,7 @@
 .project-name:hover { background: var(--hover-tint); }
 .chats-search { margin: 10px; }
 .chats-list { flex: 1; overflow-y: auto; padding: 0 6px 8px; display: flex; flex-direction: column; gap: 2px; }
-.chat-row { position: relative; padding: 7px 10px; border-radius: var(--r-small); cursor: default; }
+.chat-row { position: relative; padding: 7px 10px; border-radius: var(--r-small); cursor: pointer; }
 .chat-row:hover { background: var(--hover-tint); }
 .chat-row.selected { background: var(--selected); }
 .chat-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -93,7 +93,7 @@
 .grow { flex: 1; }
 
 .repositories { height: 260px; overflow-y: auto; border: 1px solid var(--divider); border-radius: var(--r-control); background: var(--background); padding: 4px; }
-.repository { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--r-small); font-size: var(--fs-callout); }
+.repository { cursor: pointer; display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--r-small); font-size: var(--fs-callout); }
 .repository:hover { background: var(--hover-tint); }
 .repository.selected { background: var(--selected); }
 
@@ -136,7 +136,7 @@
 .thought-head { font-size: var(--fs-footnote); font-weight: 600; color: var(--faint); }
 .thought-text { font-style: italic; color: var(--subtle); font-size: var(--fs-content); line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 2px; }
 
-.act { width: 100%; display: flex; align-items: center; gap: 6px; background: transparent; border: 0; padding: 2px 4px; border-radius: var(--r-small); color: var(--text-soft); font: inherit; text-align: left; cursor: default; }
+.act { width: 100%; display: flex; align-items: center; gap: 6px; background: transparent; border: 0; padding: 2px 4px; border-radius: var(--r-small); color: var(--text-soft); font: inherit; text-align: left; cursor: pointer; }
 .act:not(:disabled):hover { background: var(--hover-tint); color: var(--text); }
 .act:disabled { color: var(--text-soft); }
 .act.failed .act-subject { color: var(--danger); }
@@ -178,7 +178,7 @@
 .attachment .mono { font-size: var(--fs-callout); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .attachment .btn.icon { width: 22px; height: 22px; }
 .mentions { border: 1px solid var(--divider); border-radius: var(--r-panel); background: var(--raised); padding: 4px; max-height: 280px; overflow-y: auto; }
-.mention { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: var(--r-small); cursor: default; }
+.mention { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: var(--r-small); cursor: pointer; }
 .mention.selected, .mention:hover { background: var(--selected); }
 .mention-name { font-size: var(--fs-callout); white-space: nowrap; }
 .mention-name .hit { color: var(--accent-light); font-weight: 600; }
