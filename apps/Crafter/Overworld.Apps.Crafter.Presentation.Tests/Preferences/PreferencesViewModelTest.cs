@@ -1,4 +1,5 @@
 using Overworld.Apps.Crafter.Library;
+using Overworld.Apps.Crafter.Presentation.Preferences;
 using Overworld.Apps.Crafter.Presentation.Workbench;
 
 namespace Overworld.Apps.Crafter.Presentation.Tests.Preferences;
@@ -80,5 +81,46 @@ public sealed class PreferencesViewModelTest : IDisposable
 
         Assert.False(workbench.Preferences.IsLinked);
         Assert.False(workbench.Preferences.HasSkills);
+    }
+
+    [Fact]
+    public async Task NarrowsTheSkillsByWordsAndWhetherEveryProjectGetsThem()
+    {
+        _bench.Skill("commit", "Writes commits.");
+        _bench.Skill("review", "Reviews a change.");
+        _bench.Skill("wiki", "Writes wiki pages.");
+        var preferences = (await OpenAsync()).Preferences;
+        var names = () => preferences.Shown.Select(skill => skill.Name).Order().ToArray();
+
+        Assert.Equal(["commit", "review", "wiki"], names());
+
+        preferences.Query = "writes";
+
+        Assert.Equal(["commit", "wiki"], names());
+
+        var changed = new TaskCompletionSource();
+        preferences.Changed += (_, _) => changed.TrySetResult();
+        preferences.Skills.Single(skill => skill.Name == "wiki").IsDefault = true;
+        await changed.Task.WaitAsync(Bench.Cancellation);
+
+        preferences.Filter = SkillFilter.On;
+
+        Assert.Equal(["wiki"], names());
+
+        preferences.Query = string.Empty;
+        preferences.Filter = SkillFilter.Off;
+
+        Assert.Equal(["commit", "review"], names());
+        Assert.Equal(1, preferences.DefaultCount);
+    }
+
+    [Fact]
+    public async Task SaysWhenAllayCannotBeOpened()
+    {
+        var preferences = (await OpenAsync()).Preferences;
+
+        preferences.OpenAllayCommand.Execute(null);
+
+        Assert.NotNull(preferences.Problem);
     }
 }

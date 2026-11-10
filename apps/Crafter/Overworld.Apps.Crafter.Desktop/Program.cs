@@ -144,6 +144,7 @@ var abilities = new Abilities
     Workshop = workshop,
     Ringer = ringer,
     Attention = attention,
+    OpenAllay = OpenAllay,
 };
 
 return await AppHost.RunAsync(
@@ -213,7 +214,7 @@ return await AppHost.RunAsync(
             _ = OpenAsync(workbench, attention, summoned);
             _ = FollowSummonsAsync(attention, page);
 
-            var gate = new GateViewModel(Operation.From(new ListAgentsOp(crew)), Operation.From(new CheckAgentOp(crew)), OpenAllay);
+            var gate = new GateViewModel(Operation.From(new ListAgentsOp(crew)), Operation.From(new CheckAgentOp(crew)), abilities.OpenAllay);
             _ = gate.LoadAsync(CancellationToken.None);
             _ = gate.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
             _ = painting.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);

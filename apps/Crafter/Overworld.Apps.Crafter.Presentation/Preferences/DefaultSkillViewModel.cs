@@ -22,6 +22,8 @@ public sealed partial class DefaultSkillViewModel : ObservableObject
 
     public string Description => Skill.Description;
 
+    public string? WhenToUse => Skill.WhenToUse;
+
     [ObservableProperty]
     public partial bool IsDefault { get; set; }
 

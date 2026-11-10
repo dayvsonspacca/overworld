@@ -72,5 +72,7 @@ public sealed class Abilities
 
     public required Attention Attention { get; init; }
 
+    public Func<bool> OpenAllay { get; init; } = () => false;
+
     public TimeProvider Time { get; init; } = TimeProvider.System;
 }

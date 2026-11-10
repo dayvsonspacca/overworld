@@ -13,11 +13,21 @@ public sealed partial class PreferencesViewModel(Abilities abilities) : Observab
 
     public ObservableCollection<DefaultSkillViewModel> Skills { get; } = [];
 
+    public ObservableCollection<DefaultSkillViewModel> Shown { get; } = [];
+
     public ObservableCollection<string> Problems { get; } = [];
 
     public bool HasSkills => Skills.Count > 0;
 
     public bool HasProblems => Problems.Count > 0;
+
+    public int DefaultCount => Skills.Count(skill => skill.IsDefault);
+
+    [ObservableProperty]
+    public partial string Query { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial SkillFilter Filter { get; set; }
 
     [ObservableProperty]
     public partial string ProjectsRoot { get; private set; } = string.Empty;
@@ -71,6 +81,36 @@ public sealed partial class PreferencesViewModel(Abilities abilities) : Observab
     [RelayCommand(CanExecute = nameof(CanTouch))]
     private Task UnlinkAsync() => BusyAsync(() => abilities.LinkLibrary.ExecuteAsync(new LinkLibrary(string.Empty), CancellationToken.None));
 
+    [RelayCommand]
+    private void OpenAllay() => Problem = abilities.OpenAllay() ? null : "Allay isn't installed here; install it with just seed, then try again.";
+
+    partial void OnQueryChanged(string value) => Narrow();
+
+    partial void OnFilterChanged(SkillFilter value) => Narrow();
+
+    private void Narrow()
+    {
+        var words = Query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Shown.Clear();
+
+        foreach (var skill in Skills.Where(skill => Passes(skill) && words.All(word => Mentions(skill, word))))
+        {
+            Shown.Add(skill);
+        }
+    }
+
+    private bool Passes(DefaultSkillViewModel skill) => Filter switch
+    {
+        SkillFilter.On => skill.IsDefault,
+        SkillFilter.Off => !skill.IsDefault,
+        _ => true,
+    };
+
+    private static bool Mentions(DefaultSkillViewModel skill, string word) =>
+        skill.Name.Contains(word, StringComparison.OrdinalIgnoreCase)
+        || skill.Description.Contains(word, StringComparison.OrdinalIgnoreCase)
+        || skill.WhenToUse?.Contains(word, StringComparison.OrdinalIgnoreCase) is true;
+
     private bool CanLink() => !IsBusy && Draft.Trim().Length > 0;
 
     private bool CanTouch() => !IsBusy;
@@ -118,25 +158,30 @@ public sealed partial class PreferencesViewModel(Abilities abilities) : Observab
             Problems.Add($"{problem.Place}: {problem.Reason}");
         }
 
+        Narrow();
         OnPropertyChanged(nameof(HasSkills));
         OnPropertyChanged(nameof(HasProblems));
+        OnPropertyChanged(nameof(DefaultCount));
 
         return true;
     }
 
     private async Task SetDefaultAsync(DefaultSkillViewModel skill, bool isDefault)
     {
+        OnPropertyChanged(nameof(DefaultCount));
         var set = await abilities.SetDefaultSkill.ExecuteAsync(new SetDefaultSkill(skill.Skill.Id, isDefault), CancellationToken.None);
 
         if (!set.IsSuccess)
         {
             Problem = set.Error.Message;
             skill.Settle(!isDefault);
+            OnPropertyChanged(nameof(DefaultCount));
 
             return;
         }
 
         Problem = null;
+        Narrow();
         Changed?.Invoke(this, EventArgs.Empty);
     }
 }

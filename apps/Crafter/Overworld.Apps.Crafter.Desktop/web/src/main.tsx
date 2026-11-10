@@ -1,5 +1,5 @@
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { House, ListChecks, Scale, Sparkles, SquareTerminal } from 'lucide-react';
+import { ExternalLink, Folder, GitBranch, House, Library, ListChecks, RefreshCw, Scale, Sparkles, SquareTerminal } from 'lucide-react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -363,57 +363,121 @@ function DefaultSkill({ id }: { id: number }) {
   if (!skill) return null;
   const p = skill.p;
   return (
-    <label className="toggle-row">
-      <input type="checkbox" checked={!!p.isDefault} onChange={(e) => put(skill, 'IsDefault', e.target.checked)} />
-      <span><strong>{p.name}</strong><small className="subtle">{p.description}</small></span>
+    <label className={`pref-skill ${p.isDefault ? 'on' : ''}`}>
+      <span className="pref-skill-text">
+        <strong>{p.name}</strong>
+        <small className="subtle">{p.description}</small>
+        {p.whenToUse && <small className="pref-when"><em>When</em> {p.whenToUse}</small>}
+      </span>
+      <input type="checkbox" role="switch" className="switch" checked={!!p.isDefault} onChange={(e) => put(skill, 'IsDefault', e.target.checked)} />
     </label>
   );
 }
 
+function PrefCard({ id, icon, title, note, status, children }: { id?: string; icon: ReactNode; title: string; note: string; status?: ReactNode; children?: ReactNode }) {
+  return (
+    <section className="pref-card" id={id}>
+      <div className="pref-card-head">
+        <span className="pref-glyph">{icon}</span>
+        <span className="pref-card-title"><h2>{title}</h2><p className="subtle">{note}</p></span>
+        {status}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const filters = ['All', 'On', 'Off'] as const;
+
 function Preferences({ id }: { id: any }) {
   const preferences = useObj(id);
   const skills = useList(preferences?.p.skills);
+  const shown = useList(preferences?.p.shown);
   const problems = useList<string>(preferences?.p.problems);
+  const main = useRef<HTMLDivElement>(null);
   if (!preferences) return null;
   const p = preferences.p;
+  const total = skills.length;
+  const on = p.defaultCount ?? 0;
+  const counts: Record<string, number> = { All: total, On: on, Off: total - on };
   const pickRoot = async () => {
     const folder = await choose({ directory: true, title: 'The projects folder' });
     if (typeof folder === 'string') invoke(preferences, 'SetProjectsRootAsync', folder);
   };
+  const go = (place: string) => {
+    const target = document.getElementById(place);
+    if (main.current && target) main.current.scrollTo({ top: target.offsetTop - 28, behavior: 'smooth' });
+  };
   return (
     <div className="preferences">
-      <div className="overview-inner">
+      <nav className="pref-nav">
         <h1>Preferences</h1>
-        <section className="overview-section">
-          <span className="group-label">Projects folder</span>
-          <div className="row-line"><span className="mono">{p.projectsRoot}</span><Button onClick={pickRoot}>Choose</Button></div>
-          <span className="subtle footnote">Adding a project lists the git repositories found under this folder.</span>
-        </section>
-        <section className="overview-section">
-          <span className="group-label">Skills library</span>
-          {p.isLinked ? (
-            <div className="row-line">
-              <span className="mono">{p.repository}</span>
-              <Button disabled={!can(preferences, 'SyncCommand')} onClick={() => run(preferences, 'SyncCommand')}>Sync</Button>
-              <Button disabled={!can(preferences, 'UnlinkCommand')} onClick={() => run(preferences, 'UnlinkCommand')}>Unlink</Button>
-            </div>
-          ) : (
-            <div className="row-line">
-              <div className="grow"><TextField label="Repo" placeholder="git@github.com:you/skills.git" value={p.draft ?? ''} onInput={(v) => put(preferences, 'Draft', v)} onEnter={() => can(preferences, 'LinkCommand') && run(preferences, 'LinkCommand')} /></div>
-              <Button kind="primary" disabled={!can(preferences, 'LinkCommand')} onClick={() => run(preferences, 'LinkCommand')}>Link</Button>
-            </div>
-          )}
-          {p.isBusy && <span className="subtle">Working with the repository…</span>}
-          <span className="subtle footnote">Linking clones the repository; Sync brings it to what the repository holds now.</span>
-          {p.problem && <div className="legend-error">{p.problem}</div>}
-        </section>
-        <section className="overview-section">
-          <span className="group-label">Skills every project gets</span>
-          {skills.map((ref) => <DefaultSkill key={idOf(ref)} id={idOf(ref)!} />)}
-          {!p.hasSkills && <span className="subtle">Link a library to choose its skills.</span>}
-          {problems.map((problem) => <div className="legend-error" key={problem}>{problem}</div>)}
-        </section>
-        <span className="subtle footnote">Agents, and the mode, model and effort they start with, are set in Allay, for every app.</span>
+        <button onClick={() => go('pref-projects')}><Folder className="size-4" />Projects</button>
+        <span className="group-label">Library</span>
+        <button className="sub" onClick={() => go('pref-library')}><GitBranch className="size-4" />Repository<i className={`pref-dot pref-end ${p.isLinked ? 'linked' : ''}`} /></button>
+        <button className="sub" onClick={() => go('pref-skills')}><Sparkles className="size-4" />Skills{p.hasSkills && <span className="pref-count pref-end">{on}/{total}</span>}</button>
+        <hr />
+        <button className="out" onClick={() => run(preferences, 'OpenAllayCommand')}><AllayIcon size={16} />Hired in Allay<ExternalLink className="size-3 pref-end" /></button>
+      </nav>
+      <div className="pref-main" ref={main}>
+        <span className="group-label">Projects</span>
+        <PrefCard id="pref-projects" icon={<Folder className="size-4" />} title="Projects folder" note="Adding a project lists the git repositories found under this folder.">
+          <div className="pref-body">
+            <div className="pref-path"><Folder className="size-3.5" /><span className="mono">{p.projectsRoot}</span><Button onClick={pickRoot}>Choose…</Button></div>
+          </div>
+        </PrefCard>
+
+        <span className="group-label">Library</span>
+        <PrefCard id="pref-library" icon={<Library className="size-4" />} title="Library" note="A git repository of skills, shared by every project. Linking clones it; Sync brings it to what the repository holds now."
+          status={<span className="pref-status"><i className={`pref-dot ${p.isLinked ? 'linked' : ''}`} />{p.isBusy ? 'Working…' : p.isLinked ? 'Linked' : 'Not linked'}</span>}>
+          <div className="pref-body">
+            {p.isLinked ? (
+              <div className="pref-path">
+                <GitBranch className="size-3.5" /><span className="mono">{p.repository}</span>
+                <Button disabled={!can(preferences, 'SyncCommand')} onClick={() => run(preferences, 'SyncCommand')}><RefreshCw className="size-3.5" />Sync</Button>
+                <Button kind="danger-ghost" disabled={!can(preferences, 'UnlinkCommand')} onClick={() => run(preferences, 'UnlinkCommand')}>Unlink</Button>
+              </div>
+            ) : (
+              <div className="row-line">
+                <div className="grow"><TextField label="Repo" placeholder="git@github.com:you/skills.git" value={p.draft ?? ''} onInput={(v) => put(preferences, 'Draft', v)} onEnter={() => can(preferences, 'LinkCommand') && run(preferences, 'LinkCommand')} /></div>
+                <Button kind="primary" disabled={!can(preferences, 'LinkCommand')} onClick={() => run(preferences, 'LinkCommand')}>Link</Button>
+              </div>
+            )}
+            {p.isLinked && (
+              <div className="pref-pills">
+                <span className="pref-pill">{total} {total === 1 ? 'skill' : 'skills'}</span>
+                {problems.length > 0 && <span className="pref-pill warn">{problems.length} {problems.length === 1 ? 'problem' : 'problems'}</span>}
+              </div>
+            )}
+            {problems.length > 0 && <div className="pref-problems">{problems.map((problem) => <div key={problem}>{problem}</div>)}</div>}
+            {p.problem && <div className="legend-error">{p.problem}</div>}
+          </div>
+          <div className="pref-tabs" id="pref-skills">
+            <Button kind="tab" chosen>Skills{p.hasSkills && <span className="pref-pill">{on}/{total}</span>}</Button>
+          </div>
+          <div className="pref-body">
+            <p className="subtle footnote">Turned on here, a skill is given to every project, new and old. A project can still add its own on its page.</p>
+            {p.hasSkills ? (
+              <>
+                <div className="pref-tools">
+                  <div className="grow"><SearchField placeholder="Search the skills" value={p.query ?? ''} onInput={(v) => put(preferences, 'Query', v)} /></div>
+                  {filters.map((filter) => <Button key={filter} kind="chip" chosen={p.filter === filter} onClick={() => put(preferences, 'Filter', filter)}>{filter} {counts[filter]}</Button>)}
+                </div>
+                <div className="pref-skills">
+                  {shown.map((ref) => <DefaultSkill key={idOf(ref)} id={idOf(ref)!} />)}
+                </div>
+                {shown.length === 0 && <div className="pref-empty">No skill matches.</div>}
+                <div className="pref-foot subtle footnote"><span>{on} of {total} on</span><span>Skills come from the library above</span></div>
+              </>
+            ) : (
+              <div className="pref-empty">{p.isLinked ? 'The library has no skills yet.' : 'Link a library to choose its skills.'}</div>
+            )}
+          </div>
+        </PrefCard>
+
+        <span className="group-label">Agents</span>
+        <PrefCard icon={<AllayIcon size={18} />} title="Hired in Allay" note="Which agents are hired, and the mode, model and effort they start with, are set in Allay, for every app."
+          status={<Button onClick={() => run(preferences, 'OpenAllayCommand')}>Open Allay<ExternalLink className="size-3.5" /></Button>} />
       </div>
     </div>
   );
