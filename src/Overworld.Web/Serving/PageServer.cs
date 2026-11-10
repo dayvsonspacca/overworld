@@ -24,6 +24,8 @@ public sealed class PageServer : IDisposable
 
     private readonly List<Channel<string>> _sockets = [];
 
+    private readonly HashSet<string> _origins = [];
+
     private readonly Timer _flushing;
 
     private bool _scheduled;
@@ -49,9 +51,12 @@ public sealed class PageServer : IDisposable
         _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
         _listener.Start();
         var debug = Environment.GetEnvironmentVariable("OVERWORLD_WEB_DEBUG") is { Length: > 0 } ? "&debug=1" : string.Empty;
-        Address = new Uri($"http://127.0.0.1:{port}/?key={_key}{debug}");
+        var tiles = Environment.GetEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE") is { Length: > 0 } ? "&tiles=1" : string.Empty;
+        Address = new Uri($"http://127.0.0.1:{port}/?key={_key}{debug}{tiles}");
         _ = ListenAsync();
     }
+
+    public void Allow(Uri origin) => _origins.Add(origin.GetLeftPart(UriPartial.Authority));
 
     public void Dispose()
     {
@@ -251,7 +256,7 @@ public sealed class PageServer : IDisposable
         var origin = context.Request.Headers["Origin"];
         var expected = $"http://127.0.0.1:{context.Request.Url!.Port}";
 
-        if (!context.Request.IsWebSocketRequest || context.Request.QueryString["key"] != _key || (origin is not null && origin != expected))
+        if (!context.Request.IsWebSocketRequest || context.Request.QueryString["key"] != _key || (origin is not null && origin != expected && !_origins.Contains(origin)))
         {
             context.Response.StatusCode = 403;
             context.Response.Close();

@@ -5,14 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PageSource Include="$(PageFolder)/src/**;$(PageFolder)/index.html;$(PageFolder)/package.json;$(PageFolder)/vite.config.ts;$(MSBuildThisFileDirectory)Kit/src/**;$(MSBuildThisFileDirectory)Kit/package.json;$(MSBuildThisFileDirectory)Kit/vite.ts;$(OverworldRoot)package.json" />
+    <PageSource Include="$(PageFolder)/src/**;$(PageFolder)/index.html;$(PageFolder)/package.json;$(PageFolder)/vite.config.ts;$(MSBuildThisFileDirectory)Kit/src/**;$(MSBuildThisFileDirectory)Kit/package.json;$(MSBuildThisFileDirectory)Kit/vite.ts;$(MSBuildThisFileDirectory)Chat/src/**;$(MSBuildThisFileDirectory)Chat/package.json;$(OverworldRoot)package.json" />
   </ItemGroup>
 
   <Target Name="InstallPageDependencies" Condition="!Exists('$(OverworldRoot)node_modules/.package-lock.json')">
     <Exec Command="npm ci --no-audit --no-fund" WorkingDirectory="$(OverworldRoot)" />
   </Target>
 
-  <Target Name="BuildPage" DependsOnTargets="InstallPageDependencies" Inputs="@(PageSource)" Outputs="$(PageFolder)/dist/index.html">
+  <Target Name="BuildPage" DependsOnTargets="InstallPageDependencies" Inputs="@(PageSource)" Outputs="$(PageFolder)/dist/index.html" Condition="'$(OverworldDev)' != 'true'">
     <Exec Command="npm run build" WorkingDirectory="$(PageFolder)" />
     <Touch Files="$(PageFolder)/dist/index.html" />
   </Target>

@@ -25,7 +25,17 @@ public static class WebHost
         server.Start();
         _ = FollowThemeAsync(page);
 
-        using var window = WindowProcess.Open(app.Name, app.Title, server.Address!, Path.Combine(AppContext.BaseDirectory, "icon.png"));
+        using var dev = DevServer.Start(server.Address!);
+        var address = server.Address!;
+
+        if (dev is not null)
+        {
+            server.Allow(dev.Address);
+            address = new Uri(dev.Address, address.PathAndQuery);
+            Console.Error.WriteLine($"{app.Name}: the page comes live from Vite at {dev.Address}; the app reads and writes its real data.");
+        }
+
+        using var window = WindowProcess.Open(app.Name, app.Title, address, Path.Combine(AppContext.BaseDirectory, "icon.png"));
 
         if (window is null)
         {
