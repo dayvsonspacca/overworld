@@ -18,7 +18,7 @@ The desktop itself: taskbar, start menu, control center, notifications, lock scr
 
 ### Crafter
 
-An app for coding with AI. Each project keeps the rules its agent follows, a summary, todos and a library of skills; each chat reads as one thread of what the agent said, thought, planned and did, and lets you pick how it works, attach files and pictures and queue your next message. The agent keeps working when Crafter is closed, and a question it asks meanwhile comes as a notification that brings you back to the chat.
+An app for coding with AI. Each project keeps the rules its agent follows, a summary, todos and a library of skills; each chat reads as one thread of what the agent said, thought, planned and did, and lets you pick how it works, attach files and pictures and queue your next message. The agent keeps working when Crafter is closed, and a question it asks meanwhile comes as a notification that brings you back to the chat. It opens on a home of its own: every project at a glance, with the agents working or waiting on you and the chats you talked in last, and an agent in its corner that starts, clones or tidies projects for you.
 
 ### Allay
 
