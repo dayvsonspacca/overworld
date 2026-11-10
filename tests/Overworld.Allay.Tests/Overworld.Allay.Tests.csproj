@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../../src/Overworld.Allay/Overworld.Allay.csproj" />
+    <ProjectReference Include="../../src/Overworld.Allay.Presentation/Overworld.Allay.Presentation.csproj" />
     <ProjectReference Include="../../src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
   </ItemGroup>
 </Project>

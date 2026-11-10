@@ -1,0 +1,130 @@
+@layer theme, base, overworld, components, utilities;
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@source ".";
+
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
+
+@theme inline {
+  --font-sans: system-ui, "Inter", "Cantarell", sans-serif;
+  --font-mono: var(--mono);
+  --color-background: var(--background);
+  --color-foreground: var(--text);
+  --color-card: var(--raised);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--raised);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--text);
+  --color-primary-foreground: var(--background);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--subtle);
+  --color-accent: var(--surface);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
+  --color-border: var(--divider);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
+  --color-brand: var(--accent);
+  --color-added: var(--added);
+  --color-removed: var(--danger);
+  --color-warning: var(--yellow, var(--accent-light));
+  --color-faint: var(--faint);
+  --radius-sm: var(--r-small);
+  --radius-md: var(--r-control);
+  --radius-lg: var(--r-panel);
+  --radius-xl: var(--r-container);
+  --radius-2xl: calc(var(--r-container) * 1.6);
+}
+
+@layer base {
+  .chat * {
+    border-color: var(--color-border);
+  }
+}
+
+@keyframes chat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+}
+
+.chat-enter {
+  animation: chat-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes chat-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+.chat-pop {
+  animation: chat-pop 0.34s cubic-bezier(0.34, 1.3, 0.64, 1) backwards;
+  transform-origin: bottom right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-enter, .chat-pop {
+    animation: none;
+  }
+}
+
+.chat .scroller {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.chat .scroller:hover {
+  scrollbar-color: color-mix(in oklab, var(--text) 22%, transparent) transparent;
+}
+
+.fio { position: relative; padding-left: 34px; }
+.fio::before { content: ""; position: absolute; left: 11px; top: 30px; bottom: 4px; width: 2px; border-radius: 2px; background: linear-gradient(var(--agent), var(--color-border) 140px); }
+.fio-turn-live::before { background: linear-gradient(var(--agent), var(--color-border) 140px, var(--color-border) calc(100% - 48px), var(--accent)); }
+.fio-head { position: absolute; left: 0; top: 0; }
+.fio-who { height: 24px; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 12px; color: var(--color-muted-foreground); }
+.fio-who b { font-weight: 500; color: var(--text-soft); }
+.fio-item + .fio-item { margin-top: 14px; }
+.fio-node { position: relative; min-width: 0; }
+.fio-node::before { content: ""; position: absolute; left: -27px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--background); border: 2px solid var(--faint); }
+.fio-say::before { background: var(--agent); border-color: var(--agent); }
+.fio-acts::before { top: 5px; }
+.fio-live::before { border-color: var(--accent); animation: fio-beat 1.2s infinite; }
+.fio-sentence { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; max-width: 100%; padding: 0; border: 0; background: none; text-align: left; font-size: 12.5px; color: var(--color-muted-foreground); cursor: pointer; }
+.fio-sentence:hover, .fio-sentence[aria-expanded='true'] { color: var(--color-foreground); }
+.fio-phrase { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.fio-dot { color: var(--faint); }
+.fio-detail { margin-top: 6px; padding-left: 8px; border-left: 1px dashed var(--border); }
+.fio-end { position: relative; display: flex; gap: 6px; font-size: 12px; color: var(--color-muted-foreground); }
+.fio-end::before { content: ""; position: absolute; left: -28px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: fio-beat 1.2s infinite; }
+@keyframes fio-beat { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .fio-live::before, .fio-end::before { animation: none; } }
+
+.painting-versions { display: flex; align-items: center; gap: 2px; }
+.painting-version { margin-right: 4px; padding: 1px 6px; border-radius: var(--r-small); background: var(--surface); font: 10.5px var(--mono); color: var(--text-soft); }
+.painting-version.older { background: color-mix(in srgb, var(--yellow, var(--accent-light)) 16%, transparent); color: var(--yellow, var(--accent-light)); }
+
+.bubble-fab { position: fixed; right: 20px; bottom: 20px; z-index: 30; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; padding: 0; background: var(--surface); border: 1px solid var(--agent); box-shadow: 0 10px 30px rgb(0 0 0 / 45%), 0 0 0 4px color-mix(in srgb, var(--agent) 12%, transparent); cursor: pointer; transition: transform 0.15s; }
+.bubble-fab:hover { transform: translateY(-2px); }
+.bubble-fab.working { animation: fio-beat 1.2s infinite; }
+.bubble-panel { position: fixed; right: 16px; bottom: 16px; z-index: 30; width: min(440px, calc(100vw - 32px)); height: min(640px, calc(100vh - 72px)); display: flex; flex-direction: column; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-window); box-shadow: 0 24px 60px rgb(0 0 0 / 60%); overflow: hidden; }
+.bubble-head { height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 12px; border-bottom: 1px solid var(--divider); }
+.bubble-head b { font-weight: 600; font-size: 13px; }
+.bubble-hello { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; color: var(--subtle); }
+.bubble-hello b { color: var(--text); font-weight: 500; }
+.bubble-suggestions { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 300px; margin-top: 4px; }
+.bubble-suggestions button { padding: 8px 11px; border-radius: var(--r-panel); border: 1px solid var(--border); background: var(--background); color: var(--text); text-align: left; font: inherit; font-size: 12px; cursor: pointer; }
+.bubble-suggestions button:hover { border-color: var(--agent, var(--accent)); }
+.bubble-composer { flex: none; margin: 8px 10px 10px; display: flex; align-items: flex-end; gap: 8px; padding: 7px 7px 7px 12px; border: 1px solid var(--border); border-radius: calc(var(--r-container) * 1.2); background: var(--background); }
+.bubble-composer:focus-within { border-color: var(--faint); }
+.bubble-composer textarea { flex: 1; min-height: 28px; max-height: 160px; resize: none; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 13px; line-height: 1.5; padding: 3px 0; }
+.bubble-composer textarea::placeholder { color: var(--faint); }
+.bubble-spread { position: fixed; inset: 40px 0 0 0; z-index: 40; display: flex; flex-direction: column; background: var(--background); }
+@media (prefers-reduced-motion: reduce) { .bubble-fab.working { animation: none; } }

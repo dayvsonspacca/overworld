@@ -7,6 +7,7 @@ using Overworld.Apps.Crafter.Axioms;
 using Overworld.Apps.Crafter.Presentation.Conversations;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using Overworld.Apps.Crafter.Projects;
+using Overworld.Allay.Presentation.Conversations;
 
 namespace Overworld.Apps.Crafter.Presentation.Tests.Conversations;
 

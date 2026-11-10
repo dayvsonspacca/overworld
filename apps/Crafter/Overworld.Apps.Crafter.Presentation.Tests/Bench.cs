@@ -2,7 +2,7 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Allay.Hiring;
 using Overworld.Apps.Crafter.Axioms;
-using Overworld.Apps.Crafter.Bells;
+using Overworld.Allay.Bells;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Apps.Crafter.Pictures;
@@ -75,7 +75,7 @@ public sealed class Bench : IDisposable
             Pictures = Pictures,
             Lenders = [Lender],
             Workshop = Workshop,
-            Ringer = new Ringer(new BellClient(new RedstoneClient(PathTo("overworld.sock")))),
+            Ringer = new Ringer(new BellClient(new RedstoneClient(PathTo("overworld.sock"))), "crafter"),
             Attention = new Attention(),
         };
     }

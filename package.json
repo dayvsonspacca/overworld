@@ -4,6 +4,7 @@
   "type": "module",
   "workspaces": [
     "src/Overworld.Web/Kit",
+    "src/Overworld.Web/Chat",
     "apps/Painting/Overworld.Apps.Painting.Desktop/web",
     "apps/Allay/Overworld.Apps.Allay.Desktop/web",
     "apps/Dye/Overworld.Apps.Dye.Desktop/web",

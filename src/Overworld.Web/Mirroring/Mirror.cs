@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Windows.Input;
 
 namespace Overworld.Web.Mirroring;
@@ -16,7 +17,7 @@ public sealed class Mirror
 
     private const BindingFlags Lookup = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     private readonly Dictionary<object, int> _ids = new(ReferenceEqualityComparer.Instance);
 
@@ -45,11 +46,13 @@ public sealed class Mirror
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    public void Ignore<T>(params string[] properties)
+    public void Ignore<T>(params string[] properties) => Ignore(typeof(T), properties);
+
+    public void Ignore(Type type, params string[] properties)
     {
         foreach (var property in properties)
         {
-            _ignored.Add((typeof(T), property));
+            _ignored.Add((type, property));
         }
     }
 

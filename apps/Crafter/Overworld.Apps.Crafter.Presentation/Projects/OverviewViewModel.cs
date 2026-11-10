@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Crafter.Library;
-using Overworld.Apps.Crafter.Presentation.Markdown;
+using Overworld.Allay.Presentation.Markdown;
 using Overworld.Apps.Crafter.Projects;
 using Overworld.Apps.Crafter.Repositories;
 using Overworld.Apps.Crafter.Summaries;

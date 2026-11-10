@@ -9,6 +9,7 @@
     <Project Path="src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <Project Path="src/Overworld.Chest/Overworld.Chest.csproj" />
     <Project Path="src/Overworld.Allay/Overworld.Allay.csproj" />
+    <Project Path="src/Overworld.Allay.Presentation/Overworld.Allay.Presentation.csproj" />
     <Project Path="src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
     <Project Path="src/Overworld.Cli/Overworld.Cli.csproj" />
     <Project Path="src/Overworld.Mcp/Overworld.Mcp.csproj" />
