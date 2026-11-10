@@ -157,7 +157,7 @@ public sealed class ConversationViewModelTest : IDisposable
         conversation.Draft = "test it";
         var sending = conversation.SendCommand.ExecuteAsync(null);
 
-        for (var tries = 0; tries < 200 && !conversation.Timeline.Entries.OfType<PermissionEntry>().Any(); tries++)
+        for (var tries = 0; tries < 200 && !(conversation.IsWaiting && conversation.Timeline.Entries.OfType<PermissionEntry>().Any()); tries++)
         {
             await Task.Delay(10, Bench.Cancellation);
         }
