@@ -51,6 +51,32 @@ public sealed class OverviewViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task ClosesWhenTheChatAlreadyOpenIsPickedAgain()
+    {
+        await _bench.HireAsync();
+        var workbench = await OpenAsync("alpha");
+        await workbench.NewChatCommand.ExecuteAsync(null);
+        var fresh = workbench.Project!.Chat!;
+        await workbench.OpenOverviewCommand.ExecuteAsync(null);
+
+        workbench.Project.PickCommand.Execute(fresh);
+
+        Assert.False(workbench.Project.ShowsOverview);
+        Assert.Same(fresh, workbench.Project.Chat);
+
+        await workbench.OpenOverviewCommand.ExecuteAsync(null);
+        await workbench.NewChatCommand.ExecuteAsync(null);
+
+        Assert.False(workbench.Project.ShowsOverview);
+        Assert.Same(fresh, workbench.Project.Chat);
+
+        await workbench.OpenOverviewCommand.ExecuteAsync(null);
+        workbench.NextChat();
+
+        Assert.False(workbench.Project.ShowsOverview);
+    }
+
+    [Fact]
     public async Task RenamesTheProjectEverywhere()
     {
         var workbench = await OpenAsync("alpha");

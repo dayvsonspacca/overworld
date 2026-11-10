@@ -153,7 +153,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         if (_chats.FirstOrDefault(chat => chat.IsFresh) is { } fresh)
         {
             Query = string.Empty;
-            Chat = fresh;
+            Pick(fresh);
 
             return fresh;
         }
@@ -169,7 +169,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         _chats.Insert(0, chat);
         Query = string.Empty;
         Filter();
-        Chat = chat;
+        Pick(chat);
 
         return chat;
     }
@@ -262,8 +262,7 @@ public sealed partial class ProjectViewModel : ObservableObject
 
         if (_chats.FirstOrDefault(chat => chat.Id == id) is { } chat)
         {
-            Chat = chat;
-            ShowsOverview = false;
+            Pick(chat);
         }
     }
 
@@ -275,7 +274,14 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
 
         var at = Chat is null ? -1 : Chats.IndexOf(Chat);
-        Chat = Chats[((at + by) % Chats.Count + Chats.Count) % Chats.Count];
+        Pick(Chats[((at + by) % Chats.Count + Chats.Count) % Chats.Count]);
+    }
+
+    [RelayCommand]
+    private void Pick(ChatSummaryViewModel chat)
+    {
+        Chat = chat;
+        ShowsOverview = false;
     }
 
     partial void OnQueryChanged(string value)

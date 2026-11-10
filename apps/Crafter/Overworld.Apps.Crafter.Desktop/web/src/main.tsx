@@ -75,7 +75,7 @@ function ChatRow({ id, project, selected, arranging }: { id: number; project: Ob
   const p = chat.p;
   return (
     <Lifted id={id} disabled={!arranging} className={`row chat-row ${selected ? 'selected' : ''} ${p.isWorking ? 'working' : ''} ${p.isUnread ? 'unread' : ''}`}>
-      <div className="chat-text" onClick={() => put(project, 'Chat', { $ref: chat.id })}>
+      <div className="chat-text" onClick={() => run(project, 'PickCommand', { $ref: chat.id })}>
         <div className="chat-title"><span>{p.title}</span></div>
         {p.lastLine && <div className="chat-line">{p.lastLine}</div>}
       </div>
