@@ -71,4 +71,6 @@ public sealed class Abilities
     public required Ringer Ringer { get; init; }
 
     public required Attention Attention { get; init; }
+
+    public TimeProvider Time { get; init; } = TimeProvider.System;
 }

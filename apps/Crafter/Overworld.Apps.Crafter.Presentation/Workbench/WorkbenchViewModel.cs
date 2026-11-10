@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
+using Overworld.Apps.Crafter.Presentation.Home;
 using Overworld.Apps.Crafter.Presentation.Preferences;
 using Overworld.Apps.Crafter.Presentation.Projects;
 using Overworld.Apps.Crafter.Folders;
@@ -24,16 +25,21 @@ public sealed partial class WorkbenchViewModel : ObservableObject
             Projects.Add(shown);
             Project = shown;
         };
+        Home = new HomeViewModel(Projects);
         Preferences = new PreferencesViewModel(abilities);
         Preferences.Changed += (_, _) => _ = RebriefAllAsync();
         abilities.Attention.Summoned += (_, summons) => Summon(summons);
     }
 
+    public HomeViewModel Home { get; }
+
     public PreferencesViewModel Preferences { get; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle))]
+    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(ShowsHome))]
     public partial bool ShowsPreferences { get; private set; }
+
+    public bool ShowsHome => Project is null && !ShowsPreferences;
 
     public AddProjectViewModel Adding { get; }
 
@@ -42,7 +48,7 @@ public sealed partial class WorkbenchViewModel : ObservableObject
     public ObservableCollection<ProjectViewModel> Projects { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle))]
+    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(ShowsHome))]
     public partial ProjectViewModel? Project { get; set; }
 
     [ObservableProperty]
@@ -84,8 +90,30 @@ public sealed partial class WorkbenchViewModel : ObservableObject
             Projects.Add(Shown(project));
         }
 
-        Project = Projects.FirstOrDefault();
-        await Opening;
+        Project = null;
+        await Home.SurveyAsync(cancellationToken);
+    }
+
+    [RelayCommand]
+    public async Task GoHomeAsync()
+    {
+        ShowsPreferences = false;
+        Project = null;
+        await Home.SurveyAsync(CancellationToken.None);
+    }
+
+    [RelayCommand]
+    public void OpenRecent(RecentChatViewModel recent)
+    {
+        Open(recent.Project);
+        recent.Project.Show(recent.Chat.Id);
+    }
+
+    [RelayCommand]
+    public async Task NewChatInAsync(ProjectViewModel project)
+    {
+        Open(project);
+        await project.NewChatAsync(CancellationToken.None);
     }
 
     [RelayCommand]
@@ -183,12 +211,11 @@ public sealed partial class WorkbenchViewModel : ObservableObject
             chat.Close();
         }
 
-        var at = Projects.IndexOf(project);
         Projects.Remove(project);
 
         if (Project == project)
         {
-            Project = Projects.Count == 0 ? null : Projects[Math.Min(at, Projects.Count - 1)];
+            Project = null;
         }
     }
 

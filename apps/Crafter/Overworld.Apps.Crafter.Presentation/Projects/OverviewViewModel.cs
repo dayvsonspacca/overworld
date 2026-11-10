@@ -4,29 +4,19 @@ using CommunityToolkit.Mvvm.Input;
 using Overworld.Apps.Crafter.Library;
 using Overworld.Allay.Presentation.Markdown;
 using Overworld.Apps.Crafter.Projects;
-using Overworld.Apps.Crafter.Repositories;
 using Overworld.Apps.Crafter.Summaries;
 
 namespace Overworld.Apps.Crafter.Presentation.Projects;
 
 public sealed partial class OverviewViewModel(ProjectViewModel project, Abilities abilities) : ObservableObject
 {
-    private static readonly string Home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
     public event EventHandler? Removed;
 
     public ProjectViewModel Project => project;
 
-    public string Place => project.Project.Folder.StartsWith(Home, StringComparison.Ordinal)
-        ? "~" + project.Project.Folder[Home.Length..]
-        : project.Project.Folder;
-
     public ObservableCollection<SkillToggleViewModel> Skills { get; } = [];
 
     public bool HasSkills => Skills.Count > 0;
-
-    [ObservableProperty]
-    public partial string? Branch { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSummary), nameof(Blocks))]
@@ -57,7 +47,7 @@ public sealed partial class OverviewViewModel(ProjectViewModel project, Abilitie
 
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
-        Branch = await Task.Run(() => Branches.Of(project.Project.Folder), cancellationToken);
+        await project.ReadBranchAsync(cancellationToken);
         var summary = await abilities.ShowSummary.ExecuteAsync(new ShowSummary(project.Project.Folder), cancellationToken);
         Summary = summary.IsSuccess ? summary.Value.Text : null;
         Problem = summary.IsSuccess ? null : summary.Error.Message;
@@ -153,7 +143,6 @@ public sealed partial class OverviewViewModel(ProjectViewModel project, Abilitie
 
         Problem = null;
         project.Edited(edited.Value);
-        OnPropertyChanged(nameof(Place));
 
         return true;
     }

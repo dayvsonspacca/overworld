@@ -14,6 +14,8 @@ public sealed class PreferencesViewModelTest : IDisposable
         await _bench.ProjectAsync("alpha");
         var workbench = new WorkbenchViewModel(_bench.Abilities);
         await workbench.LoadAsync(Bench.Cancellation);
+        workbench.Go(0);
+        await workbench.Opening;
         await workbench.TogglePreferencesCommand.ExecuteAsync(null);
 
         return workbench;

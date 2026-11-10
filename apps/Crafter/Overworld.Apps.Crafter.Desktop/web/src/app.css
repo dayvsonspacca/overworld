@@ -23,6 +23,42 @@
 .rail-project.tool { background: transparent; color: var(--subtle); }
 .rail-project.tool:hover { color: var(--text); background: var(--surface); }
 
+.rail-rule { width: 22px; height: 1px; background: var(--divider); margin: 8px 0; flex: none; }
+
+.home { flex: 1; overflow-y: auto; background: var(--background); }
+.home-inner { max-width: 920px; margin: 0 auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 26px; }
+.home-head { display: flex; align-items: flex-end; gap: 8px; }
+.home-head h1 { margin: 0 0 2px; font-size: var(--fs-title1); font-weight: 600; }
+.home-section { display: flex; flex-direction: column; gap: 10px; }
+.home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.home-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--divider); border-radius: var(--r-container); background: var(--raised); cursor: pointer; text-align: left; min-width: 0; }
+.home-card:hover, .home-card:focus-visible { border-color: var(--border); background: var(--surface); outline: none; }
+.home-card-top { display: flex; align-items: center; gap: 10px; min-width: 0; padding-right: 26px; }
+.home-card-name { display: flex; flex-direction: column; min-width: 0; }
+.home-card-name > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-card-line { font-size: var(--fs-callout); color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-quick { position: absolute; right: 10px; top: 10px; opacity: 0; }
+.home-card:hover .home-quick, .home-card:focus-within .home-quick { opacity: 1; }
+.home-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.home-pills .pill { display: inline-flex; align-items: center; gap: 5px; }
+.pill.home-working { background: var(--selected); color: var(--accent-light); }
+.pill.home-waiting { background: color-mix(in srgb, var(--yellow) 14%, transparent); color: var(--yellow); }
+.home-pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-text); animation: glass-beat 1.2s infinite; }
+.home-badge { width: 38px; height: 38px; flex: none; border-radius: var(--r-container); border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; overflow: hidden; font: 600 15px var(--mono); }
+.home-badge img, .home-mini img { width: 100%; height: 100%; image-rendering: pixelated; }
+.home-mini { width: 22px; height: 22px; flex: none; border-radius: var(--r-small); border: 1px solid var(--divider); background: var(--surface); display: grid; place-items: center; overflow: hidden; font: 600 10px var(--mono); }
+.home-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 132px; border: 1px dashed var(--border); border-radius: var(--r-container); background: transparent; color: var(--subtle); font: inherit; }
+.home-add:hover { color: var(--text); background: var(--hover-tint); }
+.home-rows { display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--divider); border-radius: var(--r-container); background: var(--raised); }
+.home-row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: var(--r-small); background: transparent; color: var(--text); font: inherit; text-align: left; min-width: 0; }
+.home-row:hover { background: var(--hover-tint); }
+.home-row-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; flex: none; }
+.home-row-line { flex: 1; min-width: 0; font-size: var(--fs-callout); color: var(--subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-row-when { flex: none; font: var(--fs-footnote) var(--mono); color: var(--faint); }
+.home-row.working .home-row-when { color: var(--accent-text); }
+.home-row.unread .home-row-title { color: var(--accent-light); }
+.home-waiting-text { color: var(--yellow); }
+
 .list-room { display: flex; }
 .chats { width: 260px; display: flex; flex-direction: column; background: var(--raised); border-right: 1px solid var(--divider); min-height: 0; }
 .chats-head { height: 40px; flex: none; display: flex; align-items: center; padding: 0 6px; border-bottom: 1px solid var(--divider); gap: 4px; }

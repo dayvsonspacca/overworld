@@ -7,4 +7,5 @@ internal sealed record ChatEntry(
     string Agent,
     string Title,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SessionId = null,
-    IReadOnlyList<TurnEntry>? Turns = null);
+    IReadOnlyList<TurnEntry>? Turns = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DateTimeOffset? Touched = null);

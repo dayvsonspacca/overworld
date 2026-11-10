@@ -148,6 +148,42 @@ public sealed class ConversationViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task WaitsOnThePersonWhileARequestIsOpen()
+    {
+        var (_, conversation) = await ReadyAsync();
+        var held = new TaskCompletionSource();
+        _bench.Session.Held = held;
+        _bench.Session.Script(new Permission("p-1", ActKind.Command, "dotnet test", "To check", []), new Finished());
+        conversation.Draft = "test it";
+        var sending = conversation.SendCommand.ExecuteAsync(null);
+
+        for (var tries = 0; tries < 200 && !conversation.Timeline.Entries.OfType<PermissionEntry>().Any(); tries++)
+        {
+            await Task.Delay(10, Bench.Cancellation);
+        }
+
+        Assert.True(conversation.IsWaiting);
+
+        conversation.Timeline.Entries.OfType<PermissionEntry>().Single().AllowOnceCommand.Execute(null);
+
+        Assert.False(conversation.IsWaiting);
+        held.SetResult();
+        await sending;
+    }
+
+    [Fact]
+    public async Task StopsWaitingWhenTheAgentIsDone()
+    {
+        var (_, conversation) = await ReadyAsync();
+        _bench.Session.Script(new Permission("p-1", ActKind.Command, "dotnet test", "To check", []), new Finished());
+        conversation.Draft = "test it";
+
+        await conversation.SendCommand.ExecuteAsync(null);
+
+        Assert.False(conversation.IsWaiting);
+    }
+
+    [Fact]
     public async Task HearsTheAgentWakeOnItsOwn()
     {
         var (folder, conversation) = await ReadyAsync();

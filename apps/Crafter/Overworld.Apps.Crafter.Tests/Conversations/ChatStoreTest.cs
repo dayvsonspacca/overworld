@@ -2,6 +2,7 @@ using Overworld.Allay.Agents;
 using Overworld.Allay.Conversations;
 using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Pictures;
+using Overworld.Apps.Crafter.Tests.Fakes;
 
 namespace Overworld.Apps.Crafter.Tests.Conversations;
 
@@ -113,6 +114,18 @@ public sealed class ChatStoreTest : IDisposable
                 new Act("t-4", ActKind.Other, "Monitor"),
             ],
             reply.Moments);
+    }
+
+    [Fact]
+    public async Task StampsAChatWhenItIsKeptAndRemembersWhen()
+    {
+        var store = new ChatStore(_folder.Path, new PictureStore(_folder.PathTo("pictures")), new Still());
+        var untouched = new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Left"), null, []);
+        await store.SaveAsync(Project, [untouched], Token);
+
+        await store.KeepAsync(Project, new ChatRecord(ChatId.New(), Claude, ChatTitle.Of("Kept"), null, []), Token);
+
+        Assert.Equal([null, DateTimeOffset.UnixEpoch], (await Store().LoadAsync(Project, Token)).Value.Select(chat => chat.Touched));
     }
 
     [Fact]

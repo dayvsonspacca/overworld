@@ -21,6 +21,8 @@ public sealed class OverviewViewModelTest : IDisposable
 
         var workbench = new WorkbenchViewModel(_bench.Abilities);
         await workbench.LoadAsync(Bench.Cancellation);
+        workbench.Go(0);
+        await workbench.Opening;
         await workbench.OpenOverviewCommand.ExecuteAsync(null);
 
         return workbench;
@@ -33,6 +35,8 @@ public sealed class OverviewViewModelTest : IDisposable
         await _bench.ChatsAsync(folder, Bench.Chat("Bar"));
         var workbench = new WorkbenchViewModel(_bench.Abilities);
         await workbench.LoadAsync(Bench.Cancellation);
+        workbench.Go(0);
+        await workbench.Opening;
         workbench.Project!.Chat = null;
 
         await workbench.OpenOverviewCommand.ExecuteAsync(null);
@@ -107,7 +111,7 @@ public sealed class OverviewViewModelTest : IDisposable
     }
 
     [Fact]
-    public async Task RemovesTheProjectAndOpensTheNextOne()
+    public async Task RemovesTheProjectAndGoesHome()
     {
         var workbench = await OpenAsync("alpha", "beta");
         var overview = workbench.Project!.Overview;
@@ -117,6 +121,7 @@ public sealed class OverviewViewModelTest : IDisposable
         await overview.RemoveCommand.ExecuteAsync(null);
 
         Assert.Equal("beta", Assert.Single(workbench.Projects).Name);
-        Assert.Equal("beta", workbench.Project?.Name);
+        Assert.Null(workbench.Project);
+        Assert.True(workbench.ShowsHome);
     }
 }

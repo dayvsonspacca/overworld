@@ -39,6 +39,11 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
     public string LastLine => LastLineOf(Record.Turns);
 
     [ObservableProperty]
+    public partial DateTimeOffset? Touched { get; private set; } = record.Touched;
+
+    public bool IsWaiting => _conversation?.IsWaiting ?? false;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsWorking), nameof(IsUnread))]
     public partial ChatState State { get; set; }
 
@@ -86,12 +91,16 @@ public sealed partial class ChatSummaryViewModel(ChatRecord record, string folde
             case nameof(ConversationViewModel.IsWorking) when _conversation!.IsWorking:
                 State = ChatState.Working;
                 break;
+            case nameof(ConversationViewModel.IsWaiting):
+                OnPropertyChanged(nameof(IsWaiting));
+                break;
         }
     }
 
     private void Heard()
     {
         State = IsOpen ? ChatState.Idle : ChatState.Unread;
+        Touched = abilities.Time.GetUtcNow();
         OnPropertyChanged(nameof(LastLine));
     }
 

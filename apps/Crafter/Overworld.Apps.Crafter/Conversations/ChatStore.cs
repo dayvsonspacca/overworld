@@ -10,7 +10,7 @@ using Overworld.Chest;
 
 namespace Overworld.Apps.Crafter.Conversations;
 
-public sealed class ChatStore(string directory, PictureStore pictures)
+public sealed class ChatStore(string directory, PictureStore pictures, TimeProvider? time = null)
 {
     private static readonly IReadOnlyDictionary<ActKind, string> Does = new Dictionary<ActKind, string>
     {
@@ -70,7 +70,7 @@ public sealed class ChatStore(string directory, PictureStore pictures)
 
     public async Task<Result<IReadOnlyList<ChatRecord>>> KeepAsync(string folder, ChatRecord chat, CancellationToken cancellationToken)
     {
-        var entry = Entry(chat);
+        var entry = Entry(chat with { Touched = (time ?? TimeProvider.System).GetUtcNow() });
         var kept = await FileOf(folder).UpdateAsync(
             saved => Result.Success<IReadOnlyList<ChatEntry>>(
                 saved.Any(each => each.Id == entry.Id)
@@ -118,11 +118,11 @@ public sealed class ChatStore(string directory, PictureStore pictures)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entry.Agent);
 
-        return new(new ChatId(entry.Id), new AgentId(entry.Agent), ChatTitle.Of(entry.Title), entry.SessionId, [.. (entry.Turns ?? []).Select(Turn)]);
+        return new(new ChatId(entry.Id), new AgentId(entry.Agent), ChatTitle.Of(entry.Title), entry.SessionId, [.. (entry.Turns ?? []).Select(Turn)], entry.Touched);
     }
 
     private ChatEntry Entry(ChatRecord record) =>
-        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry).OfType<TurnEntry>()]);
+        new(record.Id.Value, record.Agent.Value, record.Title.Text, record.SessionId, [.. record.Turns.Select(Entry).OfType<TurnEntry>()], record.Touched);
 
     private Turn Turn(TurnEntry entry)
     {

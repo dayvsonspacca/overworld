@@ -31,6 +31,8 @@ public sealed partial class ConversationViewModel : ObservableObject
 
     private readonly Dictionary<string, string> _rung = [];
 
+    private readonly List<Entry> _awaited = [];
+
     private readonly Workshop _workshop;
 
     private readonly Abilities _abilities;
@@ -114,6 +116,9 @@ public sealed partial class ConversationViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
     public partial bool IsWorking { get; private set; }
+
+    [ObservableProperty]
+    public partial bool IsWaiting { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasQueued), nameof(QueuedLabel))]
@@ -477,6 +482,7 @@ public sealed partial class ConversationViewModel : ObservableObject
 
         if (!working)
         {
+            StopWaiting();
             Pulse.Stop();
             Answered?.Invoke(this, EventArgs.Empty);
         }
@@ -497,6 +503,7 @@ public sealed partial class ConversationViewModel : ObservableObject
             };
 
             Timeline.Add(entry);
+            Await(entry, () => entry.IsOpen);
             cancellationToken.Register(() => OnUi(entry.Withdraw));
             asked.SetResult(entry);
         });
@@ -533,6 +540,7 @@ public sealed partial class ConversationViewModel : ObservableObject
         switch (moment)
         {
             case Request request when Timeline.Request(request.Id) is { IsOpen: true } entry:
+                Await(entry, () => entry.IsOpen);
                 _ = RingAsync(request, entry);
                 break;
             case Withdrawn withdrawn when _rung.Remove(withdrawn.Id, out var notice):
@@ -573,6 +581,29 @@ public sealed partial class ConversationViewModel : ObservableObject
         }
 
         _rung.Clear();
+    }
+
+    private void Await(Entry entry, Func<bool> isOpen)
+    {
+        _awaited.Add(entry);
+        entry.PropertyChanged += Settled;
+        IsWaiting = true;
+
+        void Settled(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(RequestEntry.IsOpen) && !isOpen())
+            {
+                entry.PropertyChanged -= Settled;
+                _awaited.Remove(entry);
+                IsWaiting = _awaited.Count > 0;
+            }
+        }
+    }
+
+    private void StopWaiting()
+    {
+        _awaited.Clear();
+        IsWaiting = false;
     }
 
     private sealed record Sent(Prompt Prompt, string Draft, IReadOnlyList<Attachment> Attached);

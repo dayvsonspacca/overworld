@@ -1,5 +1,5 @@
-import { createElement, useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { ListChecks, Scale, Sparkles, SquareTerminal } from 'lucide-react';
+import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { House, ListChecks, Scale, Sparkles, SquareTerminal } from 'lucide-react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -52,6 +52,11 @@ function Rail({ workbench }: { workbench: Obj }) {
   const ids = projects.map((ref) => idOf(ref)!);
   return (
     <nav className="rail">
+      <div className="rail-slot">
+        {workbench.p.showsHome && <i className="rail-mark" />}
+        <button className={`rail-project tool ${workbench.p.showsHome ? 'current' : ''}`} title="Home · Ctrl+H" onClick={() => run(workbench, 'GoHomeCommand')}><House className="size-4" /></button>
+      </div>
+      <i className="rail-rule" />
       <div className="rail-list">
         <Sortable ids={ids} onMove={(from, to) => invoke(workbench, 'MoveProjectAsync', from, to)}>
           {ids.map((id) => <RailProject key={id} id={id} workbench={workbench} />)}
@@ -303,7 +308,7 @@ function Overview({ id, project }: { id: any; project: Obj }) {
             {p.isRenaming
               ? <input ref={name} className="rename" value={p.newName ?? ''} onChange={(e) => put(overview, 'NewName', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') run(overview, 'SaveNameCommand'); if (e.key === 'Escape') run(overview, 'CancelRenameCommand'); }} />
               : <h1>{project.p.name}</h1>}
-            <span className="mono subtle footnote">{p.place}{p.branch && ` · ${p.branch}`}</span>
+            <span className="mono subtle footnote">{project.p.place}{project.p.branch && ` · ${project.p.branch}`}</span>
           </div>
           <div className="buttons">
             {p.isRenaming ? (
@@ -493,11 +498,122 @@ function Gate({ id }: { id: any }) {
   );
 }
 
+function ago(touched: string) {
+  const minutes = Math.floor((Date.now() - new Date(touched).getTime()) / 60000);
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? 'yesterday' : `${days} d`;
+}
+
+function useMinutes() {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const every = setInterval(() => tick((n) => n + 1), 60000);
+    return () => clearInterval(every);
+  }, []);
+}
+
+function Badge({ project, size }: { project: Obj; size: 'badge' | 'mini' }) {
+  const version = useMemo(() => Date.now(), [project.p.iconFile, project.p.project]);
+  return <div className={`home-${size}`}>{project.p.hasIcon ? <img src={localFile(project.p.iconFile, version)} alt="" /> : <span>{project.p.letter}</span>}</div>;
+}
+
+function count(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+function Card({ id, workbench }: { id: number; workbench: Obj }) {
+  const project = useObj(id);
+  const aside = useObj(project?.p.aside);
+  const todos = useObj(aside?.p.todos);
+  if (!project) return null;
+  const p = project.p;
+  const left = todos?.p.left ?? 0;
+  return (
+    <div className="home-card" role="button" tabIndex={0} onClick={() => run(workbench, 'OpenCommand', { $ref: project.id })} onKeyDown={(e) => { if (e.key === 'Enter') run(workbench, 'OpenCommand', { $ref: project.id }); }}>
+      <button className="btn icon home-quick" title="New chat in this project" onClick={(e) => { e.stopPropagation(); run(workbench, 'NewChatInCommand', { $ref: project.id }); focusComposer(); }}><Icon d={glyphs.plus} /></button>
+      <div className="home-card-top">
+        <Badge project={project} size="badge" />
+        <div className="home-card-name">
+          <strong>{p.name}</strong>
+          <span className="mono subtle footnote">{p.place}{p.branch && ` · ${p.branch}`}</span>
+        </div>
+      </div>
+      <div className="home-card-line">{p.lastLine ?? <span className="subtle">No chats yet.</span>}</div>
+      <div className="home-pills">
+        {p.working > 0 && <span className="pill home-working"><i className="home-pulse" />{p.working} working</span>}
+        {p.waiting > 0 && <span className="pill home-waiting">waiting on you</span>}
+        <span className="pill">{count(p.chatCount ?? 0, 'chat', 'chats')}</span>
+        {left > 0 && <span className="pill">{count(left, 'todo', 'todos')}</span>}
+      </div>
+    </div>
+  );
+}
+
+function Recent({ id, workbench }: { id: number; workbench: Obj }) {
+  const recent = useObj(id);
+  const project = useObj(recent?.p.project);
+  const chat = useObj(recent?.p.chat);
+  if (!recent || !project || !chat) return null;
+  const c = chat.p;
+  return (
+    <button className={`home-row ${c.isWorking ? 'working' : ''} ${c.isUnread ? 'unread' : ''}`} onClick={() => run(workbench, 'OpenRecentCommand', { $ref: recent.id })}>
+      <Badge project={project} size="mini" />
+      <span className="home-row-title">{c.title}</span>
+      <span className="home-row-line">{c.isWaiting ? <span className="home-waiting-text">Waiting on you</span> : c.lastLine}</span>
+      <span className="home-row-when">{c.isWorking ? 'working' : c.touched && ago(c.touched)}</span>
+    </button>
+  );
+}
+
+function Home({ id, workbench }: { id: any; workbench: Obj }) {
+  const home = useObj(id);
+  const recent = useList(home?.p.recent);
+  const projects = useList(workbench.p.projects);
+  useMinutes();
+  if (!home) return null;
+  const h = home.p;
+  const told = [
+    count(projects.length, 'project', 'projects'),
+    h.working > 0 && count(h.working, 'agent working', 'agents working'),
+    h.waiting > 0 && `${h.waiting} waiting on you`,
+  ].filter(Boolean).join(' · ');
+  return (
+    <div className="home">
+      <div className="home-inner">
+        <header className="home-head">
+          <div><h1>Crafter</h1><span className="subtle footnote">{told}</span></div>
+          <span className="spacer" />
+          <Button title="Ctrl+," onClick={() => run(workbench, 'TogglePreferencesCommand')}>Preferences</Button>
+          <Button kind="primary" title="Ctrl+K Ctrl+O" onClick={() => run(workbench, 'AddProjectCommand')}>Add a project</Button>
+        </header>
+        {workbench.p.problem && <div className="legend-error">{workbench.p.problem}</div>}
+        <section className="home-section">
+          <span className="group-label">Projects</span>
+          <div className="home-grid">
+            {projects.map((ref) => <Card key={idOf(ref)} id={idOf(ref)!} workbench={workbench} />)}
+            <button className="home-add" onClick={() => run(workbench, 'AddProjectCommand')}><Icon d={glyphs.plus} size={20} /><span>Add a project</span></button>
+          </div>
+        </section>
+        <section className="home-section">
+          <span className="group-label">Recent chats</span>
+          {h.hasRecent
+            ? <div className="home-rows">{recent.map((ref) => <Recent key={idOf(ref)} id={idOf(ref)!} workbench={workbench} />)}</div>
+            : <span className="subtle">The chats you talk in show up here.</span>}
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function Main({ workbench, project }: { workbench: Obj; project: Obj | null }) {
   const chat = useObj(project?.p.chat);
   const aside = useObj(project?.p.aside);
   if (!project) {
-    return <main className="main">{workbench.p.problem ? <div className="empty danger">{workbench.p.problem}</div> : <div className="empty">Add a project to start.</div>}</main>;
+    return <main className="main"><Home id={workbench.p.home} workbench={workbench} /></main>;
   }
   const p = project.p;
   return (
@@ -527,6 +643,7 @@ function Crafter({ root }: { root: any }) {
     { title: 'Next chat', group: 'Chats', keys: 'Ctrl+Tab', run: () => run(w(), 'NextChatCommand') },
     { title: 'Previous chat', group: 'Chats', keys: 'Ctrl+Shift+Tab', run: () => run(w(), 'PreviousChatCommand') },
     { title: 'Search chats', group: 'Chats', keys: 'Ctrl+F', run: () => { const s = document.getElementById('search') as HTMLInputElement | null; s?.focus(); s?.select(); } },
+    { title: 'Home', group: 'Projects', keys: 'Ctrl+H', run: () => run(w(), 'GoHomeCommand') },
     { title: 'Add a project', group: 'Projects', keys: 'Ctrl+K Ctrl+O', run: () => run(w(), 'AddProjectCommand') },
     { title: "Open the project's page", group: 'Projects', run: () => run(w(), 'OpenOverviewCommand') },
     { title: 'Rename the project', group: 'Projects', keys: 'F2', run: () => run(w(), 'RenameCommand') },

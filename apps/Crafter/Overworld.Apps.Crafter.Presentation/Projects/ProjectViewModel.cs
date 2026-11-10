@@ -5,11 +5,14 @@ using Overworld.Apps.Crafter.Conversations;
 using Overworld.Apps.Crafter.Presentation.Aside;
 using Overworld.Apps.Crafter.Presentation.Chats;
 using Overworld.Apps.Crafter.Projects;
+using Overworld.Apps.Crafter.Repositories;
 
 namespace Overworld.Apps.Crafter.Presentation.Projects;
 
 public sealed partial class ProjectViewModel : ObservableObject
 {
+    private static readonly string Home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
     private readonly Abilities _abilities;
 
     private readonly List<ChatSummaryViewModel> _chats = [];
@@ -33,7 +36,7 @@ public sealed partial class ProjectViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Name), nameof(Letter), nameof(IconFile), nameof(HasIcon))]
+    [NotifyPropertyChangedFor(nameof(Name), nameof(Letter), nameof(IconFile), nameof(HasIcon), nameof(Place))]
     public partial Project Project { get; private set; }
 
     public OverviewViewModel Overview { get; }
@@ -48,6 +51,25 @@ public sealed partial class ProjectViewModel : ObservableObject
     public string? IconFile => Project.IconFile is { } file && File.Exists(file) ? file : null;
 
     public bool HasIcon => IconFile is not null;
+
+    public string Place => Project.Folder.StartsWith(Home, StringComparison.Ordinal)
+        ? "~" + Project.Folder[Home.Length..]
+        : Project.Folder;
+
+    [ObservableProperty]
+    public partial string? Branch { get; private set; }
+
+    public event EventHandler? Tallied;
+
+    public IReadOnlyList<ChatSummaryViewModel> All => _chats;
+
+    public int ChatCount => _chats.Count;
+
+    public int Working => _chats.Count(chat => chat.IsWorking);
+
+    public int Waiting => _chats.Count(chat => chat.IsWaiting);
+
+    public string? LastLine => (_chats.Where(chat => chat.Touched is not null).MaxBy(chat => chat.Touched) ?? _chats.FirstOrDefault(chat => !chat.IsFresh))?.LastLine is { Length: > 0 } line ? line : null;
 
     public ObservableCollection<ChatSummaryViewModel> Chats { get; } = [];
 
@@ -79,25 +101,44 @@ public sealed partial class ProjectViewModel : ObservableObject
 
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
-        var chats = await _abilities.Chats.LoadAsync(Project.Folder, cancellationToken);
-
-        if (chats.IsSuccess)
+        if (await ListAsync(cancellationToken))
         {
-            Problem = null;
-            var known = _chats.ToDictionary(chat => chat.Id);
-            var stored = chats.Value.Reverse().Select(record => known.GetValueOrDefault(record.Id) ?? Summary(record)).ToList();
-            var unsaved = _chats.Where(chat => !stored.Contains(chat)).ToList();
-            _chats.Clear();
-            _chats.AddRange([.. unsaved, .. stored]);
-            Filter();
             Chat = Chats.FirstOrDefault(chat => chat == Chat) ?? Chats.FirstOrDefault();
-        }
-        else
-        {
-            Problem = chats.Error.Message;
         }
 
         await Aside.LoadAsync(cancellationToken);
+    }
+
+    public async Task SurveyAsync(CancellationToken cancellationToken)
+    {
+        await ReadBranchAsync(cancellationToken);
+        await ListAsync(cancellationToken);
+        await Aside.Todos.LoadAsync(cancellationToken);
+    }
+
+    public async Task ReadBranchAsync(CancellationToken cancellationToken) =>
+        Branch = await Task.Run(() => Branches.Of(Project.Folder), cancellationToken);
+
+    private async Task<bool> ListAsync(CancellationToken cancellationToken)
+    {
+        var chats = await _abilities.Chats.LoadAsync(Project.Folder, cancellationToken);
+
+        if (!chats.IsSuccess)
+        {
+            Problem = chats.Error.Message;
+
+            return false;
+        }
+
+        Problem = null;
+        var known = _chats.ToDictionary(chat => chat.Id);
+        var stored = chats.Value.Reverse().Select(record => known.GetValueOrDefault(record.Id) ?? Summary(record)).ToList();
+        var unsaved = _chats.Where(chat => !stored.Contains(chat)).ToList();
+        _chats.Clear();
+        _chats.AddRange([.. unsaved, .. stored]);
+        Filter();
+
+        return true;
     }
 
     public async Task NewChatAsync(CancellationToken cancellationToken)
@@ -120,7 +161,7 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
 
         Problem = null;
-        var chat = new ChatSummaryViewModel(record.Value, Project.Folder, _abilities, fresh: true);
+        var chat = Watched(new ChatSummaryViewModel(record.Value, Project.Folder, _abilities, fresh: true));
         _chats.Insert(0, chat);
         Query = string.Empty;
         Filter();
@@ -277,7 +318,29 @@ public sealed partial class ProjectViewModel : ObservableObject
         }
     }
 
-    private ChatSummaryViewModel Summary(ChatRecord record) => new(record, Project.Folder, _abilities);
+    private ChatSummaryViewModel Summary(ChatRecord record) => Watched(new(record, Project.Folder, _abilities));
+
+    private ChatSummaryViewModel Watched(ChatSummaryViewModel chat)
+    {
+        chat.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(ChatSummaryViewModel.State) or nameof(ChatSummaryViewModel.IsWaiting) or nameof(ChatSummaryViewModel.Touched) or nameof(ChatSummaryViewModel.LastLine))
+            {
+                Tally();
+            }
+        };
+
+        return chat;
+    }
+
+    private void Tally()
+    {
+        OnPropertyChanged(nameof(ChatCount));
+        OnPropertyChanged(nameof(Working));
+        OnPropertyChanged(nameof(Waiting));
+        OnPropertyChanged(nameof(LastLine));
+        Tallied?.Invoke(this, EventArgs.Empty);
+    }
 
     private void Filter()
     {
@@ -291,5 +354,6 @@ public sealed partial class ProjectViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasChats));
         OnPropertyChanged(nameof(FindsNothing));
+        Tally();
     }
 }
