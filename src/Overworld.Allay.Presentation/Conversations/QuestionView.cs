@@ -12,6 +12,10 @@ public sealed partial class QuestionView : ObservableObject
         _changed = changed;
         Question = question;
         Options = [.. question.Options.Select(option => new OptionView(option, this))];
+        if (Options.FirstOrDefault(option => option.IsRecommended) is { } recommended)
+        {
+            recommended.IsPicked = true;
+        }
     }
 
     public Question Question { get; }
@@ -25,7 +29,11 @@ public sealed partial class QuestionView : ObservableObject
     public IReadOnlyList<OptionView> Options { get; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAnswered))]
     public partial string Written { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsWriting { get; set; }
 
     public bool IsAnswered => Options.Any(option => option.IsPicked) || Written.Trim().Length > 0;
 
@@ -40,9 +48,24 @@ public sealed partial class QuestionView : ObservableObject
             {
                 other.IsPicked = false;
             }
+
+            IsWriting = false;
+            Written = string.Empty;
         }
 
+        OnPropertyChanged(nameof(IsAnswered));
         _changed();
+    }
+
+    partial void OnIsWritingChanged(bool value)
+    {
+        if (value && !Several)
+        {
+            foreach (var option in Options)
+            {
+                option.IsPicked = false;
+            }
+        }
     }
 
     partial void OnWrittenChanged(string value) => _changed();

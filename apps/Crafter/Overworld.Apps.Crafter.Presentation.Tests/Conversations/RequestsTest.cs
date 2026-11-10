@@ -42,6 +42,60 @@ public sealed class RequestsTest
     }
 
     [Fact]
+    public void GoesThroughTheQuestionsOneAtATime()
+    {
+        _timeline.Add(new Questions("q-1", [Commit, Checks]));
+        var questions = Assert.IsType<QuestionsEntry>(_timeline.Entries[0]);
+
+        Assert.True(questions.HasSteps);
+        Assert.False(questions.NextCommand.CanExecute(null));
+        Assert.False(questions.BackCommand.CanExecute(null));
+
+        questions.Asked[0].Options[0].IsPicked = true;
+        questions.NextCommand.Execute(null);
+
+        Assert.Equal(1, questions.Step);
+        Assert.True(questions.IsLast);
+        Assert.False(questions.NextCommand.CanExecute(null));
+
+        questions.BackCommand.Execute(null);
+        questions.GoCommand.Execute(1);
+
+        Assert.Equal(1, questions.Step);
+    }
+
+    [Fact]
+    public void PicksTheRecommendedOptionAndNamesItWithoutTheMark()
+    {
+        _timeline.Add(new Questions("q-1", [new Question("Which?", "Pick", false, [new Option("Plain", ""), new Option("Safe (Recommended)", "")])]));
+        var question = Assert.IsType<QuestionsEntry>(_timeline.Entries[0]).Asked[0];
+
+        Assert.Equal("Safe", question.Options[1].Label);
+        Assert.True(question.Options[1].IsRecommended);
+        Assert.True(question.Options[1].IsPicked);
+        Assert.Equal("Safe (Recommended)", question.Answer().Picked[0].Label);
+    }
+
+    [Fact]
+    public void WritingAnAnswerToOneChoiceUnpicksTheOptions()
+    {
+        _timeline.Add(new Questions("q-1", [Commit]));
+        var question = Assert.IsType<QuestionsEntry>(_timeline.Entries[0]).Asked[0];
+        question.Options[0].IsPicked = true;
+
+        question.IsWriting = true;
+        question.Written = "Three";
+
+        Assert.Empty(question.Answer().Picked);
+        Assert.Equal("Three", question.Answer().Written);
+
+        question.Options[1].IsPicked = true;
+
+        Assert.False(question.IsWriting);
+        Assert.Null(question.Answer().Written);
+    }
+
+    [Fact]
     public void SkipsQuestions()
     {
         _timeline.Add(new Questions("q-1", [Commit]));
