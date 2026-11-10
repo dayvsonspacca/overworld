@@ -15,8 +15,8 @@ if (!repository.IsSuccess)
 }
 
 var root = repository.Value;
-var config = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-var share = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+var config = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+var share = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 var bin = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "bin");
 var daemon = Environment.GetEnvironmentVariable("OVERWORLD_BIN") ?? Path.Combine(share, "overworld", "bin");
 var apps = Environment.GetEnvironmentVariable("OVERWORLD_APPS") ?? Path.Combine(share, "overworld", "apps");
