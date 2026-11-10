@@ -1,10 +1,20 @@
+using Overworld.Allay.Bells;
+using Overworld.Allay.ClaudeCode;
+using Overworld.Allay.Hiring;
+using Overworld.Allay.Presentation.Chats;
+using Overworld.Allay.Presentation.Conversations;
+using Overworld.Allay.Remote;
+using Overworld.Allay.Visits;
+using Overworld.Apps.Dye.Agents;
 using Overworld.Apps.Dye.Palettes;
 using Overworld.Apps.Dye.Profiles;
 using Overworld.Apps.Dye.Presentation;
+using Overworld.Apps.Dye.Presentation.Lending;
 using Overworld.Apps.Dye.Presentation.Profiles;
 using Overworld.Apps.Dye.Presentation.Themes;
 using Overworld.Apps.Dye.Themes;
 using Overworld.Beacon;
+using Overworld.Bell;
 using Overworld.Bedrock.Apps;
 using Overworld.Bedrock.Operations;
 using Overworld.Chest;
@@ -46,14 +56,37 @@ return await AppHost.RunAsync(
     args,
     withoutArgs: () => Task.FromResult(WebHost.Run(app, page =>
     {
+        var allay = DataDirectory.For("allay");
+        var crew = new Crew([new ClaudeCode(Path.Combine(allay, "claude-code", "skills"))], new StaffFile(allay));
+        var link = new AllayLink();
+        var folder = Directory.CreateDirectory(DataDirectory.For(app.Name)).FullName;
+        var brief = DyeBrief.Of(folder, Environment.ProcessPath ?? app.Command);
+        var ringer = new Ringer(new BellClient(new RedstoneClient(SocketPath.Resolve())), app.Name);
+        var chat = new ChatViewModel(new Lobby(crew, link), _ => Task.FromResult(brief), [new DyeLender()], DyeBrief.Suggestions, ringer, "Dye");
+        page.Activated += (_, _) => chat.IsAttended = true;
+        page.Deactivated += (_, _) => chat.IsAttended = false;
+        chat.Summoned += (_, _) => page.Summon();
+        _ = ringer.FollowAsync(new BeaconWatcher(SocketPath.Resolve(BeaconServer.SocketName)).WatchAsync(CancellationToken.None), CancellationToken.None);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            chat.End();
+            link.Dispose();
+        };
         var dye = new DyeViewModel(
             new PalettesViewModel(list, save),
             new ThemesViewModel(listThemes, applyTheme),
-            new ProfileViewModel(showProfile, setPicture, removePicture));
+            new ProfileViewModel(showProfile, setPicture, removePicture),
+            chat);
         _ = dye.LoadAsync(CancellationToken.None);
         _ = FollowAsync(dye);
 
         page.Mirror.Ignore<ThemeLook>(nameof(ThemeLook.Theme));
+
+        foreach (var (type, property) in Hidden.Properties)
+        {
+            page.Mirror.Ignore(type, property);
+        }
+
         page.Handle("picture", async picked =>
         {
             if (picked?["data"]?.GetValue<string>() is { Length: > 0 } data)

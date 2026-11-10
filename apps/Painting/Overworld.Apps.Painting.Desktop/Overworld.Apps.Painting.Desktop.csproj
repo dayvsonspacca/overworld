@@ -14,6 +14,7 @@
     <ProjectReference Include="../Overworld.Apps.Painting.Presentation/Overworld.Apps.Painting.Presentation.csproj" />
     <ProjectReference Include="../../../src/Overworld.Web/Overworld.Web.csproj" />
     <ProjectReference Include="../../../src/Overworld.Hosting/Overworld.Hosting.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Allay.ClaudeCode/Overworld.Allay.ClaudeCode.csproj" />
   </ItemGroup>
 
   <Import Project="../../../src/Overworld.Web/Page.targets" />

@@ -5,5 +5,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../Overworld.Apps.Dye/Overworld.Apps.Dye.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Allay.Presentation/Overworld.Allay.Presentation.csproj" />
   </ItemGroup>
 </Project>

@@ -1,51 +1,101 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { boot, TitleBar, Sidebar, Section, Button, TextField, useCommands, hex, localFile, pickFile, useObj, useList, run, can, put, obj, ask, type Obj } from '@overworld/kit';
+import { ChatBubble } from '@overworld/chat';
+import './chat.css';
 import './app.css';
+
+const Hex = /^#?[0-9a-f]{6}$/i;
+
+const typed = (colors: string) => (colors ?? '').split(/[\s,]+/).filter((c) => Hex.test(c)).map((c) => (c.startsWith('#') ? c : `#${c}`));
+
+function useCopied(): [string | null, (text: string, shown: string) => void] {
+  const [copied, setCopied] = useState<string | null>(null);
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(null), 1400);
+    return () => clearTimeout(t);
+  }, [copied]);
+  return [copied, (text, shown) => navigator.clipboard.writeText(text).then(() => setCopied(shown), () => undefined)];
+}
+
+function NewCard({ id }: { id: any }) {
+  const fresh = useObj(id);
+  if (!fresh) return null;
+  const n = fresh.p;
+  const save = () => run(fresh, 'SaveCommand');
+  const shown = typed(n.colors);
+  return (
+    <div className="new-card">
+      <span className="new-head">New palette</span>
+      <TextField label="Name" value={n.name} placeholder="Sea" error={n.nameError} disabled={n.isSaving} onInput={(v) => put(fresh, 'Name', v)} onEnter={save} />
+      <TextField label="Colors" value={n.colors} placeholder="#003F5C, #58508D" error={n.colorsError} disabled={n.isSaving} onInput={(v) => put(fresh, 'Colors', v)} onEnter={save} />
+      <div className="typed">{shown.map((c, i) => <i key={`${c}-${i}`} style={{ background: c }} />)}</div>
+      {n.problem && <span className="legend-error">{n.problem}</span>}
+      <div className="buttons">
+        <Button kind="primary" keys="Enter" disabled={n.isSaving} onClick={save}>{n.isSaving ? 'Saving…' : 'Save'}</Button>
+        {(n.name || n.colors) && <Button onClick={() => run(fresh, 'ClearCommand')}>Clear</Button>}
+      </div>
+    </div>
+  );
+}
+
+function Opened({ palettes }: { palettes: Obj }) {
+  const p = palettes.p;
+  const [copied, copy] = useCopied();
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented && !(e.target as HTMLElement).closest('input, textarea')) {
+        e.preventDefault();
+        run(palettes, 'CloseCommand');
+      }
+    };
+    addEventListener('keydown', key);
+    return () => removeEventListener('keydown', key);
+  }, []);
+  const colors: any[] = p.selected.colors ?? [];
+  return (
+    <div className="opened">
+      <div className="opened-head">
+        <Button keys="Esc" onClick={() => run(palettes, 'CloseCommand')}>All palettes</Button>
+        <h1>{p.selected.name}</h1>
+        <span className="count">{colors.length} colors</span>
+        <span className="spacer" />
+        <Button onClick={() => copy(colors.map((c) => c.hex).join(', '), 'every color')}>Copy all</Button>
+      </div>
+      <div className="bands">
+        {colors.map((c, i) => (
+          <button key={i} className="band" title={`Copy ${c.hex}`} style={{ background: c.hex, color: c.isLight ? '#000' : '#fff' }} onClick={() => copy(c.hex, c.hex)}>
+            <b>{c.hex}</b>
+            <small>rgb {c.r} {c.g} {c.b}</small>
+          </button>
+        ))}
+      </div>
+      <div className={`copied ${copied ? 'on' : ''}`}>{copied && <>Copied {copied}</>}</div>
+    </div>
+  );
+}
 
 function Palettes({ id }: { id: any }) {
   const palettes = useObj(id);
   const all = useList(palettes?.p.palettes);
-  const fresh = useObj(palettes?.p.new);
-  if (!palettes || !fresh) return null;
+  if (!palettes) return null;
   const p = palettes.p;
-  const n = fresh.p;
-  const save = () => run(fresh, 'SaveCommand');
+  if (p.selected) return <div className="main"><Opened palettes={palettes} /></div>;
   return (
     <div className="main">
-      <Sidebar>
-        <Section title="Palettes" count={all.length} fill>
+      <div className="gallery">
+        {p.problem && <span className="danger">{p.problem}</span>}
+        <div className="cards">
           {all.map((palette) => (
-            <div key={palette.$id} className={`row ${p.selected?.name === palette.name ? 'selected' : ''}`} onClick={() => put(palettes, 'Selected', palette)}>{palette.name}</div>
+            <button key={palette.$id} className="card" onClick={() => put(palettes, 'Selected', palette)}>
+              <span className="strip">{(palette.colors ?? []).map((c: any, i: number) => <i key={i} style={{ background: c.hex }} />)}</span>
+              <span className="meta"><b>{palette.name}</b><span>{palette.colors?.length ?? 0} colors</span></span>
+            </button>
           ))}
-          {all.length === 0 && <div className="row subtle">No palettes yet.</div>}
-        </Section>
-        <Section title="New palette">
-          <div className="new">
-            <TextField label="Name" value={n.name} placeholder="Sea" hint="Must not be taken by another palette." error={n.nameError} disabled={n.isSaving} onInput={(v) => put(fresh, 'Name', v)} onEnter={save} />
-            <TextField label="Colors" value={n.colors} placeholder="#003F5C, #58508D" hint="Hex colors in order, separated by commas." error={n.colorsError} disabled={n.isSaving} onInput={(v) => put(fresh, 'Colors', v)} onEnter={save} />
-            <div className="buttons">
-              <Button kind="primary" disabled={n.isSaving} onClick={save}>{n.isSaving ? 'Saving…' : 'Save'}</Button>
-              <Button onClick={() => run(fresh, 'ClearCommand')}>Clear</Button>
-            </div>
-            {n.problem && <span className="field-error">{n.problem}</span>}
-          </div>
-        </Section>
-      </Sidebar>
-      {all.length > 0 ? (
-        <div className="swatches">
-          {(p.swatches ?? []).map((s: any) => <div key={s.$id} className="swatch" style={{ background: hex(s.fill), color: s.ink }}><span>{s.label}</span></div>)}
+          <NewCard id={p.new} />
         </div>
-      ) : (
-        <div className="nothing">
-          {p.problem ? <span>{p.problem}</span> : (
-            <>
-              <strong>No palettes yet</strong>
-              <span>Save one on the left, or from a terminal:</span>
-              <code>overworld:dye save --name Sea --colors "#003F5C,#58508D"</code>
-            </>
-          )}
-        </div>
-      )}
+        {all.length === 0 && !p.problem && <span className="legend-hint">Or from a terminal: <code>overworld:dye save --name Sea --colors "#003F5C,#58508D"</code></span>}
+      </div>
     </div>
   );
 }
@@ -121,7 +171,7 @@ function Themes({ id }: { id: any }) {
             {p.problem && <span className="danger">{p.problem}</span>}
             <div className="group">
               <Preview look={selected} />
-              <span className="field-hint">An app and the shell in this theme's colors.</span>
+              <span className="legend-hint">An app and the shell in this theme's colors.</span>
             </div>
             <div className="groups">
               {(p.groups ?? []).map((group: any) => (
@@ -138,7 +188,7 @@ function Themes({ id }: { id: any }) {
                 </div>
               ))}
             </div>
-            <div className="saving"><span className="field-hint">New themes come from a terminal or an agent:</span><code>{p.saving}</code></div>
+            <div className="saving"><span className="legend-hint">New themes come from a terminal or an agent:</span><code>{p.saving}</code></div>
           </div>
         </div>
       )}
@@ -168,7 +218,7 @@ function Profile({ id }: { id: any }) {
           <Avatar profile={profile} />
           <div className="picture-text">
             <h2>Picture</h2>
-            <span className="field-hint">{p.hint}</span>
+            <span className="legend-hint">{p.hint}</span>
             <div className="buttons">
               <Button kind="primary" onClick={choose}>Choose picture…</Button>
               {p.hasPicture && <Button kind="danger-ghost" onClick={() => run(profile, 'RemovePictureCommand')}>Remove</Button>}
@@ -178,7 +228,7 @@ function Profile({ id }: { id: any }) {
         {p.problem && <span className="danger">{p.problem}</span>}
         <div className="group">
           <div className="start-menu"><Avatar profile={profile} small /><span>{p.user}</span></div>
-          <span className="field-hint">The start menu with this picture.</span>
+          <span className="legend-hint">The start menu with this picture.</span>
         </div>
       </div>
     </div>
@@ -207,6 +257,7 @@ function Dye({ root }: { root: any }) {
       {p.showsPalettes && <Palettes id={p.palettes} />}
       {p.showsThemes && <Themes id={p.themes} />}
       {p.showsProfile && <Profile id={p.profile} />}
+      {p.hasChat && <ChatBubble id={p.chat} />}
     </>
   );
 }

@@ -3,5 +3,6 @@
     <ProjectReference Include="../../../src/Overworld.Beacon/Overworld.Beacon.csproj" />
     <ProjectReference Include="../../../src/Overworld.Bedrock/Overworld.Bedrock.csproj" />
     <ProjectReference Include="../../../src/Overworld.Chest/Overworld.Chest.csproj" />
+    <ProjectReference Include="../../../src/Overworld.Allay/Overworld.Allay.csproj" />
   </ItemGroup>
 </Project>
