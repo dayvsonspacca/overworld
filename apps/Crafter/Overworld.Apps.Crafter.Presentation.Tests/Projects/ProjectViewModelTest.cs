@@ -151,13 +151,14 @@ public sealed class ProjectViewModelTest : IDisposable
         var talking = project.Chat!;
         await talking.Conversation.LoadDeskAsync(Bench.Cancellation);
         _bench.Session.Script(new Allay.Conversations.Speech("Done"), new Allay.Conversations.Finished());
-        _bench.Session.Held = new TaskCompletionSource();
+        var held = new TaskCompletionSource();
+        _bench.Session.Held = held;
         talking.Conversation.Draft = "go";
         var sending = talking.Conversation.SendCommand.ExecuteAsync(null);
         Assert.True(talking.IsWorking);
 
         project.Step(1);
-        _bench.Session.Held!.SetResult();
+        held.SetResult();
         await sending;
 
         Assert.True(talking.IsUnread);
