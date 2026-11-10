@@ -29,7 +29,7 @@ public static class WebHost
 
         if (window is null)
         {
-            Console.Error.WriteLine($"{app.Name}: overworld-window could not be started; run just seed, or open {server.Address} by hand.");
+            Console.Error.WriteLine($"{app.Name}: overworld-glass could not be started; run just seed, or open {server.Address} by hand.");
 
             return 1;
         }

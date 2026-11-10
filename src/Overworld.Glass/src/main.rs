@@ -49,8 +49,8 @@ fn main() -> ExitCode {
     let wanted = match wanted() {
         Ok(wanted) => wanted,
         Err(problem) => {
-            eprintln!("overworld-window: {problem}");
-            eprintln!("usage: overworld-window --app <name> --url <url> [--title <title>] [--icon <png>] [--parent <pid>]");
+            eprintln!("overworld-glass: {problem}");
+            eprintln!("usage: overworld-glass --app <name> --url <url> [--title <title>] [--icon <png>] [--parent <pid>]");
             return ExitCode::from(2);
         }
     };
@@ -90,7 +90,7 @@ fn main() -> ExitCode {
     match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(problem) => {
-            eprintln!("overworld-window: {problem}");
+            eprintln!("overworld-glass: {problem}");
             ExitCode::FAILURE
         }
     }

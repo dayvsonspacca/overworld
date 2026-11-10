@@ -4,9 +4,9 @@ using Overworld.Bedrock.Results;
 
 namespace Overworld.Seed.Steps;
 
-public sealed class WindowStep(string crate, string destination) : IStep
+public sealed class GlassStep(string crate, string destination) : IStep
 {
-    public const string Binary = "overworld-window";
+    public const string Binary = "overworld-glass";
 
     private const string Built = "target";
 
@@ -32,7 +32,7 @@ public sealed class WindowStep(string crate, string destination) : IStep
 
         if (built.Value.ExitCode != 0)
         {
-            return new Error("seed.window_failed", $"cargo build {crate} failed:{Environment.NewLine}{built.Value.Output}");
+            return new Error("seed.glass_failed", $"cargo build {crate} failed:{Environment.NewLine}{built.Value.Output}");
         }
 
         Directory.CreateDirectory(destination);

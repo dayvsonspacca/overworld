@@ -6,9 +6,9 @@ namespace Overworld.Web.Windowing;
 
 public static class WindowProcess
 {
-    private const string Binary = "overworld-window";
+    private const string Binary = "overworld-glass";
 
-    private const string Override = "OVERWORLD_WINDOW";
+    private const string Override = "OVERWORLD_GLASS";
 
     public static Process? Open(string app, string title, Uri url, string? icon)
     {
@@ -48,7 +48,7 @@ public static class WindowProcess
         string[] places =
         [
             Path.Combine(AppContext.BaseDirectory, Binary),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "overworld", "window", Binary),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "overworld", "glass", Binary),
         ];
 
         return places.FirstOrDefault(File.Exists) ?? Binary;
