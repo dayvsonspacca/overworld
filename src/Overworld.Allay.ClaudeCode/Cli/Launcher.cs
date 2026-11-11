@@ -52,6 +52,28 @@ internal static class Launcher
         }
     }
 
+    public static async Task LetGoAsync(Process process, TimeSpan patience)
+    {
+        try
+        {
+            process.StandardInput.Close();
+        }
+        catch (IOException)
+        {
+        }
+
+        using var waiting = new CancellationTokenSource(patience);
+
+        try
+        {
+            await process.WaitForExitAsync(waiting.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Kill(process);
+        }
+    }
+
     public static void Kill(Process process)
     {
         try

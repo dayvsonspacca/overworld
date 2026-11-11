@@ -87,13 +87,27 @@ public sealed class ClaudeCodeTest
     {
         using var claude = new FakeClaude(
             "if [[ \"$1\" == \"--help\" ]]; then cat \"$(dirname \"$0\")/help.txt\"; exit 0; fi\n"
-            + "if [[ \"$*\" == *--input-format* ]]; then read -r line; cat \"$(dirname \"$0\")/introduction.json\"; sleep 5; fi");
+            + "if [[ \"$*\" == *--input-format* ]]; then read -r line; cat \"$(dirname \"$0\")/introduction.json\"; while read -r line; do :; done; fi");
         File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), CapabilitiesTest.Help);
         File.WriteAllText(Path.Combine(claude.Folder, "introduction.json"), CapabilitiesTest.Introduction + "\n");
 
         var models = await Agent(claude).ModelsAsync(Token);
 
         Assert.Equal(["opus", "claude-sonnet-4-6", "claude-next"], models.Select(model => model.Id));
+    }
+
+    [Fact]
+    public async Task LetsClaudeCodeFinishAfterIntroducingItself()
+    {
+        using var claude = new FakeClaude(
+            "if [[ \"$1\" == \"--help\" ]]; then cat \"$(dirname \"$0\")/help.txt\"; exit 0; fi\n"
+            + "if [[ \"$*\" == *--input-format* ]]; then read -r line; cat \"$(dirname \"$0\")/introduction.json\"; while read -r line; do :; done; sleep 0.5; touch \"$(dirname \"$0\")/finished\"; fi");
+        File.WriteAllText(Path.Combine(claude.Folder, "help.txt"), CapabilitiesTest.Help);
+        File.WriteAllText(Path.Combine(claude.Folder, "introduction.json"), CapabilitiesTest.Introduction + "\n");
+
+        await Agent(claude).ModelsAsync(Token);
+
+        Assert.True(File.Exists(Path.Combine(claude.Folder, "finished")));
     }
 
     [Fact]

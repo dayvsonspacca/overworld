@@ -198,7 +198,7 @@ public sealed class ClaudeCode(string shelves, string executable = "claude", str
         }
         finally
         {
-            Launcher.Kill(process);
+            await Launcher.LetGoAsync(process, Patience);
         }
     }
 
