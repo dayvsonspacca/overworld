@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 
 export type Ref = { $ref: number };
 
@@ -135,6 +135,27 @@ export function useList<T = any>(ref: any): T[] {
   const id = idOf(ref);
   const subscribe = useMemo(() => watch(id), [id]);
   return useSyncExternalStore(subscribe, () => (id == null ? empty : lists.get(id) ?? empty));
+}
+
+export function useDraft(remote: string | null | undefined, send: (value: string) => void) {
+  const sent = useRef<{ value: string; at: number }[]>([]);
+  const [local, setLocal] = useState(remote ?? '');
+  useEffect(() => {
+    const value = remote ?? '';
+    const now = Date.now();
+    sent.current = sent.current.filter((s) => now - s.at < 1500);
+    if (sent.current.some((s) => s.value === value)) return;
+    setLocal(value);
+  }, [remote]);
+  const write = (value: string) => {
+    setLocal(value);
+    sent.current.push({ value, at: Date.now() });
+    send(value);
+  };
+  const forget = () => {
+    sent.current = [];
+  };
+  return { local, write, forget };
 }
 
 function watchRoot(fn: () => void) {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent, type RefObject } from 'react';
 import { ArrowUp, Check, ChevronDown, ClipboardList, FilePen, FileText, Paperclip, Plus, Square, Wand2, X, type LucideIcon } from 'lucide-react';
-import { blob, choose, readFile, obj, useObj, useList, run, can, put, invoke, ask, idOf, type Obj } from '@overworld/kit';
+import { blob, choose, readFile, obj, useObj, useList, useDraft, run, can, put, invoke, ask, idOf, type Obj } from '@overworld/kit';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, cn } from '@overworld/chat';
 
 export const footerButton =
@@ -161,18 +161,10 @@ export function Composer({ conversation, box }: { conversation: Obj; box: RefObj
   const p = conversation.p;
   const mentions = obj(p.mentions);
   const escaped = useRef(0);
-  const sent = useRef<{ value: string; at: number }[]>([]);
-  const [local, setLocal] = useState<string>(p.draft ?? '');
+  const draft = useDraft(p.draft, (value) => put(conversation, 'Draft', value));
+  const local = draft.local;
   const [focused, setFocused] = useState(false);
   const color = 'var(--accent)';
-
-  useEffect(() => {
-    const value = p.draft ?? '';
-    const now = Date.now();
-    sent.current = sent.current.filter((s) => now - s.at < 1500);
-    if (sent.current.some((s) => s.value === value)) return;
-    setLocal(value);
-  }, [p.draft]);
 
   useEffect(() => {
     const area = box.current;
@@ -184,9 +176,7 @@ export function Composer({ conversation, box }: { conversation: Obj; box: RefObj
   const look = (value: string, caret: number) => mentions && invoke(mentions, 'Look', value, caret);
 
   const write = (value: string, caret?: number) => {
-    setLocal(value);
-    sent.current.push({ value, at: Date.now() });
-    put(conversation, 'Draft', value);
+    draft.write(value);
     look(value, caret ?? value.length);
   };
 
@@ -217,7 +207,7 @@ export function Composer({ conversation, box }: { conversation: Obj; box: RefObj
 
   const send = () => {
     if (!can(conversation, 'SendCommand')) return;
-    sent.current = [];
+    draft.forget();
     run(conversation, 'SendCommand');
   };
 
@@ -253,7 +243,7 @@ export function Composer({ conversation, box }: { conversation: Obj; box: RefObj
         run(conversation, 'StopCommand');
         escaped.current = 0;
       } else if (now - escaped.current <= 500) {
-        sent.current = [];
+        draft.forget();
         run(conversation, 'ClearCommand');
         escaped.current = 0;
       } else {

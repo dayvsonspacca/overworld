@@ -1,6 +1,6 @@
 import { useRef, type KeyboardEvent } from 'react';
 import { Check, MessageCircleQuestion, ShieldAlert, X } from 'lucide-react';
-import { useObj, obj, run, can, put, idOf, type Obj } from '@overworld/kit';
+import { useObj, useDraft, obj, run, can, put, idOf, type Obj } from '@overworld/kit';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { cn } from './ui/cn';
@@ -68,6 +68,7 @@ function Option({ id, n, several }: { id: number; n: number; several: boolean })
 
 function Own({ question, n, field }: { question: Obj; n: number; field: { current: HTMLInputElement | null } }) {
   const p = question.p;
+  const written = useDraft(p.written, (v) => put(question, 'Written', v));
   const open = p.isWriting || (p.written ?? '').length > 0;
   if (!open) {
     return (
@@ -80,7 +81,7 @@ function Own({ question, n, field }: { question: Obj; n: number; field: { curren
   return (
     <label className="flex items-center gap-2.5 rounded-md border border-[var(--accent-deep)] bg-muted px-2.5 py-1.5">
       <span className={cn(Key, p.several ? 'rounded' : 'rounded-full', Picked)}>{n}</span>
-      <input ref={(e) => { field.current = e; }} autoFocus style={{ border: 0, padding: 0, background: 'transparent', borderRadius: 0 }} className="min-w-0 flex-1 text-sm outline-none placeholder:text-muted-foreground" placeholder="Write your own answer" value={p.written ?? ''} onChange={(e) => put(question, 'Written', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) put(question, 'IsWriting', false); }} />
+      <input ref={(e) => { field.current = e; }} autoFocus style={{ border: 0, padding: 0, background: 'transparent', borderRadius: 0 }} className="min-w-0 flex-1 text-sm outline-none placeholder:text-muted-foreground" placeholder="Write your own answer" value={written.local} onChange={(e) => written.write(e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) put(question, 'IsWriting', false); }} />
     </label>
   );
 }

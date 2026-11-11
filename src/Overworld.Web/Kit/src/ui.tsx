@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type MouseEvent, type KeyboardEvent } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { windowControls } from './window';
+import { useDraft } from './mirror';
 
 export const glyphs = {
   minimize: 'M3.5 8.5h9',
@@ -225,6 +226,7 @@ type FieldProps = {
 
 export function TextField({ id, label, value, placeholder, hint, error, keys, multiline, disabled, autoFocus, onInput, onEnter, onKeyDown }: FieldProps) {
   const [shaking, setShaking] = useState(false);
+  const draft = useDraft(value, (v) => onInput?.(v));
   const key = (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onKeyDown?.(e);
     if (e.defaultPrevented || e.key !== 'Enter' || (multiline && !e.ctrlKey)) return;
@@ -233,9 +235,10 @@ export function TextField({ id, label, value, placeholder, hint, error, keys, mu
       requestAnimationFrame(() => setShaking(true));
       return;
     }
+    draft.forget();
     onEnter?.();
   };
-  const common = { id, value: value ?? '', placeholder, disabled, autoFocus, onChange: (e: { target: { value: string } }) => onInput?.(e.target.value), onKeyDown: key };
+  const common = { id, value: draft.local, placeholder, disabled, autoFocus, onChange: (e: { target: { value: string } }) => draft.write(e.target.value), onKeyDown: key };
   return (
     <label className="legend">
       <span className={`legend-key ${multiline ? 'stacked' : ''} ${error ? 'invalid' : ''} ${disabled ? 'off' : ''} ${shaking ? 'shake' : ''}`} onAnimationEnd={() => setShaking(false)}>

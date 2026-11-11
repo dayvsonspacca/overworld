@@ -3,7 +3,7 @@ import { ExternalLink, Folder, GitBranch, House, Library, ListChecks, RefreshCw,
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { boot, TitleBar, IconButton, Icon, Button, Modal, Prose, AllayIcon, SearchField, TextField, Progress, glyphs, useCommands, localFile, choose, useObj, useList, run, can, put, invoke, obj, idOf, type Obj } from '@overworld/kit';
+import { boot, TitleBar, IconButton, Icon, Button, Modal, Prose, AllayIcon, SearchField, TextField, Progress, glyphs, useCommands, localFile, choose, useObj, useList, useDraft, run, can, put, invoke, obj, idOf, type Obj } from '@overworld/kit';
 import { ChatBubble } from '@overworld/chat';
 import { Conversation, Viewer, Stage } from './chat/conversation';
 import './app.css';
@@ -290,6 +290,8 @@ function Overview({ id, project }: { id: any; project: Obj }) {
   const overview = useObj(id);
   const skills = useList(overview?.p.skills);
   const name = useRef<HTMLInputElement>(null);
+  const newName = useDraft(overview?.p.newName, (v) => put(overview, 'NewName', v));
+  const draft = useDraft(overview?.p.draft, (v) => put(overview, 'Draft', v));
   const version = useMemo(() => Date.now(), [project.p.iconFile, project.p.project]);
   useEffect(() => {
     if (overview?.p.isRenaming) requestAnimationFrame(() => { name.current?.focus(); name.current?.select(); });
@@ -307,7 +309,7 @@ function Overview({ id, project }: { id: any; project: Obj }) {
           <div className="overview-icon">{project.p.hasIcon ? <img src={localFile(project.p.iconFile, version)} alt="" /> : <span>{project.p.letter}</span>}</div>
           <div className="overview-name">
             {p.isRenaming
-              ? <input ref={name} className="rename" value={p.newName ?? ''} onChange={(e) => put(overview, 'NewName', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') run(overview, 'SaveNameCommand'); if (e.key === 'Escape') run(overview, 'CancelRenameCommand'); }} />
+              ? <input ref={name} className="rename" value={newName.local} onChange={(e) => newName.write(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') run(overview, 'SaveNameCommand'); if (e.key === 'Escape') run(overview, 'CancelRenameCommand'); }} />
               : <h1>{project.p.name}</h1>}
             <span className="mono subtle footnote">{project.p.place}{project.p.branch && ` · ${project.p.branch}`}</span>
           </div>
@@ -330,7 +332,7 @@ function Overview({ id, project }: { id: any; project: Obj }) {
           </div>
           {p.isEditing ? (
             <>
-              <textarea className="summary-editor" value={p.draft ?? ''} onChange={(e) => put(overview, 'Draft', e.target.value)} />
+              <textarea className="summary-editor" value={draft.local} onChange={(e) => draft.write(e.target.value)} />
               <div className="buttons">
                 <Button kind="primary" onClick={() => run(overview, 'SaveSummaryCommand')}>Save</Button>
                 <Button onClick={() => run(overview, 'CancelEditCommand')}>Cancel</Button>

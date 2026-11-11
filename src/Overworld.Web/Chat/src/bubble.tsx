@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { ArrowUp, ChevronDown, RotateCcw, Square, X } from 'lucide-react';
-import { AllayIcon, useCommands, useObj, useList, run, can, put, obj, type Obj } from '@overworld/kit';
+import { AllayIcon, useCommands, useDraft, useObj, useList, run, can, put, obj, type Obj } from '@overworld/kit';
 import { LoanView, MessageList } from './messages';
 import { Button } from './ui/button';
 import { cn } from './ui/cn';
@@ -44,16 +44,7 @@ function useFollow(deps: unknown[]) {
 
 function Composer({ chat, box }: { chat: Obj; box: React.RefObject<HTMLTextAreaElement | null> }) {
   const p = chat.p;
-  const sent = useRef<{ value: string; at: number }[]>([]);
-  const [local, setLocal] = useState<string>(p.draft ?? '');
-
-  useEffect(() => {
-    const value = p.draft ?? '';
-    const now = Date.now();
-    sent.current = sent.current.filter((s) => now - s.at < 1500);
-    if (sent.current.some((s) => s.value === value)) return;
-    setLocal(value);
-  }, [p.draft]);
+  const { local, write, forget } = useDraft(p.draft, (value) => put(chat, 'Draft', value));
 
   useEffect(() => {
     const area = box.current;
@@ -62,15 +53,9 @@ function Composer({ chat, box }: { chat: Obj; box: React.RefObject<HTMLTextAreaE
     area.style.height = `${Math.min(area.scrollHeight, 160)}px`;
   }, [local]);
 
-  const write = (value: string) => {
-    setLocal(value);
-    sent.current.push({ value, at: Date.now() });
-    put(chat, 'Draft', value);
-  };
-
   const send = () => {
     if (!can(chat, 'SendCommand')) return;
-    sent.current = [];
+    forget();
     run(chat, 'SendCommand');
   };
 
