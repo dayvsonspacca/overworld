@@ -71,6 +71,49 @@ public sealed class ChatViewModelTest : IDisposable
     }
 
     [Fact]
+    public async Task SendsThePicturesAttachedWithThePrompt()
+    {
+        var chat = await ReadyAsync();
+        chat.Draft = "Make a theme from this";
+        chat.Attach("image/png", [1, 2, 3]);
+
+        var sending = chat.SendCommand.ExecuteAsync(null);
+        await Until(() => _agent.Sessions is [{ Heard.Count: 1 }]);
+        _agent.Sessions[0].Feed.Writer.TryWrite(new Finished());
+        await sending;
+
+        Assert.Equal(new Picture("image/png", [1, 2, 3]), Assert.Single(_agent.Sessions[0].Heard[0].Attachments));
+        Assert.Empty(chat.Pictures);
+        Assert.Single(Assert.Single(chat.Timeline.Entries.OfType<PromptEntry>()).Pictures);
+    }
+
+    [Fact]
+    public async Task SendsAPictureWithoutWords()
+    {
+        var chat = await ReadyAsync();
+
+        Assert.False(chat.SendCommand.CanExecute(null));
+
+        chat.Attach("image/png", [1, 2, 3]);
+
+        Assert.True(chat.HasPictures);
+        Assert.True(chat.SendCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task KeepsAPictureOnceAndLetsItGo()
+    {
+        var chat = await ReadyAsync();
+
+        chat.Attach("image/png", [1, 2, 3]);
+        chat.Attach("image/png", [1, 2, 3]);
+        chat.DetachCommand.Execute(Assert.Single(chat.Pictures));
+
+        Assert.False(chat.HasPictures);
+        Assert.False(chat.SendCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task KeepsTalkingInTheSameSession()
     {
         var chat = await ReadyAsync();

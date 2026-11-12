@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -52,6 +53,11 @@ public sealed partial class ChatViewModel : ObservableObject
         _context = context;
         Suggestions = suggestions ?? [];
         Timeline = Fresh();
+        Pictures.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasPictures));
+            SendCommand.NotifyCanExecuteChanged();
+        };
     }
 
     public event EventHandler? Summoned;
@@ -61,6 +67,10 @@ public sealed partial class ChatViewModel : ObservableObject
     public bool IsAttended { get; set; }
 
     public Pulse Pulse { get; } = new();
+
+    public ObservableCollection<PictureView> Pictures { get; } = [];
+
+    public bool HasPictures => Pictures.Count > 0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
@@ -114,6 +124,16 @@ public sealed partial class ChatViewModel : ObservableObject
         Color = agent.Value.Color;
     }
 
+    public void Attach(string mediaType, byte[] data)
+    {
+        var picture = new Picture(mediaType, data);
+
+        if (!Pictures.Any(each => each.Picture.Equals(picture)))
+        {
+            Pictures.Add(new PictureView(picture, "Pasted by you"));
+        }
+    }
+
     public void End()
     {
         Unring();
@@ -125,8 +145,9 @@ public sealed partial class ChatViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendAsync()
     {
-        var prompt = new Prompt(Draft.Trim(), [], []);
+        var prompt = new Prompt(Draft.Trim(), [.. Pictures.Select(each => each.Picture)], []);
         Draft = string.Empty;
+        Pictures.Clear();
         Problem = null;
         _stopping = new CancellationTokenSource();
         var stopped = _stopping.Token;
@@ -136,7 +157,7 @@ public sealed partial class ChatViewModel : ObservableObject
         {
             if (await OpenAsync() is not { } visit || stopped.IsCancellationRequested)
             {
-                Draft = prompt.Text;
+                Restore(prompt);
 
                 return;
             }
@@ -168,6 +189,9 @@ public sealed partial class ChatViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void Detach(PictureView picture) => Pictures.Remove(picture);
+
+    [RelayCommand]
     private void Toggle() => IsOpen = !IsOpen;
 
     [RelayCommand]
@@ -186,7 +210,7 @@ public sealed partial class ChatViewModel : ObservableObject
     [RelayCommand]
     private void CloseSpread() => Spread = null;
 
-    private bool CanSend() => Draft.Trim().Length > 0 && Agent is not null && !IsWorking;
+    private bool CanSend() => (Draft.Trim().Length > 0 || Pictures.Count > 0) && Agent is not null && !IsWorking;
 
     private bool CanRestart() => !IsWorking;
 
@@ -249,8 +273,18 @@ public sealed partial class ChatViewModel : ObservableObject
             remote.Withdraw(prompt);
         }
 
-        Draft = prompt.Text;
+        Restore(prompt);
         OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    private void Restore(Prompt prompt)
+    {
+        Draft = prompt.Text;
+
+        foreach (var picture in prompt.Attachments.OfType<Picture>())
+        {
+            Attach(picture.MediaType, picture.Data);
+        }
     }
 
     private void Working(bool working)

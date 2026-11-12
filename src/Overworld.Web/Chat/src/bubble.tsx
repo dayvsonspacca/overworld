@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { ArrowUp, ChevronDown, RotateCcw, Square, X } from 'lucide-react';
-import { AllayIcon, useCommands, useDraft, useObj, useList, run, can, put, obj, type Obj } from '@overworld/kit';
+import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
+import { ArrowUp, ChevronDown, ImagePlus, RotateCcw, Square, X } from 'lucide-react';
+import { AllayIcon, useCommands, useDraft, useObj, useList, run, can, put, invoke, obj, blob, readFile, type Obj } from '@overworld/kit';
 import { LoanView, MessageList } from './messages';
 import { Button } from './ui/button';
 import { cn } from './ui/cn';
@@ -42,6 +42,27 @@ function useFollow(deps: unknown[]) {
   return { scroller, content, atBottom, scrolled, jump };
 }
 
+const pictures = (files: FileList | null | undefined) => [...(files ?? [])].filter((file) => file.type.startsWith('image/'));
+
+async function attach(chat: Obj, files: File[]) {
+  for (const file of files) await invoke(chat, 'Attach', file.type || 'image/png', await readFile(file));
+}
+
+function Pictures({ chat }: { chat: Obj }) {
+  const attached = useList(chat.p.pictures);
+  if (attached.length === 0) return null;
+  return (
+    <div className="bubble-strip">
+      {attached.map((picture) => (
+        <span key={picture.$id} className="bubble-thumb">
+          <img src={blob(picture.data)} alt="" />
+          <button type="button" aria-label="Remove the picture" title="Remove" onClick={() => run(chat, 'DetachCommand', picture)}><X /></button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Composer({ chat, box }: { chat: Obj; box: React.RefObject<HTMLTextAreaElement | null> }) {
   const p = chat.p;
   const { local, write, forget } = useDraft(p.draft, (value) => put(chat, 'Draft', value));
@@ -52,6 +73,21 @@ function Composer({ chat, box }: { chat: Obj; box: React.RefObject<HTMLTextAreaE
     area.style.height = 'auto';
     area.style.height = `${Math.min(area.scrollHeight, 160)}px`;
   }, [local]);
+
+  const picker = useRef<HTMLInputElement>(null);
+
+  const paste = async (e: ClipboardEvent) => {
+    const files = pictures(e.clipboardData?.files);
+    if (files.length === 0) return;
+    e.preventDefault();
+    await attach(chat, files);
+  };
+
+  const pick = async (files: FileList | null) => {
+    await attach(chat, pictures(files));
+    if (picker.current) picker.current.value = '';
+    box.current?.focus();
+  };
 
   const send = () => {
     if (!can(chat, 'SendCommand')) return;
@@ -69,20 +105,26 @@ function Composer({ chat, box }: { chat: Obj; box: React.RefObject<HTMLTextAreaE
 
   return (
     <div className="bubble-composer">
-      <textarea
-        ref={box}
-        rows={1}
-        value={local}
-        placeholder={p.placeholder}
-        disabled={!p.agent}
-        onChange={(e) => write(e.target.value)}
-        onKeyDown={key}
-      />
-      {p.isWorking ? (
-        <Button variant="secondary" size="icon-sm" className="rounded-full border" aria-label="Stop" title="Stop" onClick={() => run(chat, 'StopCommand')}><Square className="fill-current" /></Button>
-      ) : (
-        <Button size="icon-sm" className="rounded-full" aria-label="Send" title="Send · Enter" disabled={!can(chat, 'SendCommand')} onClick={send}><ArrowUp /></Button>
-      )}
+      <Pictures chat={chat} />
+      <div className="bubble-line">
+        <input ref={picker} type="file" accept="image/*" multiple hidden onChange={(e) => pick(e.target.files)} />
+        <Button variant="ghost" size="icon-sm" className="rounded-full text-muted-foreground" aria-label="Attach pictures" title="Attach pictures · or paste or drop them" disabled={!p.agent} onClick={() => picker.current?.click()}><ImagePlus /></Button>
+        <textarea
+          ref={box}
+          rows={1}
+          value={local}
+          placeholder={p.placeholder}
+          disabled={!p.agent}
+          onChange={(e) => write(e.target.value)}
+          onKeyDown={key}
+          onPaste={paste}
+        />
+        {p.isWorking ? (
+          <Button variant="secondary" size="icon-sm" className="rounded-full border" aria-label="Stop" title="Stop" onClick={() => run(chat, 'StopCommand')}><Square className="fill-current" /></Button>
+        ) : (
+          <Button size="icon-sm" className="rounded-full" aria-label="Send" title="Send · Enter" disabled={!can(chat, 'SendCommand')} onClick={send}><ArrowUp /></Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -130,13 +172,33 @@ function Panel({ chat }: { chat: Obj }) {
   const box = useRef<HTMLTextAreaElement>(null);
   const follow = useFollow([refs]);
   const empty = refs.length === 0 && !p.isWorking;
+  const [dropping, setDropping] = useState(false);
+  const carries = (e: DragEvent) => !!p.agent && [...e.dataTransfer.types].includes('Files');
+
+  const over = (e: DragEvent) => {
+    if (!carries(e)) return;
+    e.preventDefault();
+    setDropping(true);
+  };
+
+  const leave = (e: DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropping(false);
+  };
+
+  const drop = async (e: DragEvent) => {
+    if (!carries(e)) return;
+    e.preventDefault();
+    setDropping(false);
+    await attach(chat, pictures(e.dataTransfer.files));
+    box.current?.focus();
+  };
 
   useEffect(() => {
     requestAnimationFrame(() => box.current?.focus());
   }, []);
 
   return (
-    <div className="chat bubble-panel chat-pop" role="dialog" aria-label="Chat">
+    <div className="chat bubble-panel chat-pop" role="dialog" aria-label="Chat" style={{ ['--agent' as string]: p.color ?? 'var(--accent)' }} onDragOver={over} onDragLeave={leave} onDrop={drop}>
       <div className="bubble-head">
         <AllayIcon color={p.color} size={24} state={p.isWorking ? 'working' : 'idle'} />
         <b className="min-w-0 flex-1 truncate">{p.agent ?? 'Agent'}</b>
@@ -159,6 +221,11 @@ function Panel({ chat }: { chat: Obj }) {
         </div>
       )}
       <Composer chat={chat} box={box} />
+      {dropping && (
+        <div className="bubble-drop">
+          <div>Drop pictures here<small>They go with your next message</small></div>
+        </div>
+      )}
     </div>
   );
 }
